@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SourceFile>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/menu-music.mp3</SourceFile>
+  <SourceTime>2026-01-24T16:42:09.5856692+01:00</SourceTime>
+  <DestFile>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/bin/DesktopGL/Content/Audio/menu-music.xnb</DestFile>
+  <DestTime>2026-01-24T16:43:26.485994+01:00</DestTime>
+  <Importer>Mp3Importer</Importer>
+  <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
+  <Processor>SongProcessor</Processor>
+  <ProcessorTime>2025-10-20T16:25:32+02:00</ProcessorTime>
+  <Parameters>
+    <Key>Quality</Key>
+    <Value>Best</Value>
+  </Parameters>
+  <Dependencies />
+  <BuildAsset />
+  <BuildOutput>
+    <string>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/bin/DesktopGL/Content/Audio/menu-music.ogg</string>
+  </BuildOutput>
+</PipelineBuildEvent>

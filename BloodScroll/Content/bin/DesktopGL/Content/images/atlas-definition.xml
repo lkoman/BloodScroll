@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas>
+	<Texture>images/atlas</Texture>
+	<Regions>
+		<Region name="background" x="0" y="0" width="1920" height="1080" frameX="0" frameY="0" frameWidth="1920" frameHeight="1080"/>
+		<Region name="bat" x="1472" y="1080" width="256" height="128" frameX="-52" frameY="-26" frameWidth="256" frameHeight="128"/>
+		<Region name="bullet" x="1280" y="1208" width="16" height="16" frameX="-1" frameY="-1" frameWidth="16" frameHeight="16"/>
+		<Region name="platform" x="0" y="1080" width="960" height="256" frameX="0" frameY="-18" frameWidth="960" frameHeight="256"/>
+		<Region name="gun" x="1856" y="1080" width="64" height="64" frameX="-9" frameY="-13" frameWidth="64" frameHeight="64"/>
+		<Region name="heart" x="1856" y="1144" width="64" height="64" frameX="0" frameY="-5" frameWidth="64" frameHeight="64"/>
+		<Region name="heart-empty0000" x="1216" y="1208" width="64" height="64" frameX="0" frameY="-5" frameWidth="64" frameHeight="64"/>
+		<Region name="player" x="960" y="1208" width="128" height="128" frameX="-34" frameY="-16" frameWidth="128" frameHeight="128"/>
+		<Region name="slime" x="1728" y="1080" width="128" height="128" frameX="-7" frameY="-9" frameWidth="128" frameHeight="128"/>
+		<Region name="small-platform" x="1088" y="1208" width="128" height="64" frameX="0" frameY="-20" frameWidth="128" frameHeight="64"/>
+		<Region name="centipide" x="960" y="1080" width="512" height="128" frameX="-3" frameY="-2" frameWidth="512" frameHeight="128"/>
+	</Regions>
+</TextureAtlas>

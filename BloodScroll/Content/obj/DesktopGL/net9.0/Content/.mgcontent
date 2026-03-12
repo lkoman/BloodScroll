@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SourceFileCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Profile>Reach</Profile>
+  <Platform>DesktopGL</Platform>
+  <Config />
+  <SourceFiles>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/bat-squeak.wav</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/boss-gun.wav</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/boss-music.mp3</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/button-click.wav</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/button-hover.wav</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/fire-hit.wav</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/game-music.mp3</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/menu-music.mp3</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/player-gun.wav</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/player-hit.wav</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Audio/player-jump.wav</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Effects/flashWhite.fx</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Fonts/ButtonFont.spritefont</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Fonts/FontBig.spritefont</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Fonts/FontUI.spritefont</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Fonts/TitleFont.spritefont</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/atlas.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/backgrounds.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/enemies.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/player.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/UI.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/weapons.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/world.png</File>
+  </SourceFiles>
+  <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+  </DestFiles>
+</SourceFileCollection>

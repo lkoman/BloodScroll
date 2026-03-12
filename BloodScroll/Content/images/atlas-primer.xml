@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="atlas.png">
+	<Texture>images/atlas</Texture>
+	<Regions>
+		<SubTexture name="bat0" x="694" y="476" width="334" height="202" frameX="-8" frameY="-18" frameWidth="384" frameHeight="256"/>
+		<SubTexture name="bat1" x="347" y="476" width="347" height="224" frameX="-17" frameY="-26" frameWidth="384" frameHeight="256"/>
+		<SubTexture name="bat-purple0" x="1028" y="476" width="334" height="202" frameX="-8" frameY="-18" frameWidth="384" frameHeight="256"/>
+		<SubTexture name="bat-purple1" x="0" y="476" width="347" height="224" frameX="-17" frameY="-26" frameWidth="384" frameHeight="256"/>
+		<SubTexture name="bullet-blue" x="1885" y="524" width="32" height="32" frameX="0" frameY="0" frameWidth="32" frameHeight="32"/>
+		<SubTexture name="bullet-green" x="1853" y="476" width="48" height="48" frameX="0" frameY="0" frameWidth="48" frameHeight="48"/>
+		<SubTexture name="centipide0" x="1362" y="476" width="491" height="126" frameX="-3" frameY="-2" frameWidth="512" frameHeight="128"/>
+		<SubTexture name="centipide1" x="997" y="700" width="512" height="99" frameX="0" frameY="-15" frameWidth="512" frameHeight="128"/>
+		<SubTexture name="centipide2" x="497" y="700" width="500" height="113" frameX="-11" frameY="-13" frameWidth="512" frameHeight="128"/>
+		<SubTexture name="centipide3" x="497" y="813" width="509" height="99" frameX="0" frameY="-15" frameWidth="512" frameHeight="128"/>
+		<SubTexture name="fireball0" x="0" y="700" width="250" height="253" frameX="-2" frameY="0" frameWidth="256" frameHeight="256"/>
+		<SubTexture name="fireball1" x="250" y="700" width="247" height="250" frameX="-7" frameY="-3" frameWidth="256" frameHeight="256"/>
+		<SubTexture name="gun-blue" x="1729" y="602" width="93" height="45" frameX="-1" frameY="-1" frameWidth="96" frameHeight="48"/>
+		<SubTexture name="gun-green" x="1618" y="602" width="111" height="56" frameX="0" frameY="0" frameWidth="112" frameHeight="56"/>
+		<SubTexture name="platform" x="0" y="0" width="1920" height="476" frameX="0" frameY="-36" frameWidth="1920" frameHeight="512"/>
+		<SubTexture name="player0" x="0" y="953" width="183" height="250" frameX="-7" frameY="-4" frameWidth="200" frameHeight="256"/>
+		<SubTexture name="player1" x="183" y="953" width="170" height="247" frameX="-19" frameY="-7" frameWidth="200" frameHeight="256"/>
+		<SubTexture name="projectile-fire" x="1853" y="556" width="24" height="24" frameX="0" frameY="0" frameWidth="24" frameHeight="24"/>
+		<SubTexture name="projectile-purple" x="1853" y="524" width="32" height="32" frameX="0" frameY="0" frameWidth="32" frameHeight="32"/>
+		<SubTexture name="small-platform" x="1362" y="602" width="256" height="64" frameX="0" frameY="0" frameWidth="256" frameHeight="64"/>
+	</Regions>
+	<Animations>
+		<Animation name="player-animation" delay="200">
+			<Frame region="player0" />
+			<Frame region="player1" />
+		</Animation>
+	</Animations>
+</TextureAtlas>
