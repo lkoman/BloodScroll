@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <SourceFile>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/UI.png</SourceFile>
-  <SourceTime>2026-01-10T18:54:54.5847107+01:00</SourceTime>
+  <SourceTime>2026-04-21T13:39:14.0306422+02:00</SourceTime>
   <DestFile>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/bin/DesktopGL/Content/images/UI.xnb</DestFile>
-  <DestTime>2026-01-10T18:56:21.0982326+01:00</DestTime>
+  <DestTime>2026-04-21T13:40:26.4731856+02:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

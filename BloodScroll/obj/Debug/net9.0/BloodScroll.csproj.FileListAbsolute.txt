@@ -73,3 +73,11 @@ C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\n
 C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\Effects\flashWhite.xnb
 C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\Audio\bat-squeak.xnb
 C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\Audio\fire-hit.xnb
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\obj\Debug\net9.0\BloodScroll.sourcelink.json
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\images\centipide.xml
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\images\foreground.xml
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\images\foreground.xnb
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\images\crab.xml
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\images\Crab.xnb
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\images\Jellyfish.xml
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\BloodScroll\bin\Debug\net9.0\Content\images\Jellyfish.xnb

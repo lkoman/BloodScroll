@@ -25,11 +25,11 @@ public static class SaveManager
                 Globals.HIGH_SCORE = data.Gameplay[0].HighScore;
 
             // SETTINGS
-            foreach (var setting in data.Settings)
+            /*foreach (var setting in data.Settings)
             {
                 if (setting.Key == "fullscreen" && setting.BoolValue is bool fs)
                     Globals.FULLSCREEN = fs;
-            }
+            }*/
         }
     }
     public static void Save()
@@ -40,10 +40,10 @@ public static class SaveManager
             {
                 new HighScoreEntry { HighScore = Globals.HIGH_SCORE }
             },
-            Settings = new List<SettingEntry>
+            /*Settings = new List<SettingEntry>
             {
                 new SettingEntry { Key = "fullscreen", BoolValue = Globals.FULLSCREEN }
-            }
+            }*/
         };
 
         var json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
@@ -52,7 +52,7 @@ public static class SaveManager
     private class SaveData
     {
         public List<HighScoreEntry> Gameplay { get; set; } = new();
-        public List<SettingEntry> Settings { get; set; } = new();
+        //public List<SettingEntry> Settings { get; set; } = new();
     }
 
     private class HighScoreEntry

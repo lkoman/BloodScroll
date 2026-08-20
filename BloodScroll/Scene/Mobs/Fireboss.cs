@@ -19,6 +19,7 @@ public class Fireboss : IMob, IDrawableLayer
     public int DAMAGE { get; set; } = 100;
     public int PointsOnKill { get; set; } = 1000;
     public bool HittingPlayer { get; set; } = false;
+    public string ON_TOUCH {get; set; } = "nothing";
 
     private const string projectileType = "projectile-fire";
     private const int PROJECTILE_DAMAGE = 50;
@@ -249,4 +250,6 @@ public class Fireboss : IMob, IDrawableLayer
     {
         velocity.Y *= -3;
     }
+
+    public void Explode() {}
 }

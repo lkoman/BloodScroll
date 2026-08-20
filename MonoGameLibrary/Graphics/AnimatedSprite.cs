@@ -10,6 +10,8 @@ namespace MonoGameLibrary.Graphics;
 public class AnimatedSprite : Sprite 
 {
     private int _currentFrame;
+    public int CurrentFrame => _currentFrame;
+    public int FramesCount => _animation.Frames.Count;
     private TimeSpan _elapsed;
     private Animation _animation;
     public Animation Animation

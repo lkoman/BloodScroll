@@ -23,7 +23,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
     private List<Sprite> _guns = [];
     public enum EquippedWeapon {
         BlueGun = 0,
-        GreenGun = 1
+        GoldGun = 1
     }
     public EquippedWeapon equippedWeapon = EquippedWeapon.BlueGun;
 
@@ -48,8 +48,8 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         bulletDamage.Add(25);
 
         // WEAPON 1 - BIGGER GREEN
-        _guns.Add(Globals.Weapons.CreateSprite("gun-green"));
-        bulletTypes.Add("bullet-green");
+        _guns.Add(Globals.Weapons.CreateSprite("gun-gold"));
+        bulletTypes.Add("bullet-gold");
         bulletDamage.Add(50);
 
         SetGunPosition(player);
@@ -111,6 +111,9 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         // BUTTON PRESSED
         if (Globals.MouseState.LeftButton == ButtonState.Pressed)
         {
+            // rotate offset
+            Vector2 gunTip = GetGunTipPosition();
+            
             if (Globals.HoldingLeftButton == false)
             {
                 audio.PlaySound(AudioId.PlayerGun);
@@ -118,7 +121,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
                 // On (first) mouseclick: spawn a bullet
                 _bullets.Add(new Bullet());
                 _bullets.Last().LoadContent(
-                    _guns[(int)equippedWeapon].Position, // SPAWN
+                    gunTip, // SPAWN
                     Globals.MousePosition, // TARGET
                     bulletTypes[(int)equippedWeapon], 
                     bulletDamage[(int)equippedWeapon], 
@@ -135,7 +138,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
                     
                     _bullets.Add(new Bullet());
                     _bullets.Last().LoadContent(
-                        _guns[(int)equippedWeapon].Position, // SPAWN
+                        gunTip, // SPAWN
                         Globals.MousePosition, // TARGET
                         bulletTypes[(int)equippedWeapon], 
                         bulletDamage[(int)equippedWeapon], 
@@ -153,6 +156,23 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
             bulletSpawnTimer = 0f;
             Globals.HoldingLeftButton = false;
         }
+    }
+
+    private Vector2 GetGunTipPosition()
+    {
+        var gun = _guns[(int)equippedWeapon];
+
+        Vector2 origin = new Vector2(0, gun.Height / 2); // same as Draw
+        Vector2 tipLocal = new Vector2(gun.Width, 0) - origin;
+
+        // rotate offset
+        Vector2 gunTipPos = gun.Position + 
+            new Vector2(
+                tipLocal.X * MathF.Cos(gun_angle) - tipLocal.Y * MathF.Sin(gun_angle),
+                tipLocal.X * MathF.Sin(gun_angle) + tipLocal.Y * MathF.Cos(gun_angle)
+            );
+        
+        return gunTipPos;
     }
 
     private void Update_bullets()
@@ -187,8 +207,8 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
 
     public void SwitchWeapon()
     {
-        if (equippedWeapon == EquippedWeapon.BlueGun && WEAPONS_UNLOCKED >= (int)EquippedWeapon.GreenGun)
-            equippedWeapon = EquippedWeapon.GreenGun;
+        if (equippedWeapon == EquippedWeapon.BlueGun && WEAPONS_UNLOCKED >= (int)EquippedWeapon.GoldGun)
+            equippedWeapon = EquippedWeapon.GoldGun;
         else equippedWeapon = EquippedWeapon.BlueGun;
     }
 }

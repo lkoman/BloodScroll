@@ -33,6 +33,7 @@ public static class Globals
     public const int VIRTUAL_WIDTH = 1920;//3840;
     public const int VIRTUAL_HEIGHT = 1080;//2160;
     public static Vector2 CameraOffset { get; set; } = Vector2.Zero;
+    public static float GroundHeight; // Height at which all non flying characters will be standing
 
     // Game variables - time and seed
     public static float DT { get; set; }
@@ -55,10 +56,13 @@ public static class Globals
     public static SpriteBatch SpriteBatch { get; set; }
     public static TextureAtlas UI { get; set; }
     public static TextureAtlas Enemies { get; set; }
+    public static TextureAtlas Crab { get; set; }
+    public static TextureAtlas Jellyfish { get; set; }
     public static TextureAtlas Player { get; set; }
     public static TextureAtlas Weapons { get; set; }
     public static TextureAtlas World { get; set; }
     public static TextureAtlas Backgrounds { get; set; }
+    public static TextureAtlas Foregrounds { get; set; }
 
     // GLOBAL COLORS
     public static Color ScreenOverlayColor { get; set; } = Color.Transparent;
@@ -69,6 +73,7 @@ public static class Globals
     public static Color DarkGray { get; } = new Color(57, 74, 80);
     public static Color AlmostBlack { get; } = new Color(9, 10, 20);
     public static Color AlmostWhite { get; } = new Color(235, 237, 233);
+    public static Color HotPink { get; } = new Color(198, 81, 151);
 
     // CUSTOM EFFECTS
     public static Effect whiteFlashEffect;

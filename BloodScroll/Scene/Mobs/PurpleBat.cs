@@ -17,6 +17,7 @@ public class PurpleBat : IMob, IDrawableLayer
     public int DAMAGE { get; set; } = 25;
     public int PointsOnKill { get; set; } = 50;
     public bool HittingPlayer { get; set; } = false;
+    public string ON_TOUCH {get; set; } = "hurt_player";
     
     private AnimatedSprite _bat;
     private AnimatedSprite _batSleeping;
@@ -167,4 +168,6 @@ public class PurpleBat : IMob, IDrawableLayer
     {
         velocity.Y *= -3;
     }
+
+    public void Explode() {}
 }

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/weapons.png</SourceFile>
-  <SourceTime>2025-12-27T13:54:05.9497912+01:00</SourceTime>
-  <DestFile>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/bin/DesktopGL/Content/images/weapons.xnb</DestFile>
-  <DestTime>2025-12-27T13:58:08.408415+01:00</DestTime>
+  <SourceFile>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/Weapons.png</SourceFile>
+  <SourceTime>2026-04-15T08:50:10.4796889+02:00</SourceTime>
+  <DestFile>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/bin/DesktopGL/Content/images/Weapons.xnb</DestFile>
+  <DestTime>2026-04-21T12:41:24.1073388+02:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

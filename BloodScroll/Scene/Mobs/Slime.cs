@@ -16,6 +16,7 @@ public class Slime : IMob, IDrawableLayer
     public int DAMAGE {get; set; } = 25;
     public int PointsOnKill {get; set; } = 50;
     public bool HittingPlayer {get; set;} = false;
+    public string ON_TOUCH {get; set; } = "hurt_player";
 
     public AnimatedSprite _slime;
     public AnimatedSprite _slime_idle;
@@ -25,6 +26,7 @@ public class Slime : IMob, IDrawableLayer
     public int SpawnX { get; set; } = 0;
     private Vector2 target = Vector2.Zero;
     private int targetOffset = 200;
+    private int SpawnLayer;
 
     private Vector2 velocity;
 
@@ -35,7 +37,9 @@ public class Slime : IMob, IDrawableLayer
     Color drawColor = Color.White;
 
     public void LoadContent(Vector2 _, int spawnLayer)
-    {        
+    {
+        SpawnLayer = spawnLayer;
+
         _slime_idle = new AnimatedSprite();
         _slime_idle = Globals.Enemies.CreateAnimatedSprite("slime-animation");
 
@@ -90,7 +94,7 @@ public class Slime : IMob, IDrawableLayer
     {
         _slime.Position = new(
             0,
-            Globals.R.Next(0, Globals.VIRTUAL_HEIGHT) - Globals.CameraOffset.Y
+            -Core.windowHeight * SpawnLayer + Globals.R.Next(0, Globals.VIRTUAL_HEIGHT - (int)_slime.Height)
         );
         target = new(Globals.VIRTUAL_WIDTH, _slime.Position.Y + Globals.R.Next(-50, 50));
 
@@ -131,4 +135,6 @@ public class Slime : IMob, IDrawableLayer
     {
         velocity.Y *= -3;
     }
+
+    public void Explode() {}
 }

@@ -2,16 +2,10 @@
   "Gameplay": [
     {
       "HighScore": [
-        6000,
+        12475,
         3350,
-        900
+        1575
       ]
-    }
-  ],
-  "Settings": [
-    {
-      "Key": "fullscreen",
-      "BoolValue": true
     }
   ]
 }

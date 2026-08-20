@@ -22,13 +22,19 @@
     <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/Fonts/TitleFont.spritefont</File>
     <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/atlas.png</File>
     <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/backgrounds.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/Crab.png</File>
     <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/enemies.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/foreground.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/Jellyfish.png</File>
     <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/player.png</File>
     <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/UI.png</File>
-    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/weapons.png</File>
+    <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/Weapons.png</File>
     <File>C:/Users/Laraana/Desktop/Me/Faks/3. letnik VSS/TINR/Game/BloodScroll/Content/images/world.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

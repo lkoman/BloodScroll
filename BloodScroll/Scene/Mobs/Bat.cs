@@ -18,6 +18,7 @@ public class Bat : IMob, IDrawableLayer
     public int DAMAGE { get; set; } = 25;
     public int PointsOnKill { get; set; } = 25;
     public bool HittingPlayer { get; set; } = false;
+    public string ON_TOUCH {get; set; } = "hurt_player";
     
     private AnimatedSprite _bat;
     private AnimatedSprite _batSleeping;
@@ -152,4 +153,6 @@ public class Bat : IMob, IDrawableLayer
     {
         velocity.Y *= -3;
     }
+
+    public void Explode() {}
 }

@@ -13,7 +13,7 @@ public static class UISettings
     // Sizes (button, card)
     public static Vector2 buttonSize = new(512, 96);
     public static Vector2 smallButtonSize = new(256, 96);
-    public static Vector2 cardSize = new(512, 512);
+    public static Vector2 cardSize = new(512, 768);
 
     // FONTS
     public static SpriteFont titleFont = Core.Content.Load<SpriteFont>("Fonts/TitleFont");

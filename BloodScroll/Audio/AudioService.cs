@@ -6,25 +6,25 @@ using Microsoft.Xna.Framework;
 
 public sealed class AudioService : IAudioService
 {
-    private readonly Dictionary<AudioId, SoundEffect> sounds = [];
+    private readonly Dictionary<AudioId, SoundEffectInstance> sounds = [];
     private readonly Dictionary<AudioId, Song> music = [];
 
     public AudioService(ContentManager content)
     {
         // MENU
-        sounds[AudioId.ButtonHover] = content.Load<SoundEffect>("Audio/button-hover");
-        sounds[AudioId.ButtonClick] = content.Load<SoundEffect>("Audio/button-click");
+        sounds[AudioId.ButtonHover] = content.Load<SoundEffect>("Audio/button-hover").CreateInstance();
+        sounds[AudioId.ButtonClick] = content.Load<SoundEffect>("Audio/button-click").CreateInstance();
 
         // PLAYER
-        sounds[AudioId.PlayerGun] = content.Load<SoundEffect>("Audio/player-gun");
-        sounds[AudioId.PlayerJump] = content.Load<SoundEffect>("Audio/player-jump");
-        sounds[AudioId.PlayerHit] = content.Load<SoundEffect>("Audio/player-hit");
+        sounds[AudioId.PlayerGun] = content.Load<SoundEffect>("Audio/player-gun").CreateInstance();
+        sounds[AudioId.PlayerJump] = content.Load<SoundEffect>("Audio/player-jump").CreateInstance();
+        sounds[AudioId.PlayerHit] = content.Load<SoundEffect>("Audio/player-hit").CreateInstance();
 
         // MONSTERS
-        sounds[AudioId.BatSqueak] = content.Load<SoundEffect>("Audio/bat-squeak");
+        sounds[AudioId.BatSqueak] = content.Load<SoundEffect>("Audio/bat-squeak").CreateInstance();
 
         // Bosses
-        sounds[AudioId.FireHit] = content.Load<SoundEffect>("Audio/fire-hit");
+        sounds[AudioId.FireHit] = content.Load<SoundEffect>("Audio/fire-hit").CreateInstance();
 
         // MUSIC
         music[AudioId.MenuMusic] = content.Load<Song>("Audio/menu-music");
@@ -35,7 +35,12 @@ public sealed class AudioService : IAudioService
     public void PlaySound(AudioId id)
     {
         if (sounds.TryGetValue(id, out var s))
-            s.Play();
+        {
+            if (s.State != SoundState.Playing)
+            {
+                s.Play();
+            }
+        }
     }
 
     public void PlayMusic(AudioId musicId, bool loop = true)

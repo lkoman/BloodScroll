@@ -15,7 +15,8 @@ public class WaveData
     public int? IncreasedHP { get; set; } // Player gets the gift of higher max HP
 
     // NUMBER OF ENEMIES ON THIS LEVEL PER WAVE
-    public int? Centipides_num { get; set; }
+    public int? Crabs_num { get; set; }
+    public int? Jellyfish_num { get; set; }
     public int? Slimes_num { get; set; }
     public int? Bats_num { get; set; }
     public int? PurpleBats_num { get; set; }
@@ -32,7 +33,7 @@ public class WaveData
         LayerType = "Layer";
 
         // Waves timer seconds je enako kot st waves to beat (se veča slightly, da imaš malo več časa)
-        WavesTimerSeconds = (LayerIndex / 5) + 2;
+        WavesTimerSeconds = (LayerIndex / 5) + 3;
         WavesTimer = 0.0f;
 
         SetDifficutly();
@@ -51,7 +52,8 @@ public class WaveData
             // 7 = 5 bats per wave + difficulty (0, 1, 2)
             // 8 = 6 bats per wave + difficulty (0, 1, 2)
             // 9 = boss level
-        Bats_num = (LayerIndex / 5) + 2 + Globals.DIFFICULTY + (LayerIndex % 5);
+        Bats_num = Math.Min((LayerIndex / 5) + 2 + Globals.DIFFICULTY + (LayerIndex % 5) / 2, 8);
+        Jellyfish_num = Math.Min((LayerIndex / 5) + 2 + Globals.DIFFICULTY + (LayerIndex % 5) / 2, 8);
 
         // Začnemo z base = 0, base+1 vsak wave do boss-a, po vsakem bossu je base++
             // 0 = 0 bats per wave + difficulty (0, 1, 2)
@@ -64,17 +66,17 @@ public class WaveData
             // 7 = 3 bats per wave + difficulty (0, 1, 2)
             // 8 = 4 bats per wave + difficulty (0, 1, 2)
             // 9 = boss level
-        PurpleBats_num = (LayerIndex / 5) + 0 + Globals.DIFFICULTY + (LayerIndex % 5);
+        PurpleBats_num = Math.Min((LayerIndex / 5) + 0 + Globals.DIFFICULTY + (LayerIndex % 5) / 2, 8);
 
         // difficulty (0, 1, 2) slime in difficulty (0, 1, 2) centipide na wave vedno
         Slimes_num = Globals.DIFFICULTY;
-        Centipides_num = Globals.DIFFICULTY;
+        Crabs_num = Globals.DIFFICULTY;
 
         // Začnemo z dvema wave-oma, po vsakem bossu + 1 wave
             // 0...4 = 2 waves + difficulty (0, 1, 2)
             // 5...9 = 3 waves + difficulty (0, 1, 2)
             // 10...14 = 4 waves + difficulty (0, 1, 2)
             // 4, 9, 14, ... = BOSS LAYERS, tam se vse nastavi ročno
-        WavesToBeat = (LayerIndex / 5) + 2 + Globals.DIFFICULTY;
+        WavesToBeat = (LayerIndex / 8) + 2 + Globals.DIFFICULTY;
     }
 }

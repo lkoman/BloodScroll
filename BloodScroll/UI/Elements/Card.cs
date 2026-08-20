@@ -1,5 +1,6 @@
 using Microsoft.Xna.Framework;
 using MonoGameLibrary;
+using MonoGameLibrary.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -9,7 +10,7 @@ public class Card
 {
     private Vector2 _pos;
     private Rectangle _rect;
-    private Texture2D _texture;
+    private Sprite _cardSprite;
 
     private Button _acceptButton;
 
@@ -28,13 +29,11 @@ public class Card
         set => _giftText = value;
     }
 
-    private Color _shade = Globals.DarkRed * 0.9f;
-
     public void LoadContent(GraphicsDevice device)
     {
         _pos = new Vector2(
             Globals.VIRTUAL_WIDTH / 2 - UISettings.cardSize.X / 2,
-            Globals.VIRTUAL_HEIGHT / 2 - UISettings.cardSize.Y / 2 
+            Globals.VIRTUAL_HEIGHT / 2 - UISettings.cardSize.Y / 2
         );
 
         _rect = new Rectangle(
@@ -44,8 +43,8 @@ public class Card
             (int)UISettings.cardSize.Y
         );
 
-        _texture = new Texture2D(device, 1, 1);
-        _texture.SetData([Color.White]);
+        _cardSprite = Globals.UI.CreateSprite("gift_card");
+        _cardSprite.Position = _pos;
 
         Vector2 buttonPos = new(
             _pos.X + UISettings.cardSize.X / 2 - UISettings.smallButtonSize.X / 2,
@@ -89,7 +88,7 @@ public class Card
         if (!_visible)
             return;
 
-        Globals.SpriteBatch.Draw(_texture, _rect, _shade);
+        _cardSprite.Draw();
 
         // Title
         string title = "GIFT FOR YOU";
@@ -99,7 +98,7 @@ public class Card
             title,
             new Vector2(
                 _pos.X + (_rect.Width - UISettings.buttonFont.MeasureString(title).X) / 2,
-                _pos.Y + 40
+                _pos.Y + 80
             ),
             Color.White
         );
@@ -110,7 +109,7 @@ public class Card
             _giftText,
             new Vector2(
                 _pos.X + (_rect.Width - UISettings.fontUI.MeasureString(_giftText).X) / 2,
-                _pos.Y + 140
+                _pos.Y + 400
             ),
             Color.White
         );

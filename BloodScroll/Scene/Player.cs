@@ -115,7 +115,7 @@ public class Player : IPlayer, IDrawableLayer
     }
 
     public void Update(IAudioService audio, WeaponsManager weaponsManager)
-    {        
+    {
         if (Globals.PLAYER_ALIVE)
             CheckKeyboardInput(audio, weaponsManager);
         else {

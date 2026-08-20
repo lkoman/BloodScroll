@@ -2,6 +2,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace BloodScroll;
 
@@ -26,7 +27,7 @@ public class SettingsMenu
 
         // BUTTONS
         ButtonFullScreen = new Button();
-        ButtonFullScreen.LoadContent("WINDOWED", UISettings.buttonSize, device);
+        ButtonFullScreen.LoadContent("FULLSCREEN", UISettings.buttonSize, device);
     
         SoundButton = new Button();
         SoundButton.LoadContent("SOUND ON", UISettings.buttonSize, device);
@@ -57,20 +58,20 @@ public class SettingsMenu
         
         if (ButtonFullScreen.ButtonClicked(audio))
         {
-            if (Globals.FULLSCREEN)
+            if (Globals.FULLSCREEN == false)
             {
-                Globals.FULLSCREEN = false;
+                Globals.FULLSCREEN = true;
                 ButtonFullScreen.ChangeText("WINDOWED");
 
-                Core.Graphics.IsFullScreen = false;
+                Core.Graphics.IsFullScreen = true;
                 Core.Graphics.ApplyChanges();
             }
             else
             {
-                Globals.FULLSCREEN = true;
+                Globals.FULLSCREEN = false;
                 ButtonFullScreen.ChangeText("FULLSCREEN");
 
-                Core.Graphics.IsFullScreen = true;
+                Core.Graphics.IsFullScreen = false;
                 Core.Graphics.ApplyChanges();
             }
         }

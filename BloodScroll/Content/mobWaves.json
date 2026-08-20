@@ -4,7 +4,7 @@
     "LayerType": "Ground Layer",
 
     "Bats_num": 4,
-    "Centipides_num": 1,
+    "Crabs_num": 1,
     "WavesToBeat": 1
   },
   {
@@ -20,7 +20,8 @@
 
     "Bats_num": 0,
     "Slimes_num": 0,
-    "Centipides_num": 0,
+    "Crabs_num": 0,
+    "Jellyfish_num": 0,
 
     "Fireball_num": 2,
     "PurpleBats_num": 2,
@@ -34,7 +35,8 @@
     "GunID": 1,
 
     "Slimes_num": 0,
-    "Centipides_num": 0,
+    "Crabs_num": 0,
+    "Jellyfish_num": 0,
 
     "Fireboss_num": 1,
     "Bats_num": 5,
@@ -50,7 +52,8 @@
     "Bats_num": 0,
     "PurpleBats_num": 0,
     "Slimes_num": 0,
-    "Centipides_num": 0,
+    "Crabs_num": 0,
+    "Jellyfish_num": 0,
 
     "Fireboss_num": 1,
     "Fireball_num": 4,

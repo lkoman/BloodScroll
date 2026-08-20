@@ -39,22 +39,45 @@ public static class MovementUtils
         Vector2 target, 
         float speed)
     {
-        // premika se levo
-        if (pos.X <= 0)
+
+        if (target.X != 0 && target.X != Core.windowWidth)
         {
-            target.X = Core.windowWidth; // DESNO
-            effects = SpriteEffects.None;
+            int rand = Globals.R.Next(2);  // 0 or 1
+
+            if (rand == 0)
+            {
+                target.X = Core.windowWidth; // DESNO
+                effects = SpriteEffects.None;  
+            }
+            else
+            {
+                target.X = 0; // LEVO
+                effects = SpriteEffects.FlipHorizontally;
+            }
         }
-        // premika se desno
-        else if (pos.X >= Core.windowWidth)
-        {
-            target.X = 0; // LEVO
-            effects = SpriteEffects.FlipHorizontally;
+        else {
+            // premika se levo
+            if (pos.X <= 0)
+            {
+                target.X = Core.windowWidth; // DESNO
+                effects = SpriteEffects.None;
+            }
+            // premika se desno
+            else if (pos.X >= Core.windowWidth)
+            {
+                target.X = 0; // LEVO
+                effects = SpriteEffects.FlipHorizontally;
+            }
         }
         
-        pos += Vector2.Normalize(target - pos) * speed * Globals.DT;
+        pos = MOVE(pos, target, speed);
 
         return (pos, effects, target);
+    }
+
+    public static Vector2 MOVE(Vector2 pos, Vector2 target, float speed)
+    {
+        return pos + Vector2.Normalize(target - pos) * speed * Globals.DT;
     }
 
     public static Vector2 MoveForward(Vector2 pos, Vector2 direction, float speed)

@@ -87,8 +87,13 @@ public class CollisionResponse
     {
         if (!mob.HittingPlayer && mob.Bounds.Intersects(player.Bounds))
         {
-            player.TakeDamage(mob.DAMAGE, audio);
             mob.HittingPlayer = true;
+
+            if (mob.ON_TOUCH == "hurt_player")
+                player.TakeDamage(mob.DAMAGE, audio);
+            
+            else if (mob.ON_TOUCH == "explode")
+                mob.Explode();
         }
         else if (!mob.Bounds.Intersects(player.Bounds))
         {

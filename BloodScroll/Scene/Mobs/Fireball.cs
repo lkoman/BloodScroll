@@ -17,6 +17,7 @@ public class Fireball : IMob, IDrawableLayer
     public int DAMAGE { get; set; } = 50;
     public int PointsOnKill { get; set; } = 500;
     public bool HittingPlayer { get; set; } = false;
+    public string ON_TOUCH {get; set; } = "hurt_player";
 
     private AnimatedSprite _fireball;
     private const int SPEED_MIN = 150;
@@ -131,4 +132,6 @@ public class Fireball : IMob, IDrawableLayer
     {
         velocity.Y *= -3;
     }
+
+    public void Explode() {}
 }

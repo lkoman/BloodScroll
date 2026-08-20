@@ -1,0 +1,31 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C#: BloodScroll",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build",
+      // Must be the .exe apphost, NOT the .dll. Launching the .dll runs it under
+      // dotnet.exe, which is DPI-UNAWARE, so app.manifest's permonitorv2 setting is
+      // ignored and Windows scales the whole game up by the display scaling factor.
+      "program": "${workspaceFolder}/BloodScroll/bin/Debug/net9.0/BloodScroll.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/BloodScroll/bin/Debug/net9.0",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    },
+    {
+      "name": "C#: BloodScroll (Release)",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build-release",
+      // See note above: .exe apphost, not .dll, or DPI awareness is lost.
+      "program": "${workspaceFolder}/BloodScroll/bin/Release/net9.0/BloodScroll.exe",
+      "args": [],
+      "cwd": "${workspaceFolder}/BloodScroll/bin/Release/net9.0",
+      "console": "internalConsole",
+      "stopAtEntry": false
+    }
+  ]
+}

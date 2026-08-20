@@ -143,6 +143,21 @@
 #begin images/backgrounds.xml
 /copy:images/backgrounds.xml
 
+#begin images/Crab.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/Crab.png
+
+#begin images/crab.xml
+/copy:images/crab.xml
+
 #begin images/enemies.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -157,6 +172,36 @@
 
 #begin images/enemies.xml
 /copy:images/enemies.xml
+
+#begin images/foreground.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/foreground.png
+
+#begin images/foreground.xml
+/copy:images/foreground.xml
+
+#begin images/Jellyfish.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/Jellyfish.png
+
+#begin images/Jellyfish.xml
+/copy:images/Jellyfish.xml
 
 #begin images/player.png
 /importer:TextureImporter
@@ -188,7 +233,7 @@
 #begin images/UI.xml
 /copy:images/UI.xml
 
-#begin images/weapons.png
+#begin images/Weapons.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -198,7 +243,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:images/weapons.png
+/build:images/Weapons.png
 
 #begin images/weapons.xml
 /copy:images/weapons.xml

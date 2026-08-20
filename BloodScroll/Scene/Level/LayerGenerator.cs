@@ -100,7 +100,7 @@ public class LayerGenerator()
         {
             platformPosition = SmallPlatformPosition(currentLayerIndex, prevPlatformPos, smallPlatform, sideOfScreen);
 
-            if (platformPosition.Y < 0 - layerOffset.Y)
+            if (platformPosition.Y < 10 - layerOffset.Y)
                 break;
 
             platforms.Add(new Platform());
@@ -131,11 +131,11 @@ public class LayerGenerator()
         {
             max_x = Math.Clamp(max_x, 
                 0, 
-                (Core.windowWidth + Globals.CameraOffset.X - smallPlatform.Width) / 2
+                (Core.windowWidth - smallPlatform.Width) / 2
             );
             min_x = Math.Clamp(min_x, 
                 0, 
-                (Core.windowWidth + Globals.CameraOffset.X - smallPlatform.Width) / 2
+                (Core.windowWidth - smallPlatform.Width) / 2
             );
         }
 
@@ -143,23 +143,24 @@ public class LayerGenerator()
         else
         {
             max_x = Math.Clamp(max_x, 
-                (Core.windowWidth + Globals.CameraOffset.X - smallPlatform.Width) / 2, 
-                Core.windowWidth + Globals.CameraOffset.X - smallPlatform.Width
+                (Core.windowWidth - smallPlatform.Width) / 2, 
+                Core.windowWidth - smallPlatform.Width
             );
             min_x = Math.Clamp(min_x, 
-                (Core.windowWidth + Globals.CameraOffset.X - smallPlatform.Width) / 2, 
-                Core.windowWidth + Globals.CameraOffset.X - smallPlatform.Width
+                (Core.windowWidth - smallPlatform.Width) / 2, 
+                Core.windowWidth - smallPlatform.Width
             );
         }
 
         float max_y = prevPlatform.Y - Player.PLAYER_MAX_JUMP_Y;
         float min_y = prevPlatform.Y - playerHeight;
-
-        //max_y = Math.Clamp(max_y, 0 - Globals.CameraOffset.Y + playerHeight, Core.windowHeight - Globals.CameraOffset.Y - smallPlatform.Height);
-        //min_y = Math.Clamp(min_y, 0 - Globals.CameraOffset.Y + playerHeight, Core.windowHeight - Globals.CameraOffset.Y - smallPlatform.Height);
         
         float x = (float)(Globals.R.NextDouble() * (max_x - min_x) + min_x);
         float y = (float)(Globals.R.NextDouble() * (max_y - min_y) + min_y);
+
+        float bottomLimit = Core.windowHeight - smallPlatform.Height - 1080 * layerIndex;
+
+        y = Math.Min(y, bottomLimit);
 
         Vector2 Pos = new(x, y);
 

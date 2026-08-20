@@ -1,0 +1,6 @@
+{
+  // Tell C# Dev Kit which solution to load. Without this it may fail to activate,
+  // which is why the top-right Run button reported
+  // "command 'csdevkit.debug.noDebugFileLaunch' not found".
+  "dotnet.defaultSolution": "BloodScroll.sln"
+}

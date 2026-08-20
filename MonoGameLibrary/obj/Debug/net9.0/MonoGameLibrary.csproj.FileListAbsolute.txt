@@ -10,3 +10,4 @@ c:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Deb
 c:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Debug\net9.0\refint\MonoGameLibrary.dll
 c:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Debug\net9.0\MonoGameLibrary.pdb
 c:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Debug\net9.0\ref\MonoGameLibrary.dll
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Debug\net9.0\MonoGameLibrary.sourcelink.json

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BloodScroll")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b66e0e2e524f9496320e7f05b5c631e29c69cb3e")]
 [assembly: System.Reflection.AssemblyProductAttribute("BloodScroll")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BloodScroll")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

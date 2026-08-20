@@ -101,7 +101,8 @@ public class MobManager
 
     public void GenerateWave(int layerIndex, Vector2 playerPos)
     {
-        GenerateCentipides(waveData.Centipides_num ?? 0, layerIndex);
+        GenerateJellyfish(waveData.Jellyfish_num ?? 0, layerIndex);
+        GenerateCrabs(waveData.Crabs_num ?? 0, layerIndex);
         GenerateSlimes(waveData.Slimes_num ?? 0, layerIndex);
         GenerateFireballs(waveData.Fireball_num ?? 0, layerIndex);
         GenerateFirebosses(waveData.Fireboss_num ?? 0, layerIndex);
@@ -119,28 +120,38 @@ public class MobManager
         }
     }
 
-    public void GenerateCentipides(int centipidesNum, int spawnLayer)
+    public void GenerateJellyfish(int mobNum, int spawnLayer)
     {
         // CENTIPIDES
-        for (int i = 0; i < centipidesNum; i++)
+        for (int i = 0; i < mobNum; i++)
         {
-            mobs.Add(new Centipide());
+            mobs.Add(new JellyFish());
             mobs.Last().LoadContent(playerPos, spawnLayer);
         }
     }
-    public void GenerateSlimes(int slimesNum, int spawnLayer)
+
+    public void GenerateCrabs(int mobNum, int spawnLayer)
+    {
+        // CENTIPIDES
+        for (int i = 0; i < mobNum; i++)
+        {
+            mobs.Add(new Crab());
+            mobs.Last().LoadContent(playerPos, spawnLayer);
+        }
+    }
+    public void GenerateSlimes(int mobNum, int spawnLayer)
     {
         // SLIMES
-        for (int i = 0; i < slimesNum; i++)
+        for (int i = 0; i < mobNum; i++)
         {
             mobs.Add(new Slime());
             mobs.Last().LoadContent(playerPos, spawnLayer);
         }
     }
-    public void GenerateBats(int batsNum, int spawnLayer)
+    public void GenerateBats(int mobNum, int spawnLayer)
     {
         // BATS
-        for (int i = 0; i < batsNum; i++)
+        for (int i = 0; i < mobNum; i++)
         {
             bats.Add(new Bat());
             bats.Last().LoadContent(playerPos, spawnLayer);
@@ -149,10 +160,10 @@ public class MobManager
         }
     }
 
-    public void GeneratePurpleBats(int batsNum, int spawnLayer)
+    public void GeneratePurpleBats(int mobNum, int spawnLayer)
     {
         // PURPLE BATS
-        for (int i = 0; i < batsNum; i++)
+        for (int i = 0; i < mobNum; i++)
         {
             purpleBats.Add(new PurpleBat());
             purpleBats.Last().LoadContent(playerPos, spawnLayer);
@@ -160,17 +171,17 @@ public class MobManager
             mobs.Add(purpleBats.Last());
         }
     }
-    public void GenerateFireballs(int fireballsNum, int spawnLayer) {
+    public void GenerateFireballs(int mobNum, int spawnLayer) {
         // TENTACLES
-        for (int i = 0; i < fireballsNum; i++)
+        for (int i = 0; i < mobNum; i++)
         {
             mobs.Add(new Fireball());
             mobs.Last().LoadContent(playerPos, spawnLayer);
         }
     }
-    public void GenerateFirebosses(int firebossNum, int spawnLayer) {
+    public void GenerateFirebosses(int mobNum, int spawnLayer) {
         // TENTACLES
-        for (int i = 0; i < firebossNum; i++)
+        for (int i = 0; i < mobNum; i++)
         {
             mobs.Add(new Fireboss());
             mobs.Last().LoadContent(playerPos, spawnLayer);
@@ -184,7 +195,8 @@ public class MobManager
             waveData.LayerType = data.LayerType ?? waveData.LayerType;
             waveData.GunID = data.GunID ?? waveData.GunID;
             waveData.IncreasedHP = data.IncreasedHP ?? waveData.IncreasedHP;
-            waveData.Centipides_num = data.Centipides_num ?? waveData.Centipides_num;
+            waveData.Crabs_num = data.Crabs_num ?? waveData.Crabs_num;
+            waveData.Jellyfish_num = data.Jellyfish_num ?? waveData.Jellyfish_num;
             waveData.Slimes_num = data.Slimes_num ?? waveData.Slimes_num;
             waveData.Bats_num = data.Bats_num ?? waveData.Bats_num;
             waveData.PurpleBats_num = data.PurpleBats_num ?? waveData.PurpleBats_num;

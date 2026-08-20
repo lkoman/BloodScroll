@@ -22,9 +22,9 @@ public class BloodScroll : Core
 
     // OTHER VARIABLES
     private bool FIRST_GAME = true;
-    public static float groundHeight; // Height at which all non flying characters will be standing
     private List<IDrawableLayer> drawables = [];
     private Matrix camMatrix;
+    private Sprite _foreground;
 
     // DEBUG
     public DebugRenderer debugRenderer;
@@ -111,7 +111,10 @@ public class BloodScroll : Core
     {
         Globals.UI = TextureAtlas.FromFile(Content, "images/UI.xml");
         Globals.Backgrounds = TextureAtlas.FromFile(Content, "images/backgrounds.xml");
+        Globals.Foregrounds = TextureAtlas.FromFile(Content, "images/foreground.xml");
         Globals.Enemies = TextureAtlas.FromFile(Content, "images/enemies.xml");
+        Globals.Crab = TextureAtlas.FromFile(Content, "images/crab.xml");
+        Globals.Jellyfish = TextureAtlas.FromFile(Content, "images/jellyfish.xml");
         Globals.Player = TextureAtlas.FromFile(Content, "images/player.xml");
         Globals.World = TextureAtlas.FromFile(Content, "images/world.xml");
         Globals.Weapons = TextureAtlas.FromFile(Content, "images/weapons.xml");
@@ -123,7 +126,10 @@ public class BloodScroll : Core
         Globals.R = new Random(Globals.SEED);
 
         // Height at which all non flying characters will be standing
-        groundHeight = windowHeight - 250;
+        Globals.GroundHeight = windowHeight - 250;
+
+        // FOREGROUND SPRITE (aesthetics)
+        _foreground = Globals.Foregrounds.CreateSprite("foreground");
 
         base.LoadContent();
     }
@@ -291,7 +297,17 @@ public class BloodScroll : Core
 
         Globals.SpriteBatch.End();
 
-        DrawDebugBoundingBoxes();
+        // Draw foreground above all
+        DrawForeGround();
+
+        //DrawDebugBoundingBoxes();
+    }
+
+    private void DrawForeGround()
+    {
+        Globals.SpriteBatch.Begin(samplerState: SamplerState.PointClamp);
+        _foreground.Draw();
+        Globals.SpriteBatch.End();
     }
 
     private void CheckIfGamePaused()
