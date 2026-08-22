@@ -1,13 +1,17 @@
 using Microsoft.Xna.Framework;
+using MonoGameLibrary;
 
 namespace BloodScroll;
 
 //
 // THE BLACK SPIDER
 //
-// The ceiling patrol again, drawn almost black, spitting webs that are almost
-// black. Everything about it is the ordinary spider except the one thing that
+// The ceiling patrol again, drawn in fluorescent green and spitting webs of the
+// same. Everything about it is the ordinary spider except the one thing that
 // matters: its web does not slow you down, IT NAILS YOU TO THE SPOT.
+//
+// The name is history - it was black once, and it is still what mobWaves.json
+// and MobType call it.
 //
 // A second is not long. It is long enough for the three bats you were running
 // from to arrive, which is the whole idea - it does no damage itself, it just
@@ -29,7 +33,7 @@ public class BlackSpider : CeilingSpider
     protected override float ShootSecondsMin => 3.5f;
     protected override float ShootSecondsMax => 5.5f;
 
-    // Slower than an ordinary web as well, so a black shot coming down is a
+    // Slower than an ordinary web as well, so a green shot coming down is a
     // shot the player has a real chance to step out of
     protected override float WebSpeed => 520.0f;
 
@@ -41,11 +45,13 @@ public class BlackSpider : CeilingSpider
     // the number that decides whether the mob is tense or unfair.
     public const float ROOT_SECONDS = 1f;
 
-    // THE BODY IS DARKER THAN THE ORDINARY SPIDER BUT NOT AS DARK AS ITS WEB.
-    // The web is meant to be missed until it is on top of you; the spider is
-    // not - the player has to be able to pick it out of the ceiling and choose
-    // to shoot that one first, which is the entire counterplay to it.
-    private static readonly Color BODY = new(74, 64, 92);
+    // THE BODY WEARS THE SAME FLUORESCENT GREEN AS ITS WEB, and it is the only
+    // thing in the game that does. Shooting this spider before it shoots you is
+    // the entire counterplay to it, and that only works if the player can pick
+    // it out of a ceiling full of ordinary spiders without having to squint -
+    // so the mob and the thing it spits are one colour, and that colour is the
+    // brightest on screen. See Globals.RootWeb.
+    private static readonly Color BODY = Globals.RootWeb;
 
     // Its own colour, with the stun blue still winning - see MobBase.Tinted
     protected override Color DrawColour => Tinted(BODY);

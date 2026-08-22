@@ -57,7 +57,7 @@ public class Fireboss : MobBase
 
     public Fireboss()
     {
-        SetHP(1500);
+        SetHP(1250);
         DAMAGE = 100;
         PointsOnKill = 1000;
         ON_TOUCH = OnTouch.Nothing;
@@ -147,7 +147,7 @@ public class Fireboss : MobBase
                         Globals.R.Next(-projectile_target_offset, projectile_target_offset) + playerPos.Y
                     ),
                     projectileType,
-                    PROJECTILE_DAMAGE,
+                    ScaleDamage(PROJECTILE_DAMAGE),
                     PROJECTILE_SPEED,
                     AudioId.PlayerGun,
                     tint: projectileColour

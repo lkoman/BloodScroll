@@ -95,7 +95,7 @@ public class SpiderQueen : MobBase
 
     private float stalkTimer = 0f;
 
-    private const float RAM_SPEED = 1100f;
+    private const float RAM_SPEED = 800f;
 
     // How fast she plants her feet when she stops to aim
     private const float SETTLE = 0.82f;
@@ -111,7 +111,7 @@ public class SpiderQueen : MobBase
     // lands. Any one of the three ends the retreat: far enough, long enough, or
     // a wall at her back.
     //
-    private const float RETREAT_SPEED = 620f;
+    private const float RETREAT_SPEED = 420f;
     private const float RETREAT_SECONDS = 1.1f;
     private const float RETREAT_DISTANCE = 620f;
 
@@ -147,8 +147,14 @@ public class SpiderQueen : MobBase
         // starter pistol and nothing else. She is here to teach the tell, not
         // to outlast him - the fireboss on layer 5 is the one with the HP bar
         // that hurts. BossTally grows her on every later meeting anyway.
-        SetHP(900);
-        DAMAGE = 80;
+        SetHP(750);
+
+        // THE RAM HITS OFTEN, SO IT MUST NOT HIT HARD. She is the fastest
+        // thing in the game and she attacks without pause - at a bite this
+        // size the fight is decided by how many rams the player misreads,
+        // which is what it is meant to be about. A heavier bite made the
+        // same fight a two mistake fight, and two mistakes is not a lesson.
+        DAMAGE = 55;
         PointsOnKill = 1500;
     }
 
@@ -333,7 +339,7 @@ public class SpiderQueen : MobBase
     // arena edge she is held to is measured from it.
     //
 
-    private const float CLIMB_SPEED = 800f;
+    private const float CLIMB_SPEED = 600f;
 
     private bool ClimbingAfterPlayer(IPlayer player)
     {

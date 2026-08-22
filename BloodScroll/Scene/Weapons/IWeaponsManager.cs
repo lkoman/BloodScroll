@@ -20,6 +20,16 @@ public interface IWeaponsManager
     public IReadOnlyList<WeaponCooldown> Cooldowns { get; }
 
     public void UnlockNewWeapon(int weaponID);
-    public void SwitchWeapon();
+    // step of +1 walks up the arsenal, -1 walks back down it
+    public void SwitchWeapon(int step = 1);
+
+    // Every gun at once, won once - see the note at the top of WeaponsManager
     public void IncreaseFireRate(float multiplier);
+
+    // One gun, one notch, handed out forever once the unlocks run out
+    public void UpgradeFireRate(int weaponID);
+    public void UpgradeDamage(int weaponID);
+
+    // What to call that gun on the gift card
+    public string WeaponName(int weaponID);
 }

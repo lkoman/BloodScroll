@@ -443,6 +443,13 @@ public class Player : IPlayer, IDrawableLayer
             canSwitchWeapon = true;
         }
 
+        // The wheel does the same job without the left hand leaving the movement
+        // keys, and unlike G it walks both ways. No press/release guard here -
+        // a notch of the wheel is one event already, not a key held down.
+        int wheelDelta = Globals.MouseState.ScrollWheelValue - Globals.LastMouseState.ScrollWheelValue;
+        if (wheelDelta != 0)
+            weaponsManager.SwitchWeapon(wheelDelta > 0 ? 1 : -1);
+
         // SPRINT
         if (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift))
         {
@@ -572,6 +579,14 @@ public class Player : IPlayer, IDrawableLayer
         }
 
         if (playerHP <= POISON_FLOOR)
+            return;
+
+        // DEBUG MODE (F2). The one HP drain that does not go through
+        // TakeDamage, so it needs saying again here. The doses above are still
+        // ticked and still run out on their own clocks, so the green wash and
+        // the POISONED tag behave exactly as they always do - they just take
+        // nothing while this is on.
+        if (DebugMode.Invulnerable)
             return;
 
         poisonBuffer += perSecond * Globals.DT;
@@ -709,13 +724,27 @@ public class Player : IPlayer, IDrawableLayer
         playerHP = Math.Min(playerHP + amount, playerMaxHP);
     }
 
+    // A GIFT CAN ONLY EVER RAISE IT. The boss layers hand out both absolute
+    // maximums and increments on top of what the player has built up, and the
+    // two of them together can arrive in an order where the flat number is
+    // lower than what he is already carrying. Taking HP off him at a moment the
+    // game is congratulating him would be the worst possible time to do it.
     public void IncreaseMaxHP(int newMaxHP)
     {
-        playerMaxHP = newMaxHP;
+        playerMaxHP = Math.Max(playerMaxHP, newMaxHP);
     }
 
     public void TakeDamage(int damage, IAudioService audio)
     {
+        // DEBUG MODE (F2). Turned away at the door rather than subtracted to
+        // nothing: the hit never happened at all, so the shield does not soak
+        // it, the regen is not stalled and the sprite does not flash. Anything
+        // that hit him goes on doing everything else it does - a moth's gust
+        // still throws him, a black web still pins him - because those are not
+        // damage and testing them is half the reason this key exists.
+        if (DebugMode.Invulnerable)
+            return;
+
         audio.PlaySound(AudioId.PlayerHit);
 
         isHit = true;

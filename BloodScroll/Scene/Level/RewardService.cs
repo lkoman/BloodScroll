@@ -30,7 +30,7 @@ public static class RewardService
                 // player, and a second gun he does not know how to reach is
                 // not a gift. Said every time, because by the fourth gun the
                 // one line he read on layer 5 is long gone.
-                text.Append("  Switch the guns by clicking G\n");
+                text.Append("  G or mousewheel for change of weapon\n");
 
                 weaponsManager.UnlockNewWeapon(gifts.GunID.Value);
             }
@@ -63,6 +63,41 @@ public static class RewardService
             {
                 text.Append("- Life Steal\n");
                 player.GrantLifeSteal(gifts.LifeSteal.Value);
+            }
+
+            //
+            // THE ENDLESS ONES
+            //
+            // Every one of these is measured against what the player already
+            // has rather than against a number written somewhere else, which is
+            // what lets the same gift be won twenty times and be worth
+            // something on the twentieth.
+            //
+
+            if (gifts.BonusHP.HasValue)
+            {
+                text.Append("- More HP\n");
+                player.IncreaseMaxHP(player.MaxHP + gifts.BonusHP.Value);
+            }
+
+            if (gifts.BonusShield.HasValue)
+            {
+                text.Append("- Stronger Shield\n");
+                player.GrantShield(player.ShieldMax + gifts.BonusShield.Value);
+            }
+
+            // Named on the card, because by this point in a run the player has
+            // four guns and "faster gun" would leave him guessing which
+            if (gifts.FasterGun.HasValue)
+            {
+                text.Append($"- Faster {weaponsManager.WeaponName(gifts.FasterGun.Value)}\n");
+                weaponsManager.UpgradeFireRate(gifts.FasterGun.Value);
+            }
+
+            if (gifts.StrongerGun.HasValue)
+            {
+                text.Append($"- Stronger {weaponsManager.WeaponName(gifts.StrongerGun.Value)}\n");
+                weaponsManager.UpgradeDamage(gifts.StrongerGun.Value);
             }
         }
 

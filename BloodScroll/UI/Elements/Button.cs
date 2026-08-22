@@ -1,88 +1,240 @@
 using Microsoft.Xna.Framework;
 using MonoGameLibrary;
-using MonoGameLibrary.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using Microsoft.Xna.Framework.Graphics;
-using System.Collections.Concurrent;
 
 namespace BloodScroll;
+
+//
+// A MENU BUTTON
+//
+// A rounded slab that warms towards red under the mouse, with an accent bar
+// growing in at its left edge and the label sliding out of the way to make room
+// for it. Nothing about it snaps: hovering on and hovering off are the same
+// movement run in opposite directions, which is the whole difference between a
+// menu that feels built and one that feels like a list of rectangles.
+//
+// The state is one number, _hover, that walks between 0 and 1. Every part of
+// the drawing reads it - the colours, the border, the glow, the width of the
+// accent bar, how far the label has slid, how big the whole thing is - so the
+// button can never be caught halfway into one look and halfway out of another.
+//
+// A SECOND, OPTIONAL LINE ON THE RIGHT. Some buttons are not a command but a
+// setting you cycle: difficulty, sound, fullscreen. Those carry a Value, drawn
+// right aligned in the accent colour, so the button reads as "this is the
+// thing, and this is what it is currently set to" instead of the label having
+// to be rewritten into a sentence.
+//
 
 public class Button
 {
     public Vector2 pos;
     public Rectangle _rect;
-    private readonly float transparency = 1f;
-    private Color _shade;
+
     private string _text;
     public string Text => _text;
-    private Texture2D _texture;
+
+    // The right hand side, when this button is a setting rather than a command
+    private string _value;
+    public string Value => _value;
+
     private int Width;
     private int Height;
-    private readonly int offset_od_prejšnjega_buttona = 16;
+
     private bool hoveringThisButton = false;
+
+    // 0 = resting, 1 = fully lit. Everything in Draw is a function of this.
+    private float _hover = 0f;
+
+    // Held down, drawn a touch smaller so the click has a physical answer
+    private bool _pressed = false;
+
+    // How much bigger the button gets at full hover. Small - this is a lift off
+    // the panel, not a zoom.
+    private const float HOVER_SCALE = 0.02f;
+
+    // The accent bar that grows in at the left edge
+    private const int BAR_WIDTH = 6;
+    private const int BAR_INSET = 14;
+    private const float BAR_HEIGHT_SHARE = 0.46f;
+
+    // Room kept clear at each end for the accent bar, and the least gap ever
+    // left between a label and its value so the two never read as one word
+    private const int TEXT_PAD = 34;
+    private const int VALUE_GAP = 28;
 
     public void LoadContent(string text, Vector2 size, GraphicsDevice device)
     {
-        _shade = Globals.DarkGray * transparency;
-
         _text = text;
         Width = (int)size.X;
         Height = (int)size.Y;
-
-        // Create 1x1 white texture for rectangle
-        _texture = new Texture2D(device, 1, 1);
-        _texture.SetData([Color.White]);
     }
 
     public void LoadContent(string text, Vector2 p, Vector2 size, GraphicsDevice device)
     {
-        _shade = Globals.DarkGray * transparency;
+        LoadContent(text, size, device);
 
-        _text = text;
-        Width = (int)size.X;
-        Height = (int)size.Y;
         pos = p;
-
         _rect = new Rectangle((int)pos.X, (int)pos.Y, Width, Height);
-
-        // Create 1x1 white texture for rectangle
-        _texture = new Texture2D(device, 1, 1);
-        _texture.SetData([Color.White]);
     }
 
+    //
+    // DRAWING, FROM THE BACK FORWARDS
+    //
     public void Draw(SpriteFont font)
     {
-        // Draw rectangle
-        Globals.SpriteBatch.Draw(_texture, _rect, _shade);
+        // The button grows about its own middle, so the stack around it does
+        // not shuffle when one of them lights up
+        int grow = (int)(Width * HOVER_SCALE * _hover);
+        int growY = (int)(Height * HOVER_SCALE * _hover);
 
-        // Draw text centered
-        Vector2 textSize = font.MeasureString(_text);
-        Vector2 textPos = new(
-            _rect.X + _rect.Width / 2 - textSize.X / 2,
-            _rect.Y + _rect.Height / 2 - textSize.Y / 2
-        );
+        if (_pressed)
+        {
+            grow -= (int)(Width * 0.012f);
+            growY -= (int)(Height * 0.012f);
+        }
 
-        Globals.SpriteBatch.DrawString(font, _text, textPos, Color.White);
+        Rectangle r = new(
+            _rect.X - grow / 2,
+            _rect.Y - growY / 2,
+            _rect.Width + grow,
+            _rect.Height + growY);
+
+        // Sits on the panel when resting, lifts and starts glowing red as it
+        // comes up
+        RoundedRect.Glow(r, UITheme.Shadow, UITheme.RadiusButton, 10, 0.22f * (1f - _hover * 0.5f));
+
+        if (_hover > 0.01f)
+            RoundedRect.Glow(r, UITheme.AccentBright, UITheme.RadiusButton, 16, 0.20f * _hover);
+
+        Color top = Color.Lerp(UITheme.ButtonTop, UITheme.ButtonHoverTop, _hover);
+        Color bottom = Color.Lerp(UITheme.ButtonBottom, UITheme.ButtonHoverBottom, _hover);
+
+        RoundedRect.FillGradient(r, top, bottom, UITheme.RadiusButton);
+
+        // Catch light along the top edge, brighter while hovered
+        RoundedRect.Rect(
+            new Rectangle(r.X + UITheme.RadiusButton, r.Y + 2, r.Width - UITheme.RadiusButton * 2, 2),
+            Color.White * (0.07f + 0.06f * _hover));
+
+        RoundedRect.Border(r,
+            Color.Lerp(UITheme.ButtonBorder * 0.8f, UITheme.ButtonBorderHover, _hover),
+            UITheme.RadiusButton,
+            UITheme.BorderWidth);
+
+        DrawAccentBar(r);
+        DrawLabel(font, r);
     }
 
+    // The bar at the left edge, which is the whole hover in one mark: zero wide
+    // when resting, a bright capsule at full hover
+    private void DrawAccentBar(Rectangle r)
+    {
+        if (_hover <= 0.02f)
+            return;
+
+        int height = (int)(r.Height * BAR_HEIGHT_SHARE * _hover);
+
+        if (height < 2)
+            return;
+
+        Rectangle bar = new(
+            r.X + BAR_INSET,
+            r.Y + r.Height / 2 - height / 2,
+            BAR_WIDTH,
+            height);
+
+        RoundedRect.Glow(bar, UITheme.AccentBright, BAR_WIDTH / 2, 6, 0.30f * _hover);
+        RoundedRect.Fill(bar, UITheme.AccentBright * (0.55f + 0.45f * _hover), BAR_WIDTH / 2);
+    }
+
+    //
+    // THE LABEL, AND THE VALUE BESIDE IT
+    //
+    // A plain button centres its label. A button with a value cannot - the two
+    // strings have to be pinned to opposite ends or they drift about as the
+    // value changes width - so that one goes left aligned with the value on the
+    // right, and the padding at each end is what keeps them off the accent bar.
+    //
+    // BOTH ARE SHRUNK UNTIL THEY FIT. "DIFFICULTY" and "BABY MODE" together are
+    // wider than the button they have to share, and pinned to opposite ends
+    // that meant they simply overlapped in the middle. They are scaled down
+    // together rather than one at a time, so the pair always stays the same
+    // size as each other and the button reads as one line either way.
+    //
+    private void DrawLabel(SpriteFont font, Rectangle r)
+    {
+        Color textColour = Color.Lerp(UITheme.TextPrimary, UITheme.TextOnHover, _hover);
+        Vector2 size = font.MeasureString(_text);
+
+        float slide = UITheme.HoverTextSlide * _hover;
+
+        if (_value == null)
+        {
+            // Nothing to collide with, so the only limit is the button's edges
+            float only = Fits(size.X, r.Width - TEXT_PAD * 2);
+
+            UITheme.DrawText(font, _text,
+                new Vector2(r.X + r.Width / 2f - size.X * only / 2f,
+                            Centred(r, size.Y, only)),
+                textColour, only);
+            return;
+        }
+
+        Vector2 valueSize = font.MeasureString(_value);
+
+        float scale = Fits(size.X + valueSize.X, r.Width - TEXT_PAD * 2 - VALUE_GAP);
+        float y = Centred(r, size.Y, scale);
+
+        UITheme.DrawText(font, _text, new Vector2(r.X + TEXT_PAD + slide, y), textColour, scale);
+
+        UITheme.DrawText(font, _value,
+            new Vector2(r.Right - TEXT_PAD - valueSize.X * scale, y),
+            Color.Lerp(UITheme.AccentBright, UITheme.TextOnHover, _hover * 0.4f),
+            scale);
+    }
+
+    // Only ever shrinks - a short label is never blown up to fill the button
+    private static float Fits(float wanted, float available)
+        => wanted <= 0f ? 1f : MathHelper.Min(1f, available / wanted);
+
+    private static float Centred(Rectangle r, float textHeight, float scale)
+        => r.Y + r.Height / 2f - textHeight * scale / 2f;
+
+    //
+    // THE HOVER, WALKED ONE FRAME AT A TIME
+    //
+    // Still called UpdateHoverColor and still returns whether the mouse is on
+    // it, because that is what four menus ask it - but there is no colour left
+    // to set. It moves the animation on and the drawing works the rest out.
+    //
     public bool UpdateHoverColor(IAudioService audioService)
     {
-        if (Hover())
+        bool over = Hover();
+
+        // Guarded against a zero speed so the constant can be tuned to taste
+        // without the button ever dividing by it
+        float step = Globals.DT / MathF.Max(0.0001f, UITheme.HoverSpeed);
+
+        _hover = MathHelper.Clamp(_hover + (over ? step : -step), 0f, 1f);
+
+        _pressed = over && Globals.MouseState.LeftButton == ButtonState.Pressed;
+
+        if (over)
         {
+            // The tick only ever fires on the frame the mouse arrives, not
+            // every frame it stays
             if (!hoveringThisButton)
             {
                 audioService.PlaySound(AudioId.ButtonHover);
-                hoveringThisButton = true;   
+                hoveringThisButton = true;
             }
 
-            _shade = Globals.Gray * transparency;
             return true;
         }
 
-        // No hover
         hoveringThisButton = false;
-        _shade = Globals.DarkGray * transparency;
         return false;
     }
 
@@ -97,15 +249,14 @@ public class Button
             return true;
         }
         return false;
-
     }
 
     public bool Hover()
     {
         return Globals.Cursor.Intersects(
-                    new Rectangle(_rect.X - (int)Globals.CameraOffset.X, 
-                    _rect.Y - (int)Globals.CameraOffset.Y, 
-                    _rect.Width, 
+                    new Rectangle(_rect.X - (int)Globals.CameraOffset.X,
+                    _rect.Y - (int)Globals.CameraOffset.Y,
+                    _rect.Width,
                     _rect.Height));
     }
 
@@ -120,13 +271,16 @@ public class Button
         _text = newText;
     }
 
-    public void SetOrder(int order)
+    // Null puts the button back to a plain centred label
+    public void SetValue(string value)
     {
-        pos = new Vector2(
-            Globals.VIRTUAL_WIDTH / 2 - Width / 2,
-            Globals.VIRTUAL_HEIGHT / 2 + Height * order + offset_od_prejšnjega_buttona * order
-        );
+        _value = value;
+    }
 
-        _rect = new Rectangle((int)pos.X, (int)pos.Y, Width, Height);
+    // Where the menu that owns this button has decided it goes
+    public void Place(Vector2 at)
+    {
+        pos = at;
+        _rect = new Rectangle((int)at.X, (int)at.Y, Width, Height);
     }
 }

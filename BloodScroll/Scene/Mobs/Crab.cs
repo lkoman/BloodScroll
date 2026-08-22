@@ -88,7 +88,7 @@ public class Crab : MobBase
                     ),
                     new Vector2(Sprite.Position.X, LayerTopY),
                     projectileType,
-                    PROJECTILE_DAMAGE,
+                    ScaleDamage(PROJECTILE_DAMAGE),
                     PROJECTILE_SPEED,
                     AudioId.PlayerGun,
                     tint: projectileColour

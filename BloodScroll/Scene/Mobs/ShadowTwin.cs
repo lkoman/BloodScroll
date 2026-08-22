@@ -63,7 +63,7 @@ public class ShadowTwin : MobBase
 
     public ShadowTwin()
     {
-        SetHP(1200);
+        SetHP(1000);
         DAMAGE = 60;
         PointsOnKill = 1500;
     }
@@ -150,7 +150,7 @@ public class ShadowTwin : MobBase
             Sprite.Position + new Vector2(Sprite.Width / 2, Sprite.Height / 2),
             player.Position,
             projectileType,
-            PROJECTILE_DAMAGE,
+            ScaleDamage(PROJECTILE_DAMAGE),
             PROJECTILE_SPEED,
             AudioId.PlayerGun,
             tint: SHADOW

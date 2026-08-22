@@ -6,37 +6,32 @@ using Microsoft.Xna.Framework.Input;
 
 namespace BloodScroll;
 
+//
+// THE PAUSE SCREEN
+//
+// The same panel as the main menu, over the frozen game rather than over the
+// menu background. The score you are currently sitting on goes under the title:
+// pausing is the one moment you can actually read it, and it is the number that
+// decides whether you carry on or restart.
+//
+
 public class PauseScreen
 {
+    private const string TITLE = "PAUSED";
+
     // BUTTONS
     private Button ButtonRestart, ButtonResume, ButtonMenu;
 
-    private static Vector2 GamePausedPos;
+    private string ScoreNote = "";
 
     public void LoadContent(GraphicsDevice device)
     {
-        //
-        // POSITIONS FOR UI ELEMENTS
-        //
-
-        GamePausedPos = new Vector2(
-            Globals.VIRTUAL_WIDTH / 2 - UISettings.fontBig.MeasureString("Game Paused").X / 2,
-            Globals.VIRTUAL_HEIGHT / 2 - UISettings.fontBig.MeasureString("Game Paused").Y - UISettings.buttonSize.Y
-        );
-
-        //
-        // BUTTONS
-        //
-        // Main Menu buttons
-
-        // Pause and Death Menu buttons
-        ButtonRestart = new Button();
-        ButtonRestart.LoadContent("RESTART", UISettings.buttonSize, device);
-
         ButtonResume = new Button();
         ButtonResume.LoadContent("RESUME", UISettings.buttonSize, device);
 
-        // Shared or other buttons
+        ButtonRestart = new Button();
+        ButtonRestart.LoadContent("RESTART", UISettings.buttonSize, device);
+
         ButtonMenu = new Button();
         ButtonMenu.LoadContent("MENU", UISettings.buttonSize, device);
     }
@@ -45,9 +40,13 @@ public class PauseScreen
     {
         MouseCursor desiredCursor;
 
-        ButtonResume.SetOrder(0);
-        ButtonRestart.SetOrder(1);
-        ButtonMenu.SetOrder(2);
+        ScoreNote = "SCORE " + Globals.POINTS + "          BEST " + Globals.HIGH_SCORE[Globals.DIFFICULTY];
+
+        MenuLayout layout = Measure();
+
+        ButtonResume.Place(layout.ButtonAt(0, UISettings.buttonSize));
+        ButtonRestart.Place(layout.ButtonAt(1, UISettings.buttonSize));
+        ButtonMenu.Place(layout.ButtonAt(2, UISettings.buttonSize));
 
         ButtonRestart.UpdateHoverColor(audio);
         ButtonMenu.UpdateHoverColor(audio);
@@ -81,12 +80,23 @@ public class PauseScreen
         return desiredCursor;
     }
 
+    private MenuLayout Measure()
+        => new(TITLE, UISettings.fontBig, ScoreNote, UISettings.fontUI, 3, UISettings.buttonSize);
+
     public void Draw()
     {
-        Globals.SpriteBatch.DrawString(UISettings.fontBig, "GAME PAUSED", GamePausedPos, Globals.Red);
+        MenuLayout layout = Measure();
 
+        layout.DrawPanel();
+
+        layout.DrawTitle(UISettings.fontBig, TITLE, UITheme.TextPrimary);
+
+        layout.DrawDivider();
+
+        layout.DrawSubtitle(UISettings.fontUI, ScoreNote, UITheme.TextMuted);
+
+        ButtonResume.Draw(UISettings.buttonFont);
         ButtonRestart.Draw(UISettings.buttonFont);
         ButtonMenu.Draw(UISettings.buttonFont);
-        ButtonResume.Draw(UISettings.buttonFont);
     }
 }

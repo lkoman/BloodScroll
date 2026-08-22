@@ -38,6 +38,10 @@ public interface IMob : IDrawableLayer
 
     // Frozen where it stands for this long - the stun gun's whole point
     void Stun(float seconds);
+
+    // Shoved along the given direction and left to walk back - the rifle's
+    // whole point. Force is in pixels per second and bleeds off by itself.
+    void Knockback(Vector2 direction, float force);
     void BounceFromFloor();
     void Explode();
     void MoveTo(Vector2 position);
@@ -45,6 +49,11 @@ public interface IMob : IDrawableLayer
     // The same thing, given the middle of the mob rather than its top left
     void MoveCentreTo(Vector2 centre);
     void ScaleHP(float scale);
+
+    // The chosen difficulty, folded into this mob's HP and damage. Called once
+    // as it joins a layer, and given the layer it is joining because a boss
+    // grows with the climb and an ordinary mob does not.
+    void ApplyDifficulty(int layerIndex);
 
     // Hit tests. A mob answers with its polygon outline if it has one,
     // otherwise with its rectangle.

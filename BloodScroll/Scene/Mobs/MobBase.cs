@@ -85,6 +85,30 @@ public abstract class MobBase : IMob
     private float stunTimer = 0f;
     protected bool Stunned => stunTimer > 0f;
 
+    // KNOCKBACK
+    //
+    // A shove the mob did not ask for, in pixels per second, bled off a little
+    // more every frame. Only the rifle deals any - see WeaponSpec.Knockback.
+    //
+    // It is a DISPLACEMENT laid over whatever the mob was doing rather than a
+    // change to its own velocity, because almost every mob steers itself and
+    // would simply steer the push out again. Shoved back, then walking back in,
+    // is exactly what the gun is for.
+    private Vector2 knockback = Vector2.Zero;
+
+    // How fast the shove dies. The mob travels roughly force/decay pixels in
+    // total, so at 7 a hit of 800 moves it a little over a hundred - a real
+    // step backwards, not a teleport.
+    private const float KNOCKBACK_DECAY = 7f;
+
+    // Below this it is a pixel a second and not worth the arithmetic
+    private const float KNOCKBACK_CUTOFF = 4f;
+
+    // A BOSS IS HEAVY. It takes the same shove as everything else and moves a
+    // third as far - enough to see the hit land, never enough to walk the thing
+    // the room is about into a corner and hold it there.
+    private const float BOSS_KNOCKBACK_SHARE = 0.35f;
+
     // DIRECTION TIMER
     private float directionTimer = 1.5f;
     private float directionSeconds = 1.5f;
@@ -97,6 +121,14 @@ public abstract class MobBase : IMob
     public void Update(IPlayer player, GameWorld gameWorld)
     {
         UpdateHitTimer();
+
+        // BEFORE THE MOB MOVES, and before the stun check, because being shoved
+        // is not the mob acting - a frozen mob still slides when it is hit.
+        // Going first also means the handful of mobs that write an absolute
+        // position every frame (the queen on her track, the moth on its perch)
+        // simply overwrite it and stand their ground, instead of flickering
+        // between shoved and snapped back.
+        UpdateKnockback();
 
         // FROZEN. Everything below this line is the mob acting, and a stunned
         // mob does not act - so the whole behaviour is simply not run.
@@ -117,6 +149,47 @@ public abstract class MobBase : IMob
     public void Stun(float seconds)
     {
         stunTimer = MathF.Max(stunTimer, seconds);
+    }
+
+    //
+    // SHOVED
+    //
+    // The direction is the way the shot was flying, so the mob always goes the
+    // way the bullet was going rather than away from the player - shooting a bat
+    // that has got above you knocks it up, not sideways.
+    //
+    // REPLACED rather than added to, the same way the player's own knockback is:
+    // emptying the rifle into one thing pushes it steadily, it does not stack
+    // into a launch.
+    //
+    // Whether a shove moves this mob at all. Anything GROWN where it stands
+    // says no - it is not standing there, it is attached there.
+    protected virtual bool CanBeKnockedBack => true;
+
+    public void Knockback(Vector2 direction, float force)
+    {
+        if (!CanBeKnockedBack || force <= 0f || direction.LengthSquared() < 0.0001f)
+            return;
+
+        direction.Normalize();
+
+        knockback = direction * force * (IsBoss ? BOSS_KNOCKBACK_SHARE : 1f);
+    }
+
+    // Slides the mob along what is left of the shove and takes some of it away.
+    // MoveTo rather than touching the sprite, so the mobs that are more than one
+    // sprite (the flower's whole stem) move in one piece.
+    private void UpdateKnockback()
+    {
+        if (knockback == Vector2.Zero)
+            return;
+
+        MoveTo(Sprite.Position + knockback * Globals.DT);
+
+        knockback *= MathF.Max(0f, 1f - KNOCKBACK_DECAY * Globals.DT);
+
+        if (knockback.LengthSquared() < KNOCKBACK_CUTOFF * KNOCKBACK_CUTOFF)
+            knockback = Vector2.Zero;
     }
 
     // What the sprite is drawn in: the art as it was drawn, flashing red while
@@ -180,8 +253,38 @@ public abstract class MobBase : IMob
         if (scale == 1f)
             return;
 
-        SetHP((int)(MaxHP * scale));
+        SetHP(Math.Max(1, (int)(MaxHP * scale)));
     }
+
+    //
+    // WHAT THE DIFFICULTY DID TO THIS MOB
+    //
+    // Applied ONCE, as the mob joins a layer (see MobManager.AddMob) - which is
+    // the first moment both halves of the question can be answered: whether it
+    // is a boss, and which layer it is standing on. Neither is known in the
+    // constructor, where the raw HP and damage are written.
+    //
+    // An ordinary mob takes a flat multiplier and the layer never enters into
+    // it. A boss takes one that grows with the climb. That difference is the
+    // whole shape of the curve - see Difficulty.
+    //
+    public void ApplyDifficulty(int layerIndex)
+    {
+        bool boss = IsBoss;
+
+        damageScale = boss ? Difficulty.BossDamage(layerIndex) : Difficulty.MobDamage;
+
+        DAMAGE = ScaleDamage(DAMAGE);
+        ScaleHP(boss ? Difficulty.BossHp(layerIndex) : Difficulty.MobHp);
+    }
+
+    // What this mob's damage is actually worth. Contact damage above is put
+    // through it once and stored; everything a mob THROWS is worked out while
+    // it is alive, so each shooter runs its own figures through here at the
+    // moment it fires - see BatBase.Shoot for the pattern.
+    private float damageScale = 1f;
+
+    protected int ScaleDamage(int damage) => Difficulty.Scale(damage, damageScale);
 
     public virtual void MoveTo(Vector2 position)
     {

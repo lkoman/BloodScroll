@@ -71,7 +71,7 @@ public class Hive : MobBase
 
     public Hive()
     {
-        SetHP(2500);
+        SetHP(2100);
         DAMAGE = 0;
         PointsOnKill = 1500;
         ON_TOUCH = OnTouch.Nothing; // the adds do the hurting
@@ -144,6 +144,11 @@ public class Hive : MobBase
 
     // Fixed in place
     public override void BounceFromFloor() {}
+
+    // Which means the rifle cannot push it either. Nothing ever writes its
+    // position again after SetSpawn, so a shove would not be a shove - it would
+    // move the hole to where the shots came from and leave it there.
+    protected override bool CanBeKnockedBack => false;
 
     // Points evenly round a circle, as fractions of the sprite frame, which is
     // what HitboxShape is measured in

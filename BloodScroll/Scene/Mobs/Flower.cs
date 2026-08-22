@@ -612,6 +612,11 @@ public class Flower : MobBase, IPlatformMob
     // Rooted to its platform - it does not fall, and it does not get bounced
     public override void BounceFromFloor() {}
 
+    // Nor shoved. A rifle round into a plant that is GROWING out of the ledge
+    // does not push the plant back, and the head swinging on its stem is
+    // already the whole of how a flower reacts to being hit.
+    protected override bool CanBeKnockedBack => false;
+
     // Nothing spawns a flower loose in the air, but if something ever does,
     // the whole plant moves: root, leaves, constraint and head together
     public override void MoveTo(Vector2 position)

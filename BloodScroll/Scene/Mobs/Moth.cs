@@ -173,7 +173,7 @@ public class Moth : MobBase
 
     public Moth()
     {
-        SetHP(1200);
+        SetHP(1000);
         DAMAGE = 70;
         PointsOnKill = 1500;
     }
@@ -460,7 +460,7 @@ public class Moth : MobBase
         if (!gust.CaughtPlayer(player))
             return;
 
-        player.TakeDamage(GUST_DAMAGE, gameWorld.Audio);
+        player.TakeDamage(ScaleDamage(GUST_DAMAGE), gameWorld.Audio);
         player.Knockback(gust.Direction, GUST_KNOCKBACK);
     }
 

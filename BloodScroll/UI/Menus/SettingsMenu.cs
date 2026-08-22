@@ -6,44 +6,46 @@ using System;
 
 namespace BloodScroll;
 
+//
+// SETTINGS
+//
+// Two toggles and a way back. Both toggles read their value straight off the
+// thing they control every frame instead of remembering what they last set it
+// to - that way a setting loaded from the save file, or changed anywhere else,
+// still shows up correctly the first time this screen is opened.
+//
+
 public class SettingsMenu
 {
-    private static Vector2 SettingsPos;
-
-    private string OneLine = "-";
+    private const string TITLE = "SETTINGS";
 
     // BUTTONS
     private Button ButtonFullScreen, SoundButton, ButtonMenu;
 
     public void LoadContent(GraphicsDevice device)
     {
-        //
-        // POSITIONS FOR UI ELEMENTS
-        //
-        SettingsPos = new Vector2(
-            Globals.VIRTUAL_WIDTH / 2 - UISettings.fontBig.MeasureString("SETTINGS").X / 2,
-            Globals.VIRTUAL_HEIGHT / 2 - UISettings.fontBig.MeasureString("SETTINGS").Y - UISettings.fontUI.MeasureString(OneLine).Y * 2
-        );
-
-        // BUTTONS
         ButtonFullScreen = new Button();
         ButtonFullScreen.LoadContent("FULLSCREEN", UISettings.buttonSize, device);
-    
+
         SoundButton = new Button();
-        SoundButton.LoadContent("SOUND ON", UISettings.buttonSize, device);
+        SoundButton.LoadContent("SOUND", UISettings.buttonSize, device);
 
         ButtonMenu = new Button();
-        ButtonMenu.LoadContent("MENU", UISettings.buttonSize, device);
-
+        ButtonMenu.LoadContent("BACK", UISettings.buttonSize, device);
     }
 
     public MouseCursor Update(IAudioService audio)
     {
         MouseCursor desiredCursor;
 
-        ButtonFullScreen.SetOrder(0);
-        SoundButton.SetOrder(1);
-        ButtonMenu.SetOrder(2);
+        ButtonFullScreen.SetValue(Globals.FULLSCREEN ? "ON" : "OFF");
+        SoundButton.SetValue(audio.GetMasterVolume() == 0f ? "OFF" : "ON");
+
+        MenuLayout layout = Measure();
+
+        ButtonFullScreen.Place(layout.ButtonAt(0, UISettings.buttonSize));
+        SoundButton.Place(layout.ButtonAt(1, UISettings.buttonSize));
+        ButtonMenu.Place(layout.ButtonAt(2, UISettings.buttonSize));
 
         ButtonFullScreen.UpdateHoverColor(audio);
         SoundButton.UpdateHoverColor(audio);
@@ -55,37 +57,17 @@ public class SettingsMenu
         else {
             desiredCursor = MouseCursor.Arrow;
         }
-        
+
         if (ButtonFullScreen.ButtonClicked(audio))
         {
-            if (Globals.FULLSCREEN == false)
-            {
-                Globals.FULLSCREEN = true;
-                ButtonFullScreen.ChangeText("WINDOWED");
+            Globals.FULLSCREEN = !Globals.FULLSCREEN;
 
-                Core.Graphics.IsFullScreen = true;
-                Core.Graphics.ApplyChanges();
-            }
-            else
-            {
-                Globals.FULLSCREEN = false;
-                ButtonFullScreen.ChangeText("FULLSCREEN");
-
-                Core.Graphics.IsFullScreen = false;
-                Core.Graphics.ApplyChanges();
-            }
+            Core.Graphics.IsFullScreen = Globals.FULLSCREEN;
+            Core.Graphics.ApplyChanges();
         }
         else if(SoundButton.ButtonClicked(audio))
         {
-            if (audio.GetMasterVolume() == 0f)
-            {
-                audio.SetMasterVolume(1f);
-                SoundButton.ChangeText("SOUND ON");
-            }
-            else {
-                audio.SetMasterVolume(0f);
-                SoundButton.ChangeText("SOUND OFF");
-            }
+            audio.SetMasterVolume(audio.GetMasterVolume() == 0f ? 1f : 0f);
         }
         else if(ButtonMenu.ButtonClicked(audio))
         {
@@ -96,9 +78,18 @@ public class SettingsMenu
         return desiredCursor;
     }
 
+    private static MenuLayout Measure()
+        => new(TITLE, UISettings.fontBig, null, UISettings.fontUI, 3, UISettings.buttonSize);
+
     public void Draw()
     {
-        Globals.SpriteBatch.DrawString(UISettings.fontBig, "SETTINGS", SettingsPos, Globals.AlmostWhite);
+        MenuLayout layout = Measure();
+
+        layout.DrawPanel();
+
+        layout.DrawTitle(UISettings.fontBig, TITLE, UITheme.TextPrimary);
+
+        layout.DrawDivider();
 
         ButtonFullScreen.Draw(UISettings.buttonFont);
         SoundButton.Draw(UISettings.buttonFont);

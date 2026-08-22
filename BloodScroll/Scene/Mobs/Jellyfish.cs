@@ -188,7 +188,12 @@ public class JellyFish : MobBase
             BLAST_RADIUS,
             Globals.HotPink,
             hurtsPlayer: true,
-            playerDamage: PLAYER_DAMAGE);
+
+            // Only the half of the blast that lands on the PLAYER moves with
+            // the difficulty. What it does to other mobs is the jellyfish
+            // clearing a room for him, and making baby mode worse at that
+            // would be the setting working against itself.
+            playerDamage: ScaleDamage(PLAYER_DAMAGE));
 
         HP = 0;
     }

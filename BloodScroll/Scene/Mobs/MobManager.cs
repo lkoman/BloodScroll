@@ -87,6 +87,11 @@ public class MobManager
 
     private Vector2 playerPos;
 
+    // The layer this manager belongs to. Kept from the constructor rather than
+    // read off waveData, because the JSON is allowed to say anything and the
+    // boss scaling has to be measured against where the mob ACTUALLY is.
+    private readonly int layerIndex;
+
     // MOB WAVES
     public bool wavesTriggered = false;
     public bool AllEnemiesBeaten = false;
@@ -106,6 +111,8 @@ public class MobManager
 
     public MobManager(int currentLayerIndex, WaveData data)
     {
+        layerIndex = currentLayerIndex;
+
         waveData = new(currentLayerIndex);
         waveData.MergeFrom(data);
     }
@@ -330,9 +337,15 @@ public class MobManager
     }
 
     // Every mob in the game arrives through here, so this is the one place
-    // that has to notice a boss turning up
+    // that has to notice a boss turning up - and the one place the difficulty
+    // has to be folded in. Doing it anywhere else means the next spawn route
+    // somebody adds (a wave, a sleeper, a hive spitting out adds) quietly
+    // arrives at medium whatever the player picked, which is the sort of bug
+    // nobody finds because the mob looks perfectly normal.
     private void AddMob(IMob mob)
     {
+        mob.ApplyDifficulty(layerIndex);
+
         mobs.Add(mob);
 
         if (mob.IsBoss)

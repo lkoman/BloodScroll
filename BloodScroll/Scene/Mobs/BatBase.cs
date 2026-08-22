@@ -158,7 +158,7 @@ public abstract class BatBase : MobBase, ISleepingMob
                 Globals.R.Next(-shot.Aim, shot.Aim) + playerPos.Y
             ),
             shot.Region,
-            shot.Damage,
+            ScaleDamage(shot.Damage),
             shot.Speed,
             AudioId.BatSqueak,
             shot.Effect,

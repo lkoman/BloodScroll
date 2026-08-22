@@ -77,8 +77,22 @@ public class Bullet: IDrawableLayer
     public float Fuse = 0f;
     public bool FuseSpent { get; private set; } = false;
 
+    // THE PLAYER SAYING "NOW". Ends the fuse early, which is the same thing to
+    // everybody downstream as the fuse running out on its own - whoever is
+    // watching FuseSpent detonates it and the shell is spent. Nothing here
+    // knows why it was cut, and nothing needs to.
+    public void CutFuse()
+    {
+        Fuse = 0f;
+        FuseSpent = true;
+    }
+
     // How long whatever it hits stays frozen. 0 for everything but the stun gun.
     public float StunSeconds = 0f;
+
+    // How hard whatever it hits is shoved, in pixels per second, along the way
+    // this shot was flying. 0 for everything but the rifle - see MobBase.Knockback.
+    public float Knockback = 0f;
 
     // Where the shot actually is - the middle, not the corner of the frame.
     // Blasts are measured from here.
@@ -116,11 +130,11 @@ public class Bullet: IDrawableLayer
     // white makes every shot in the game look the same from a distance.
     private const float BORDER_LIGHTEN = 0.6f;
 
-    // A black web is the same strands in the dark. It is the ONE warning that
-    // this shot will nail the player down rather than merely slow him, so it
-    // has to be told apart from an ordinary web at a glance - and being nearly
-    // the colour of the background is exactly why it is hard to see coming.
-    private Color WebColour => Effect == BulletEffect.Root ? Globals.BlackWeb : Color.White;
+    // A rooting web is the same strands lit up. It is the ONE warning that this
+    // shot will nail the player down rather than merely slow him, so it is the
+    // loudest colour in the game - a web he has to be out of the way of is a
+    // web he has to be able to see coming.
+    private Color WebColour => Effect == BulletEffect.Root ? Globals.RootWeb : Color.White;
 
     public Bullet() {}
 

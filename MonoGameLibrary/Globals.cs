@@ -18,7 +18,10 @@ public static class Globals
     public static bool SETTINGS_MENU { get; set; } = false;
 
     // GAMEPLAY
-    public static int DIFFICULTY { get; set; } = 0; // 0 - easy, 1 - medium, 2 - hard
+    // 0 - baby, 1 - medium, 2 - hell. MEDIUM is what the game is tuned as and
+    // the other two are it bent one step either way - see Difficulty, which is
+    // the only place that reads this and the only place worth editing.
+    public static int DIFFICULTY { get; set; } = 1;
     public static bool PLAYER_ALIVE { get; set; } = true;
     public static int[] HIGH_SCORE { get; set; } = [0, 0, 0];
     public static int HIGH_SCORE_THIS_RUN { get; set; } = 0;
@@ -27,7 +30,7 @@ public static class Globals
     public static string CurrentLayerType { get; set; } = "Ground Level";
 
     // Game variables - screen
-    public static bool FULLSCREEN { get; set; } = false;
+    public static bool FULLSCREEN { get; set; } = true;
     public const int VIRTUAL_WIDTH = 1920;//3840;
     public const int VIRTUAL_HEIGHT = 1080;//2160;
     public static Vector2 CameraOffset { get; set; } = Vector2.Zero;
@@ -94,10 +97,16 @@ public static class Globals
     // bat, by its shots and by the player while it is working on him.
     public static Color PoisonGreen { get; } = new Color(140, 176, 62);
 
-    // THE BLACK SPIDER'S WEB. Almost the colour of the background, because you
-    // are not meant to spot it coming easily - and much darker than an ordinary
-    // web, which is the one warning that this one does not merely slow you.
-    public static Color BlackWeb { get; } = new Color(38, 32, 46);
+    // THE ROOTING SPIDER AND ITS WEB. The brightest thing in the game, on
+    // purpose. This used to be almost the colour of the background, on the
+    // theory that a shot you cannot see coming is frightening - and it is, but
+    // losing the controls to something the player never had a chance to read is
+    // not difficulty, it is a coin flip. Fluorescent, so the spider is pickable
+    // out of the ceiling and the web is dodgeable in the air.
+    //
+    // Louder than either green already in use (HealGreen, PoisonGreen) so it
+    // cannot be read as the butterfly or the green bat.
+    public static Color RootWeb { get; } = new Color(57, 255, 20);
 
     //
     // WHO FIRED IT

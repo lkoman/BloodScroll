@@ -97,17 +97,30 @@ public class WaveData
     private const int GREEN_BAT_FROM_LAYER = 6;
     private const int BLACK_SPIDER_FROM_LAYER = 10;
 
+    //
+    // HOW MANY OF EVERYTHING THIS LAYER SENDS
+    //
+    // Every count here is the MEDIUM curve; Difficulty.Count is what bends it
+    // for baby and hell, and it bends it twice - one fewer or one more to start
+    // with, and a slower or faster climb from there. See Difficulty.
+    //
     public void SetDifficulty()
     {
         // Začnemo z base = 2, base+1 vsak wave do boss-a, po vsakem bossu je base++
-            // 0 = 2 bats per wave + difficulty (0, 1, 2)
-            // 1 = 3 bats per wave + difficulty (0, 1, 2)
-            // 2 = 4 bats per wave + difficulty (0, 1, 2)
-            // 3 = 5 bats per wave + difficulty (0, 1, 2)
+            // 0 = 2 bats per wave
+            // 1 = 3 bats per wave
+            // 2 = 4 bats per wave
+            // 3 = 5 bats per wave
             // 4 = boss level, tam se vse nastavi ročno
-            // 5 = 3 bats per wave + difficulty (0, 1, 2)
+            // 5 = 3 bats per wave
             // ...
-        int swarm = Math.Min((LayerIndex / 5) + 2 + Globals.DIFFICULTY + (LayerIndex % 5) / 2, 8);
+        //
+        // The two halves of the swarm's growth: one step for every boss cycle
+        // the player has cleared, and a smaller one for each pair of layers
+        // inside the cycle he is on.
+        int swarmProgress = (LayerIndex / 5) + (LayerIndex % 5) / 2;
+
+        int swarm = Difficulty.Count(2, swarmProgress, cap: 8);
 
         Mobs[MobType.Bat] = swarm;
 
@@ -116,46 +129,68 @@ public class WaveData
         Mobs[MobType.Jellyfish] = swarm;
 
         // Same curve but starting from 0 instead of 2
-        Mobs[MobType.PurpleBat] = Math.Min((LayerIndex / 5) + 0 + Globals.DIFFICULTY + (LayerIndex % 5) / 2, 8);
+        Mobs[MobType.PurpleBat] = Difficulty.Count(0, swarmProgress, cap: 8);
 
         // THE POISON BAT. One or two in a wave, never a swarm of its own: the
         // poison does not stack usefully and a screen full of green would just
         // be a permanent debuff rather than a hit the player can react to.
         Mobs[MobType.GreenBat] = LayerIndex < GREEN_BAT_FROM_LAYER
             ? 0
-            : Math.Min(1 + (LayerIndex - GREEN_BAT_FROM_LAYER) / 8, 2 + Globals.DIFFICULTY);
+            : Difficulty.Count(1, (LayerIndex - GREEN_BAT_FROM_LAYER) / 8, cap: 3);
 
-        // difficulty (0, 1, 2) slime in difficulty (0, 1, 2) crab na wave vedno
-        Mobs[MobType.Slime] = Globals.DIFFICULTY;
-        Mobs[MobType.Crab] = Globals.DIFFICULTY;
+        // THE TWO GROUND MOBS. Neither is a threat on its own - what they do is
+        // take the floor away as somewhere safe to stand while the bats work on
+        // you. They used to be a flat difficulty count, which meant the easiest
+        // setting never saw one at all; they now creep in with the climb like
+        // everything else, so meeting one is something the run earns.
+        //
+        // The crab only ever exists on the ground layer (see MobManager) and
+        // that layer's count is written by hand, so this is the slime's curve
+        // in practice.
+        Mobs[MobType.Slime] = Difficulty.Count(0, LayerIndex / 5, cap: 3);
+        Mobs[MobType.Crab] = Difficulty.Count(0, LayerIndex / 5, cap: 3);
 
         // Flowers are placed on platforms when the layer is built, so this is
         // how many hide on the WHOLE layer, not how many per wave. Enough of
         // them that a climb has to be picked around rather than walked up, and
         // enough that there is usually one in reach when a bomb is wanted.
         // Capped so a layer never runs out of clean ledges to land on.
-        Mobs[MobType.Flower] = Math.Min(3 + Globals.DIFFICULTY + LayerIndex / 6, 7);
+        //
+        // THE DIFFICULTY DOES NOT TOUCH THIS ONE. A flower is a bomb the player
+        // gets to keep, so handing hell mode more of them than baby - which is
+        // what tying it to the setting did - made the hardest setting the one
+        // with the most ammunition lying about.
+        Mobs[MobType.Flower] = Math.Min(3 + LayerIndex / 6, 7);
 
         // Ceiling spiders join once the player has found his feet
         Mobs[MobType.Spider] = LayerIndex < 3
             ? 0
-            : 1 + (LayerIndex / 8) + Globals.DIFFICULTY;
+            : Difficulty.Count(1, LayerIndex / 8, cap: 3);
 
         // THE BLACK ONE. Late, and never more than a couple - it does not slow
         // the player down, it nails him to the spot, and that is only
-        // frightening while it is rare.
+        // frightening while it is rare. On baby that first one is held back a
+        // full ten layers, which is the difficulty doing exactly what it should
+        // with a mob this harsh: not weakening it, just meeting it later.
         Mobs[MobType.BlackSpider] = LayerIndex < BLACK_SPIDER_FROM_LAYER
             ? 0
-            : 1 + (LayerIndex - BLACK_SPIDER_FROM_LAYER) / 10;
+            : Difficulty.Count(1, (LayerIndex - BLACK_SPIDER_FROM_LAYER) / 10, cap: 2);
 
-        // One butterfly a wave - the only healing there is outside a boss kill
+        // One butterfly a wave - the only healing there is outside a boss kill,
+        // and the same one wherever the difficulty is set. Taking the heal away
+        // on hell would not make it harder, it would make it shorter.
         Mobs[MobType.Butterfly] = LayerIndex < 2 ? 0 : 1;
 
         // Začnemo z dvema wave-oma, po vsakem bossu + 1 wave
-            // 0...4 = 2 waves + difficulty (0, 1, 2)
-            // 5...9 = 3 waves + difficulty (0, 1, 2)
-            // 10...14 = 4 waves + difficulty (0, 1, 2)
-        WavesToBeat = (LayerIndex / 8) + 2 + Globals.DIFFICULTY;
+            // 0...7  = 2 waves
+            // 8...15 = 3 waves
+            // 16...  = 4 waves
+        // Never below two, whatever baby mode's slower climb works out to: one
+        // wave is not a layer, it is a corridor with a bat in it. And never
+        // above eight, because every wave's worth of bats is BUILT when the
+        // layer is (see MobManager.GenerateAllSleepingMobs) - past that the
+        // layer stops being a longer fight and starts being a longer wait.
+        WavesToBeat = Math.Clamp(Difficulty.Count(2, LayerIndex / 8), 2, 8);
     }
 
     // Merges the hand authored settings for this layer over the generated ones.

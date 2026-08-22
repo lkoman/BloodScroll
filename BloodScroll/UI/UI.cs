@@ -140,6 +140,7 @@ public class UI : IUI
     {
         _menuBackground.Draw();
         DrawOverlay();
+        DrawVignette();
     }
 
     private void DrawOverlay()
@@ -149,5 +150,39 @@ public class UI : IUI
             new Rectangle(0, 0, Globals.VIRTUAL_WIDTH, Globals.VIRTUAL_HEIGHT),
             Globals.ScreenOverlayColor
         );
+    }
+
+    //
+    // THE CORNERS OF THE MENU, PULLED DOWN
+    //
+    // The drawn background is busy right to the edges and the panel sits in the
+    // middle of it, so without this the eye has nowhere to settle. A handful of
+    // black bands thickening towards each edge darkens the outside of the frame
+    // and leaves the middle where it was - the panel comes forward on its own,
+    // without the background having to be dimmed flat and lost.
+    //
+    private static void DrawVignette()
+    {
+        const int BANDS = 24;
+        const int DEPTH = 300;
+        const float STRENGTH = 0.55f;
+
+        int step = DEPTH / BANDS;
+
+        // Band 0 is hard against the screen edge and darkest; each one after it
+        // sits a step further in and is lighter, fading to nothing by DEPTH.
+        // The bands do not overlap, so the alpha here is the alpha on screen.
+        for (int i = 0; i < BANDS; i++)
+        {
+            float t = 1f - i / (float)BANDS;
+            Color shade = Color.Black * (STRENGTH * t * t);
+
+            int inset = i * step;
+
+            RoundedRect.Rect(new Rectangle(0, inset, Globals.VIRTUAL_WIDTH, step), shade);
+            RoundedRect.Rect(new Rectangle(0, Globals.VIRTUAL_HEIGHT - inset - step, Globals.VIRTUAL_WIDTH, step), shade);
+            RoundedRect.Rect(new Rectangle(inset, 0, step, Globals.VIRTUAL_HEIGHT), shade);
+            RoundedRect.Rect(new Rectangle(Globals.VIRTUAL_WIDTH - inset - step, 0, step, Globals.VIRTUAL_HEIGHT), shade);
+        }
     }
 }

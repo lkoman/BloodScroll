@@ -27,13 +27,14 @@ public class BloodScroll : Core
     private Matrix camMatrix;
     private Sprite _foreground;
 
-    // DEBUG
-    public DebugRenderer debugRenderer;
+    // How solid the framing art at the edges is. Short of 1, so what passes
+    // behind it can still be made out - see LoadContent.
+    private const float FOREGROUND_ALPHA = 0.75f;
 
-    // F1 draws every hitbox. Use it to tune the HitboxScale on each mob:
-    // the box should hug the creature, not the empty space around it.
-    private bool showHitboxes = false;
-    private KeyboardState lastDebugKeyState;
+    // DEBUG
+    // The function keys and what they switch on live in DebugMode - this is
+    // only the thing that draws the boxes F1 asks for.
+    public DebugRenderer debugRenderer;
 
     // Scroll switch screen
     private bool isTransitioning = false;
@@ -109,6 +110,11 @@ public class BloodScroll : Core
 
         userInterface.GiftCardDisplayed = false;
 
+        // LAST, after everything above has been wiped back to a fresh run. If
+        // debug mode is on it hands the guns and the shield straight back, so
+        // the switch keeps meaning the same thing from one run to the next.
+        DebugMode.ApplyToRun(player, weaponsManager);
+
         // Restart music
         audioService.SwitchToGameMusic();
     }
@@ -136,7 +142,15 @@ public class BloodScroll : Core
         Globals.GroundHeight = windowHeight - 250;
 
         // FOREGROUND SPRITE (aesthetics)
+        //
+        // It is drawn over EVERYTHING - the mobs, the player, his bullets - so
+        // anything that wanders under the frame at the edges of the screen is
+        // simply gone while it is there. Held back a little, so the edges read
+        // as something in front of the room rather than a hole in it: a bat
+        // coming in from the side is a shape behind the art instead of a bat
+        // that was not on screen a moment ago.
         _foreground = Globals.Foregrounds.CreateSprite("foreground");
+        _foreground.Color = Color.White * FOREGROUND_ALPHA;
 
         base.LoadContent();
     }
@@ -285,7 +299,7 @@ public class BloodScroll : Core
 
             // Last, so the hitboxes stay readable over the HUD and over the
             // dark overlay that covers the screen on death or pause
-            if (showHitboxes)
+            if (DebugMode.ShowHitboxes)
                 DrawDebugBoundingBoxes();
         }
 
@@ -340,16 +354,13 @@ public class BloodScroll : Core
             Globals.DISPLAY_PAUSE_MENU = false;
     }
 
-    // Toggle the hitbox overlay. Separate from the pause handling because that
-    // one stops listening the moment the player dies or opens the menu.
+    // Separate from the pause handling because that one stops listening the
+    // moment the player dies or opens the menu, and the debug keys have to
+    // keep working on the death screen - that is often exactly when you want
+    // to switch one on.
     private void CheckDebugKeys()
     {
-        KeyboardState keyState = Keyboard.GetState();
-
-        if (keyState.IsKeyDown(Keys.F1) && lastDebugKeyState.IsKeyUp(Keys.F1))
-            showHitboxes = !showHitboxes;
-
-        lastDebugKeyState = keyState;
+        DebugMode.Update(player, weaponsManager);
     }
 
     private void DrawDebugBoundingBoxes()

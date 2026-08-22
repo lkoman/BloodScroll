@@ -14,7 +14,7 @@ namespace BloodScroll;
 //
 // All it does is open and shut. Shut means the moth is inside, healing, and
 // out of reach - that is the whole tell. Once the moth is dead it is left
-// hanging open for the rest of the layer.
+// hanging open for the rest of the layer, and FADED - see DEAD_ALPHA.
 //
 
 public class Cocoon : MobBase
@@ -23,6 +23,33 @@ public class Cocoon : MobBase
 
     // Starts shut, because that is where the moth comes out of
     public bool MothInside { get; set; } = true;
+
+    //
+    // WHAT IS LEFT OF IT AFTER THE FIGHT
+    //
+    // With the moth dead the cocoon has said everything it has to say, but it
+    // is hung dead centre against the ceiling and it stays hung there for the
+    // rest of the layer - right where the player now has to climb. Solid, it
+    // is furniture that hides the platforms he is aiming for.
+    //
+    // So it goes translucent the moment she dies. Still there, because the
+    // room should keep the evidence of what happened in it; no longer able to
+    // swallow a ledge.
+    private const float DEAD_ALPHA = 0.5f;
+
+    // The moth this one belongs to, found the same way she finds it. Looked
+    // for once and then kept, INCLUDING AFTER SHE IS KILLED - the layer drops
+    // her from its mob list the moment her HP hits zero, so a reference to a
+    // moth on nought HP is exactly how we know she is gone. Asking the layer
+    // again would only tell us she is not there, which is also true every time
+    // she chases the player up a screen.
+    private Moth moth;
+    private bool lookedForMoth = false;
+
+    private bool MothDead => moth != null && moth.HP <= 0;
+
+    // Faded once she is dead, and normal every other moment of the fight
+    protected override Color DrawColour => Tinted(Color.White) * (MothDead ? DEAD_ALPHA : 1f);
 
     // It is furniture, not a fight. It never counts towards clearing the layer
     // and it never counts towards the score.
@@ -75,8 +102,10 @@ public class Cocoon : MobBase
         );
     }
 
-    protected override void UpdateBehaviour(IPlayer _, GameWorld __)
+    protected override void UpdateBehaviour(IPlayer _, GameWorld gameWorld)
     {
+        FindMoth(gameWorld);
+
         AnimatedSprite want = MothInside ? _closed : _open;
 
         if (Sprite != want)
@@ -92,6 +121,21 @@ public class Cocoon : MobBase
         }
 
         Sprite.Update();
+    }
+
+    // Looked for on the layer it was hung on, which is where she starts and
+    // where she is on the frame this runs. She may take the fight several
+    // screens up from here afterwards; the reference does not care.
+    //
+    // A cocoon on a layer with no moth on it simply never finds one, and stays
+    // solid for good - which is the right answer to a question nobody asked.
+    private void FindMoth(GameWorld gameWorld)
+    {
+        if (lookedForMoth)
+            return;
+
+        moth = gameWorld.FindMobOnLayer<Moth>(SpawnLayer);
+        lookedForMoth = true;
     }
 
     // Where the moth aims for, and what it tucks itself behind

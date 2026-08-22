@@ -74,7 +74,7 @@ public class CollisionResponse
                     // Hurts now, and keeps hurting - see Player.UpdatePoison
                     case BulletEffect.Poison:
                         player.TakeDamage(mobProjectile.DAMAGE, audio);
-                        player.ApplyPoison(GreenBat.POISON_DAMAGE, GreenBat.POISON_SECONDS);
+                        player.ApplyPoison(PoisonDose(), GreenBat.POISON_SECONDS);
                         break;
 
                     default:
@@ -154,7 +154,7 @@ public class CollisionResponse
                 // costs you the next ten seconds
                 case OnTouch.PoisonPlayer:
                     player.TakeDamage(mob.DAMAGE, audio);
-                    player.ApplyPoison(GreenBat.POISON_DAMAGE, GreenBat.POISON_SECONDS);
+                    player.ApplyPoison(PoisonDose(), GreenBat.POISON_SECONDS);
                     break;
             }
         }
@@ -163,6 +163,16 @@ public class CollisionResponse
             mob.HittingPlayer = false;
         }
     }
+
+    // THE POISON IS THE ONE HIT THE BAT DOES NOT DEAL ITSELF.
+    //
+    // Everything else a mob costs the player is scaled where the mob is (see
+    // MobBase.ApplyDifficulty), but a bite and a poison shot both end up here
+    // holding nothing but a constant off GreenBat. Only the green bat poisons
+    // anything and it is never a boss, so an ordinary mob's multiplier is the
+    // right one - the same figure its contact damage already went through.
+    private static int PoisonDose() =>
+        Difficulty.Scale(GreenBat.POISON_DAMAGE, Difficulty.MobDamage);
 
     // PLAYER CANNOT WALK OFF BIG PLATFORM
     private void CheckPlayerWalkedOff(IPlayer player)
@@ -228,6 +238,13 @@ public class CollisionResponse
 
                 if (bullet.StunSeconds > 0f)
                     mob.Stun(bullet.StunSeconds);
+
+                // THE SHOVE GOES THE WAY THE SHOT WAS GOING, which is why the
+                // bullet's own direction is handed over rather than the line
+                // from the player - a shot that bounced off a ledge pushes the
+                // way it is travelling now, not the way it was fired.
+                if (bullet.Knockback > 0f)
+                    mob.Knockback(bullet.direction, bullet.Knockback);
             }
 
             bullet.active = 0;

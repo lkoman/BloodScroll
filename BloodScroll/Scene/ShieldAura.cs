@@ -6,7 +6,7 @@ using MonoGameLibrary;
 namespace BloodScroll;
 
 //
-// THE YELLOW BUBBLE AROUND THE PLAYER
+// THE YELLOW CIRCLE AROUND THE PLAYER
 //
 // How much shield is left decides nothing here except how bright the ring is
 // drawn - the player owns the numbers, this owns the look.
@@ -19,7 +19,7 @@ namespace BloodScroll;
 public class ShieldAura
 {
     // How far outside the player the ring sits, as a share of the player size
-    private const float RADIUS_SCALE = 0.5f;
+    private const float RADIUS_SCALE = 0.7f;
 
     // Where the bright ring sits in the texture (1 = the very rim) and how wide it is
     private const float RING_CENTER = 0.86f;
