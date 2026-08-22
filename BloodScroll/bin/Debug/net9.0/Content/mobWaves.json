@@ -3,43 +3,62 @@
     "LayerIndex": 0,
     "LayerType": "Ground Layer",
 
-    "Bats_num": 4,
-    "Crabs_num": 1,
-    "WavesToBeat": 1
-  },
-  {
-    "LayerIndex": 1,
+    "Mobs": {
+      "Jellyfish":1,
+      "Bat": 4,
+      "Crab": 1,
+      "Spider": 2
+    },
 
-    "Slimes_num": 1
+    "WavesToBeat": 1
   },
   {
     "LayerIndex": 2,
     "LayerType": "Boss Layer",
 
-    "IncreasedHP": 600,
+    "Gifts": {
+      "IncreasedHP": 600,
+      "Shield": 100,
+      "DoubleJump": true
+    },
 
-    "Bats_num": 0,
-    "Slimes_num": 0,
-    "Crabs_num": 0,
-    "Jellyfish_num": 0,
+    "Mobs": {
+      "Jellyfish": 0,
+      "PurpleBat": 0,
+      "Crab": 0,
+      "Spider": 0,
+      "Slime": 0,
+      "GreenBat": 0,
+      "BlackSpider": 0,
+      "Butterfly": 0,
 
-    "Fireball_num": 2,
-    "PurpleBats_num": 2,
+      "Fireboss": 1,
+      "Bat": 5
+    },
 
-    "WavesToBeat": 2
+    "WavesToBeat": 1
   },
   {
-    "LayerIndex": 3,
+    "LayerIndex": 5,
     "LayerType": "Boss Layer",
 
-    "GunID": 1,
+    "Gifts": {
+      "GunID": 1
+    },
 
-    "Slimes_num": 0,
-    "Crabs_num": 0,
-    "Jellyfish_num": 0,
+    "Mobs": {
+      "Slime": 0,
+      "Crab": 0,
+      "Jellyfish": 0,
+      "Flower": 0,
+      "Spider": 0,
+      "Butterfly": 0,
+      "GreenBat": 0,
+      "BlackSpider": 0,
 
-    "Fireboss_num": 1,
-    "Bats_num": 5,
+      "Fireboss": 1,
+      "Fireball": 4
+    },
 
     "WavesToBeat": 1
   },
@@ -47,16 +66,52 @@
     "LayerIndex": 8,
     "LayerType": "Boss Layer",
 
-    "IncreasedHP": 750,
+    "Gifts": {
+      "IncreasedHP": 750,
+      "Shield": 100,
+      "GunID": 2
+    },
 
-    "Bats_num": 0,
-    "PurpleBats_num": 0,
-    "Slimes_num": 0,
-    "Crabs_num": 0,
-    "Jellyfish_num": 0,
+    "Mobs": {
+      "Bat": 0,
+      "PurpleBat": 0,
+      "Slime": 0,
+      "Crab": 0,
+      "Jellyfish": 0,
+      "Flower": 0,
+      "Spider": 0,
+      "Butterfly": 0,
+      "GreenBat": 0,
+      "BlackSpider": 0,
 
-    "Fireboss_num": 1,
-    "Fireball_num": 4,
+      "SpiderQueen": 1
+    },
+
+    "WavesTimer": 0
+  },
+  {
+    "LayerIndex": 11,
+    "LayerType": "Boss Layer",
+
+    "Gifts": {
+      "IncreasedHP": 750
+    },
+
+    "Mobs": {
+      "Bat": 0,
+      "PurpleBat": 0,
+      "Slime": 0,
+      "Crab": 0,
+      "Jellyfish": 0,
+      "Flower": 0,
+      "Spider": 0,
+      "Butterfly": 0,
+      "GreenBat": 0,
+      "BlackSpider": 0,
+
+      "Moth": 1,
+      "Cocoon": 1
+    },
 
     "WavesTimer": 0
   }

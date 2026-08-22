@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="spiders.png">
+	<Texture>images/spiders</Texture>
+	<Regions>
+		<SubTexture name="spider0" x="508" y="61" width="120" height="61" frameX="-6" frameY="2" frameWidth="128" frameHeight="64"/>
+		<SubTexture name="spider1" x="508" y="0" width="123" height="61" frameX="-3" frameY="2" frameWidth="128" frameHeight="64"/>
+		<SubTexture name="spiderBoss0" x="0" y="0" width="508" height="488" frameX="-6" frameY="-7" frameWidth="512" frameHeight="512"/>
+		<SubTexture name="spiderBoss1" x="0" y="488" width="494" height="491" frameX="-7" frameY="-4" frameWidth="512" frameHeight="512"/>
+	</Regions>
+	<Animations>
+		<Animation name="spider" delay="200">
+			<Frame region="spider0" />
+			<Frame region="spider1" />
+		</Animation>
+		<Animation name="spiderBoss" delay="200">
+			<Frame region="spiderBoss0" />
+			<Frame region="spiderBoss1" />
+		</Animation>
+	</Animations>
+</TextureAtlas>

@@ -54,4 +54,24 @@ public class Sprite
     {
         Region.Draw(Position, Color, angle, origin, Scale, Effects, LayerDepth);
     }
+
+    // Turns the sprite about the middle of its own frame WITHOUT moving it -
+    // Position still means the top left corner, which is what every hitbox and
+    // every bit of movement code in the game assumes.
+    //
+    // SpriteBatch places the origin point at the position it is given, so the
+    // position has to be pushed to the middle by exactly as much as the origin
+    // pulls it back.
+    public void DrawRotated(float rotation, Color color)
+    {
+        if (rotation == 0f)
+        {
+            Draw(color);
+            return;
+        }
+
+        Vector2 middle = new(Region.Width * 0.5f, Region.Height * 0.5f);
+
+        Region.Draw(Position + middle * Scale, color, rotation, middle, Scale, Effects, LayerDepth);
+    }
 }

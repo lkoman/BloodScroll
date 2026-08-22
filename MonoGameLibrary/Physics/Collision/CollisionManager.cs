@@ -40,6 +40,38 @@ public static class CollisionManager
         return bounds;
     }
 
+    // SET / UPDATE A SHRUNKEN BOUNDING RECTANGLE
+    //
+    // Sprites carry a lot of empty space - the bat is 192x128 and most of that
+    // is wing and air. Using the whole frame as the hitbox is what makes hits
+    // feel unfair. Scale shrinks the box towards the middle of the sprite:
+    // (0.6f, 0.7f) keeps 60% of the width and 70% of the height, centred.
+    public static Rectangle SetBoundingRectangle(AnimatedSprite animatedSprite, Vector2 scale)
+    {
+        return ScaleAroundCentre(
+            SetBoundingRectangle(animatedSprite),
+            scale);
+    }
+
+    public static Rectangle UpdateBoundingRectangle(Rectangle bounds, AnimatedSprite animatedSprite, Vector2 scale)
+    {
+        return ScaleAroundCentre(
+            UpdateBoundingRectangle(bounds, animatedSprite),
+            scale);
+    }
+
+    private static Rectangle ScaleAroundCentre(Rectangle full, Vector2 scale)
+    {
+        int width = (int)(full.Width * scale.X);
+        int height = (int)(full.Height * scale.Y);
+
+        return new Rectangle(
+            full.X + (full.Width - width) / 2,
+            full.Y + (full.Height - height) / 2,
+            width,
+            height);
+    }
+
     // SET / CREATE BOUNDING RECTANGLE
     public static Rectangle SetBoundingRectangle(AnimatedSprite animatedSprite)
     {
@@ -69,12 +101,17 @@ public static class CollisionManager
     {
         bounds.X = (int)animatedSprite.Position.X;
         bounds.Y = (int)animatedSprite.Position.Y;
+        // Size too, otherwise a sprite that swaps to a bigger animation keeps its old box
+        bounds.Width = (int)animatedSprite.Width;
+        bounds.Height = (int)animatedSprite.Height;
         return bounds;
     }
     public static Rectangle UpdateBoundingRectangle(Rectangle bounds, Sprite sprite)
     {
         bounds.X = (int)sprite.Position.X;
         bounds.Y = (int)sprite.Position.Y;
+        bounds.Width = (int)sprite.Width;
+        bounds.Height = (int)sprite.Height;
         return bounds;
     }
 

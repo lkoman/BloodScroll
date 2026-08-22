@@ -53,6 +53,18 @@ public class DebugRenderer
         pb.AddVertex(tl, c, PrimitiveType.LineList);
     }
 
+    public void DrawPolygon(Polygon poly, Color c)
+    {
+        if (poly.Count < 2)
+            return;
+
+        for (int i = 0; i < poly.Count; i++)
+        {
+            pb.AddVertex(poly[i], c, PrimitiveType.LineList);
+            pb.AddVertex(poly[(i + 1) % poly.Count], c, PrimitiveType.LineList);
+        }
+    }
+
     public void DrawCircle(Circle bounds, Color circleColor)
     {
         Vector2 center = new(bounds.X, bounds.Y);

@@ -6,7 +6,6 @@ using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using MonoGameLibrary.Debug;
 using System.Collections.Generic;
-using System.ComponentModel;
 
 namespace BloodScroll;
 
@@ -21,13 +20,20 @@ public class BloodScroll : Core
     private Player player;
 
     // OTHER VARIABLES
-    private bool FIRST_GAME = true;
+    // Purely about one time content loading - the sprites and atlases only need
+    // building once, however many runs the player starts.
+    private bool contentLoaded = false;
     private List<IDrawableLayer> drawables = [];
     private Matrix camMatrix;
     private Sprite _foreground;
 
     // DEBUG
     public DebugRenderer debugRenderer;
+
+    // F1 draws every hitbox. Use it to tune the HitboxScale on each mob:
+    // the box should hug the creature, not the empty space around it.
+    private bool showHitboxes = false;
+    private KeyboardState lastDebugKeyState;
 
     // Scroll switch screen
     private bool isTransitioning = false;
@@ -72,13 +78,13 @@ public class BloodScroll : Core
 
     public void StartGame()
     {
-        if (FIRST_GAME)
+        if (!contentLoaded)
         {
             player.LoadContent();
             weaponsManager.LoadContent(player);
             gameWorld.LoadContent(audioService);
 
-            FIRST_GAME = false;
+            contentLoaded = true;
         }
 
         Restart();
@@ -115,14 +121,15 @@ public class BloodScroll : Core
         Globals.Enemies = TextureAtlas.FromFile(Content, "images/enemies.xml");
         Globals.Crab = TextureAtlas.FromFile(Content, "images/crab.xml");
         Globals.Jellyfish = TextureAtlas.FromFile(Content, "images/jellyfish.xml");
+        Globals.Butterfly = TextureAtlas.FromFile(Content, "images/butterfly.xml");
+        Globals.Spiders = TextureAtlas.FromFile(Content, "images/spiders.xml");
+        Globals.Flower = TextureAtlas.FromFile(Content, "images/flower.xml");
+        Globals.MothBoss = TextureAtlas.FromFile(Content, "images/MothBoss.xml");
         Globals.Player = TextureAtlas.FromFile(Content, "images/player.xml");
         Globals.World = TextureAtlas.FromFile(Content, "images/world.xml");
         Globals.Weapons = TextureAtlas.FromFile(Content, "images/weapons.xml");
 
-        // Effect
-        Globals.whiteFlashEffect = Content.Load<Effect>("Effects/flashWhite");
-
-        Globals.SEED = 69;
+        Globals.SEED = 420;
         Globals.R = new Random(Globals.SEED);
 
         // Height at which all non flying characters will be standing
@@ -140,6 +147,7 @@ public class BloodScroll : Core
             return;
 
         CheckIfGamePaused();
+        CheckDebugKeys();
         UpdateScreenOverlay();
 
         if (Globals.PAUSE || !Globals.PLAYER_ALIVE)
@@ -161,15 +169,11 @@ public class BloodScroll : Core
             if (!Globals.START_GAME)
                 return;
             
-            // START GAME (button play was clicked)
+            // START GAME (button play was clicked). StartGame restarts the run
+            // itself, music included, so nothing more is needed here - asking
+            // for a RESTART on top of it built the whole world a second time.
             StartGame();
 
-            audioService.SwitchToGameMusic();
-
-            if (!Globals.FIRST_GAME) // first game does not have restart
-                Globals.RESTART = true;
-            else Globals.FIRST_GAME = false;
-            
             Globals.MENU = false;
             Globals.START_GAME = false;
         }
@@ -185,7 +189,7 @@ public class BloodScroll : Core
         LayerTransition();
         
         player.Update(audioService, weaponsManager);
-        weaponsManager.Update(player, audioService);
+        weaponsManager.Update(player, audioService, gameWorld);
 
         collisionResponse.HandleAllCollisions(player, gameWorld, weaponsManager, audioService);
         gameWorld.UpdateLevel(player, weaponsManager, userInterface);
@@ -277,7 +281,12 @@ public class BloodScroll : Core
 
             DrawSortedLayers();
 
-            userInterface.Draw(player);
+            userInterface.Draw(player, weaponsManager);
+
+            // Last, so the hitboxes stay readable over the HUD and over the
+            // dark overlay that covers the screen on death or pause
+            if (showHitboxes)
+                DrawDebugBoundingBoxes();
         }
 
         base.Draw(gameTime);
@@ -299,8 +308,6 @@ public class BloodScroll : Core
 
         // Draw foreground above all
         DrawForeGround();
-
-        //DrawDebugBoundingBoxes();
     }
 
     private void DrawForeGround()
@@ -333,22 +340,60 @@ public class BloodScroll : Core
             Globals.DISPLAY_PAUSE_MENU = false;
     }
 
+    // Toggle the hitbox overlay. Separate from the pause handling because that
+    // one stops listening the moment the player dies or opens the menu.
+    private void CheckDebugKeys()
+    {
+        KeyboardState keyState = Keyboard.GetState();
+
+        if (keyState.IsKeyDown(Keys.F1) && lastDebugKeyState.IsKeyUp(Keys.F1))
+            showHitboxes = !showHitboxes;
+
+        lastDebugKeyState = keyState;
+    }
+
     private void DrawDebugBoundingBoxes()
     {
+        if (gameWorld == null || Globals.MENU)
+            return;
+
         debugRenderer.pb.Begin(ref debugRenderer.proj, ref debugRenderer.view);
         Rectangle tmp;
         Circle tmpC;
 
-        foreach (var p in gameWorld.Layers[Globals.CurrentLayerIndex].Platforms)
+        foreach (var p in gameWorld.GetCurrentLayerPlatformList())
         {
-            debugRenderer.DrawRect(p.bounds, Color.Red);
-        }
-        foreach (var m in gameWorld.Layers[Globals.CurrentLayerIndex].MobManager.mobs)
-        {
-            tmp = m.Bounds;
+            tmp = p.bounds;
             tmp.X += (int)Globals.CameraOffset.X;
             tmp.Y += (int)Globals.CameraOffset.Y;
-            debugRenderer.DrawRect(tmp, Color.Blue);
+            debugRenderer.DrawRect(tmp, Color.Red);
+        }
+
+        // Every mob that is currently being simulated, not just this layer's
+        foreach (var layer in gameWorld.ActiveLayers())
+        {
+            foreach (var m in layer.MobManager.mobs)
+            {
+                // Mobs with a real outline draw that instead of the box
+                if (m.HitboxPolygon.HasValue)
+                {
+                    Polygon poly = m.HitboxPolygon.Value;
+                    for (int i = 0; i < poly.Count; i++)
+                    {
+                        Vector2 a = poly[i] + Globals.CameraOffset;
+                        Vector2 b = poly[(i + 1) % poly.Count] + Globals.CameraOffset;
+
+                        debugRenderer.pb.AddVertex(a, Color.Yellow, PrimitiveType.LineList);
+                        debugRenderer.pb.AddVertex(b, Color.Yellow, PrimitiveType.LineList);
+                    }
+                    continue;
+                }
+
+                tmp = m.Bounds;
+                tmp.X += (int)Globals.CameraOffset.X;
+                tmp.Y += (int)Globals.CameraOffset.Y;
+                debugRenderer.DrawRect(tmp, Color.Blue);
+            }
         }
         foreach (var b in weaponsManager.Bullets)
         {

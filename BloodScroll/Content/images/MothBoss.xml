@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="MothBoss.png">
+	<Texture>images/MothBoss</Texture>
+	<Regions>
+		<SubTexture name="Cocoon_closed" x="824" y="314" width="219" height="501" frameX="-163" frameY="2" frameWidth="512" frameHeight="512"/>
+		<SubTexture name="Cocoon_open" x="0" y="0" width="366" height="501" frameX="-16" frameY="2" frameWidth="512" frameHeight="512"/>
+		<SubTexture name="Moth" x="0" y="501" width="503" height="314" frameX="-6" frameY="-79" frameWidth="512" frameHeight="512"/>
+		<SubTexture name="Moth_attack0" x="824" y="0" width="486" height="314" frameX="-14" frameY="-79" frameWidth="512" frameHeight="512"/>
+		<SubTexture name="Moth_attack1" x="366" y="0" width="458" height="377" frameX="-24" frameY="-16" frameWidth="512" frameHeight="512"/>
+	</Regions>
+	<Animations>
+		<!--
+			THE MOTH BOSS, IN FOUR ANIMATIONS
+
+			The code only ever asks for these four names (see MobArt.cs), so
+			extra frames are added HERE and nothing in the code changes: draw
+			the frame, give it a SubTexture above, add a <Frame> line.
+
+			The moth is drawn TOP DOWN with its head pointing UP, because it
+			turns its whole body to look at the player instead of flipping left
+			and right. Every moth frame has to be drawn that same way round -
+			ART_FACING at the top of Moth.cs is what tells the code which way
+			that is.
+		-->
+
+		<!-- Flying. Used for hovering, for lining a shot up and for the ram. -->
+		<Animation name="MothBoss_idle" delay="200">
+			<Frame region="Moth" />
+		</Animation>
+
+		<!-- The WING BEAT it does standing still, right before a gust goes out.
+		     Not a flying pose - this is the windup, and the only warning the
+		     player gets, so keep the delay short enough that it reads as
+		     beating rather than as two still pictures. -->
+		<Animation name="MothBoss_attack" delay="120">
+			<Frame region="Moth_attack0" />
+			<Frame region="Moth_attack1" />
+		</Animation>
+
+		<!-- Shut, with the moth inside healing. Nothing can touch it here. -->
+		<Animation name="MothBoss_cocoon_closed" delay="250">
+			<Frame region="Cocoon_closed" />
+		</Animation>
+
+		<!-- Split open and empty. This is how it is left once the moth is
+		     dead - it stays hanging there for the rest of the layer. -->
+		<Animation name="MothBoss_cocoon_open" delay="250">
+			<Frame region="Cocoon_open" />
+		</Animation>
+	</Animations>
+</TextureAtlas>

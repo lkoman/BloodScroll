@@ -1,183 +1,232 @@
-using System;
-using System.Collections.Generic;
+﻿using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 
 namespace BloodScroll;
 
-public class JellyFish : IMob, IDrawableLayer
+//
+// Drifts around and cannot be shot down. Touching it lights a one second fuse
+// and then it GOES OFF - a real blast, the same one the flower bomb leaves, in
+// the same hot pink it was flashing at you while the fuse burned.
+//
+// The drift leans towards the player instead of wandering on the spot, so one
+// left behind slowly comes up through the layers after him. It is the slowest
+// thing in the game and it is meant to be: it never catches anyone who is
+// moving, it just turns up later, in a room he thought he had finished with.
+//
+// IT USED TO BE A DRAWING OF AN EXPLOSION
+//
+// The old version played a hand drawn explode animation and hurt the player
+// only if he was still standing in the frames of it - so a mob whose entire
+// purpose is going off in your face dealt a single point of damage and could
+// not touch anything else in the room. Now it asks the world for a blast, the
+// same way a shell and a bomb do, and the world does the rest: one circle, one
+// hit, everything inside it, and the jellyfish itself is gone that instant.
+//
+// SO IT HURTS MOBS TOO. That is the trade the player is being offered - the
+// jellyfish is a bomb he can walk into and lead somewhere, at the price of
+// being close enough to set it off. Nothing in the game makes that free.
+//
+
+public class JellyFish : MobBase
 {
-    public int DrawLayer { get; set; } = 20;
-    private int SpawnLayer;
-    
-    public Rectangle Bounds { get; set; }
-    public int HP {get; set;} = 25000;
-    public int DAMAGE {get; set; } = 1;
-    public int PointsOnKill {get; set; } = 50;
-    public bool HittingPlayer {get; set;} = false;
-    public string ON_TOUCH {get; set; } = "explode";
-
-    public AnimatedSprite _jellyfish, _jellyfish_idle, _jellyfish_explode;
+    private AnimatedSprite _jellyfish_idle;
     private const int SPEED_MIN = 10, SPEED_MAX = 40;
-    private float speed, max_speed;
     private Vector2 target = Vector2.Zero;
-    private int targetOffset = 300;
+    private readonly int targetOffset = 300;
 
-    private Vector2 velocity;
-    Color drawColor = Color.White;
+    // How far each new drift target is pulled towards the player. Kept under
+    // targetOffset above so the wobble still dominates any one step.
+    private const float DRIFT_TOWARDS = 200f;
 
-    // HIT TIMER
-    private bool isHit = false;
-    private float hitTimer = 0f;
-    private const float hitDuration = 0.15f; // seconds
+    //
+    // THE BLAST
+    //
+    // Smaller and weaker than a flower bomb, because a bomb costs the player a
+    // flower and a trip to the ledge it grew on, while a jellyfish is simply
+    // there. It still kills every small mob it reaches outright.
+    //
+    // What it takes off the PLAYER is the number that matters. A second is not
+    // long to get clear of something you have just walked into, and that is the
+    // whole mob: it is not hunting anyone, it only ever punishes carelessness.
+    private const int BLAST_DAMAGE = 200;
+    private const int PLAYER_DAMAGE = 100;
+    private const float BLAST_RADIUS = 200f;
 
-    // DIRECTION TIMER
-    private float directionTimer = 0f;
-    private float directionSeconds = 5f;
+    private Color bodyColor = Color.White;
 
     // EXPLODE TIMER
-    private bool EXPLODING = false;
     private bool StartExplodingTimer = false;
     private float explodeTimer = 0f;
-    private float explodeSeconds = 1f;
+    private readonly float explodeSeconds = 1f;
 
-    public void LoadContent(Vector2 _, int spawnLayer)
+    // How fast it blinks at the start of the fuse and at the end of it. Same
+    // telegraph the flower bomb uses, because it is now the same event.
+    private const float SLOW_BLINK = 4f;
+    private const float FAST_BLINK = 24f;
+
+    // Bullets do not kill it - the fuse does
+    protected override AudioId? HitSound => null;
+
+    // AND THEY DO NOT STOP IN IT EITHER. It used to swallow every shot aimed
+    // through it, which turned a mob you are not meant to shoot into cover for
+    // everything behind it. Shots now go straight through, and because nothing
+    // ever hits it, it never flashes red - the only colour it changes to is the
+    // pink of a lit fuse, which is the one thing worth reading on it.
+    public override bool StopsBullets => false;
+
+    // It dies when its own fuse runs out, not because the player killed it
+    public override bool GivesLifeSteal => false;
+
+    protected override Vector2 HitboxScale => new(0.70f, 0.75f);
+
+    public JellyFish()
+    {
+        SetHP(100);
+
+        // Nothing reads this any more - touching it lights the fuse, it never
+        // deals contact damage, and what the blast costs the player is
+        // PLAYER_DAMAGE above
+        DAMAGE = 0;
+
+        PointsOnKill = 50;
+        ON_TOUCH = OnTouch.Explode;
+        Invulnerable = true;
+    }
+
+    public override void LoadContent(Vector2 playerPos, int spawnLayer)
     {
         SpawnLayer = spawnLayer;
 
-        _jellyfish_idle = new AnimatedSprite();
+        // The explode animation is not loaded at all any more - the blast is
+        // drawn by the world, not by the mob that caused it
         _jellyfish_idle = Globals.Jellyfish.CreateAnimatedSprite("jellyfish-animation");
 
-        _jellyfish_explode = new AnimatedSprite();
-        _jellyfish_explode = Globals.Jellyfish.CreateAnimatedSprite("jellyfish-explode-animation");
-
-        _jellyfish = _jellyfish_idle;
+        Sprite = _jellyfish_idle;
 
         SetSpawn();
-        SetTarget();
+        SetTarget(playerPos);
 
         speed = Globals.R.Next(SPEED_MIN, SPEED_MAX);
         max_speed = speed * 1.2f;
 
-        Bounds = CollisionManager.SetBoundingRectangle(_jellyfish);
+        SetDirectionTimer(0f, 5f);
+
+        RebuildBounds();
     }
-    public void Update(Vector2 _, GameWorld __)
+
+    protected override void UpdateBehaviour(IPlayer player, GameWorld gameWorld)
     {
-        //Console.WriteLine(HP);
-        DirectionTimer();
-        UpdateHitTimer();
-
-        (_jellyfish.Position, velocity) = MovementUtils.MoveTowardsTarget(_jellyfish.Position, target, velocity, speed, max_speed);
-        velocity = MovementUtils.BounceFromEdge(velocity, _jellyfish.Position, _jellyfish.Width);
-
-        Bounds = CollisionManager.UpdateBoundingRectangle(Bounds, _jellyfish);
-
-        if (StartExplodingTimer)
-            ExplodeTimer();
-        
-        if (EXPLODING)
-            IsExploding();
-        else
+        if (DirectionTimerElapsed())
         {
-            _jellyfish_explode.Position = _jellyfish.Position;
-            _jellyfish = _jellyfish_idle;
+            SetTarget(player.Position);
+            ResetDirectionTimer();
         }
 
-        _jellyfish.Update();
+        (Sprite.Position, velocity) = MovementUtils.MoveTowardsTarget(Sprite.Position, target, velocity, speed, max_speed);
+        velocity = MovementUtils.BounceFromEdge(velocity, Sprite.Position, Sprite.Width);
+
+        SyncBounds();
+
+        if (StartExplodingTimer)
+            ExplodeTimer(gameWorld);
+
+        Sprite.Update();
     }
 
-    private void IsExploding()
-    {
-        _jellyfish_explode.Position = _jellyfish.Position;
-        _jellyfish = _jellyfish_explode;
+    // Nothing can damage it, so the only thing that overrides its own colour
+    // is being frozen
+    public override void TakeDamage(int damage, IAudioService audio) {}
 
-        ON_TOUCH = "hurt_player";
-        HittingPlayer = false;
-    
-        if (_jellyfish.CurrentFrame == _jellyfish.FramesCount - 1)
-            HP = 0;
-    }
-
-    public void Draw()
+    public override void Draw()
     {
-        _jellyfish.Draw(drawColor);
+        Sprite.Draw(Tinted(bodyColor));
     }
 
     // Explodes x seconds after being touched
-    private void ExplodeTimer()
+    private void ExplodeTimer(GameWorld gameWorld)
     {
-        // TIMER THAT CHANGES TARGET DIRECTION
         explodeTimer += Globals.DT;
 
-        if (explodeTimer >= explodeSeconds)
+        if (explodeTimer < explodeSeconds)
         {
-            EXPLODING = true;
-            drawColor = Color.White;
+            bodyColor = FuseColour();
+            return;
         }
+
+        Detonate(gameWorld);
     }
 
-    private void DirectionTimer()
+    // Flashes between its own colour and the pink it is about to go off in,
+    // faster the closer it gets. The fuse is only a second long, so this is all
+    // the warning there is - and it has to be readable while the player is
+    // running away from it rather than looking at it.
+    private Color FuseColour()
     {
-        // TIMER THAT CHANGES TARGET DIRECTION
-        directionTimer += Globals.DT;
+        float left = 1f - explodeTimer / explodeSeconds;
+        float rate = MathHelper.Lerp(FAST_BLINK, SLOW_BLINK, left);
 
-        if (directionTimer >= directionSeconds)
-        {
-            SetTarget();
-            directionTimer = 0f;
+        float pulse = 0.5f + 0.5f * MathF.Sin(explodeTimer * rate);
 
-            directionSeconds = 0.5f + (float)Globals.R.NextDouble() * (5f - 0.5f);
-        }
+        return Color.Lerp(Color.White, Globals.HotPink, pulse);
     }
 
-    public void TakeDamage(int damage, IAudioService audio)
+    //
+    // IT GOES OFF, AND IT IS GONE
+    //
+    // The blast is handed to the world and outlives the mob by a third of a
+    // second, so there is nothing left here to draw or collide with. Killing it
+    // on the same frame is what stops the old bug where a jellyfish sat in the
+    // middle of its own explosion still being a thing you could walk into.
+    //
+    private void Detonate(GameWorld gameWorld)
     {
-        HP -= damage;
-        //audio.PlaySound(AudioId.BatSqueak);
-        
-        isHit = true;
-        hitTimer = hitDuration;
+        gameWorld.SpawnExplosion(
+            Sprite.Position + new Vector2(Sprite.Width, Sprite.Height) * 0.5f,
+            BLAST_DAMAGE,
+            BLAST_RADIUS,
+            Globals.HotPink,
+            hurtsPlayer: true,
+            playerDamage: PLAYER_DAMAGE);
+
+        HP = 0;
     }
 
-    public void SetSpawn()
+    protected override void SetSpawn()
     {
-        _jellyfish.Position = new(
-            Globals.R.Next(0, Globals.VIRTUAL_WIDTH - (int)_jellyfish.Width),
-            -Core.windowHeight * SpawnLayer + Globals.R.Next(0, Globals.VIRTUAL_HEIGHT - (int)_jellyfish.Height)
+        Sprite.Position = new(
+            Globals.R.Next(0, Globals.VIRTUAL_WIDTH - (int)Sprite.Width),
+            LayerTopY + Globals.R.Next(0, Globals.VIRTUAL_HEIGHT - (int)Sprite.Height)
         );
     }
 
-    private void SetTarget()
+    private void SetTarget(Vector2 playerPos)
     {
-        target = new(
-            _jellyfish.Position.X + Globals.R.Next(-targetOffset, targetOffset), 
-            _jellyfish.Position.Y + Globals.R.Next(-targetOffset, targetOffset)
-        );
+        // A step in his direction, then the old random wobble on top of it.
+        // The wobble is wider than the step, so it still reads as drifting
+        // rather than as hunting - it only wins on average, over minutes.
+        Vector2 towards = playerPos - Sprite.Position;
+
+        if (towards != Vector2.Zero)
+            towards.Normalize();
+
+        target = Sprite.Position
+               + towards * DRIFT_TOWARDS
+               + new Vector2(
+                     Globals.R.Next(-targetOffset, targetOffset),
+                     Globals.R.Next(-targetOffset, targetOffset)
+                 );
+
         speed = Globals.R.Next(SPEED_MIN, SPEED_MAX);
         max_speed = speed * 1.2f;
     }
 
-    // Hit for changing color when mob is hit
-    private void UpdateHitTimer()
-    {
-        if (isHit)
-        {
-            hitTimer -= Globals.DT;
-            if (hitTimer <= 0f)
-                isHit = false;
-        }
-    }
-
-    public void BounceFromFloor()
-    {
-        velocity.Y *= -3;
-    }
-
-    public void Explode()
+    // Lights the fuse - called from the collision response when the player
+    // touches it. Touching it again while it burns changes nothing; the clock
+    // was already running.
+    public override void Explode()
     {
         StartExplodingTimer = true;
-        drawColor = Globals.HotPink;
     }
 }

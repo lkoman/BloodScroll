@@ -1,46 +1,37 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 
 namespace BloodScroll;
 
-public class Fireboss : IMob, IDrawableLayer
-{
-    public int DrawLayer { get; set; } = 20;
-    
-    public Rectangle Bounds { get; set; }
-    private readonly int maxHP = 1500;
-    public int HP { get; set; } = 1500;
-    public int DAMAGE { get; set; } = 100;
-    public int PointsOnKill { get; set; } = 1000;
-    public bool HittingPlayer { get; set; } = false;
-    public string ON_TOUCH {get; set; } = "nothing";
+//
+// FIRST BOSS
+// Two attack patterns, switched when it drops below half HP:
+//   0 - moves around slowly and shoots every time it changes direction
+//   1 - moves around fast, randomly stops and unloads
+//
 
+public class Fireboss : MobBase
+{
+    // The region is how BIG the shot is - it is drawn as a plain yellow circle
+    // and not from the atlas at all. The brightest, most saturated colour any
+    // shot in the game wears, because in the second pattern there are a lot of
+    // them in the air at once and every one of them takes half your health.
     private const string projectileType = "projectile-fire";
+    private static readonly Color projectileColour = Globals.BossYellow;
     private const int PROJECTILE_DAMAGE = 50;
     private const float PROJECTILE_SPEED = 800.0f;
 
-    private AnimatedSprite _fireboss;
     private AnimatedSprite _fireboss_idle;
     private AnimatedSprite _fireboss_attack;
     private const int SPEED_MIN_IDLE = 50, SPEED_MIN_ATTACK = 200;
     private const int SPEED_MAX_IDLE = 150, SPEED_MAX_ATTACK = 400;
-    private float speed, max_speed;
     public Vector2 target = Vector2.Zero;
-    private Vector2 velocity;
-    private int SpawnLayer;
 
     private const int projectile_target_offset = 50; // kok mob kiksne ko strela v playerja
     private const int target_offset = 400; // kok mob kiksne ko se zaleti v playerja
 
-    // Has two attack patterns (0 and 1)
-        // ATTACK PATTERN 0: Moves around slow and shoots when he changes direction
-        // ATTACK PATTERN 1: Moves around fast and randomly stops and starts shooting fast
     private bool inAttack_ap1 = false; // in attack - attack pattern 1
 
     public enum FirebossAttackPattern
@@ -59,26 +50,29 @@ public class Fireboss : IMob, IDrawableLayer
     private float shootingTimer = 0.4f;
     private const float timeBetweenShooting = 0.4f;
 
-    // HIT TIMER
-    private bool isHit = false;
-    private float hitTimer = 0f;
-    private const float hitDuration = 0.15f; // seconds
-    Color drawColor = Color.White;
+    protected override bool ShowBossHP => true;
+    protected override AudioId? HitSound => AudioId.FireHit;
 
+    protected override Vector2 HitboxScale => new(0.65f, 0.75f);
 
-    public void LoadContent(Vector2 playerPos, int spawnLayer)
+    public Fireboss()
+    {
+        SetHP(1500);
+        DAMAGE = 100;
+        PointsOnKill = 1000;
+        ON_TOUCH = OnTouch.Nothing;
+    }
+
+    public override void LoadContent(Vector2 playerPos, int spawnLayer)
     {
         SpawnLayer = spawnLayer;
 
-        _fireboss_idle = new AnimatedSprite();
         _fireboss_idle = Globals.Enemies.CreateAnimatedSprite("fireboss-animation");
-
-        _fireboss_attack = new AnimatedSprite();
         _fireboss_attack = Globals.Enemies.CreateAnimatedSprite("fireboss-attack-animation");
 
         // Initial animated sprite for fireboss is IDLE
-        _fireboss = _fireboss_idle;
-        _fireboss.Effects = SpriteEffects.FlipHorizontally;
+        Sprite = _fireboss_idle;
+        Sprite.Effects = SpriteEffects.FlipHorizontally;
 
         speed = Globals.R.Next(SPEED_MIN_IDLE, SPEED_MAX_IDLE + 100);
         max_speed = speed * 1.2f;
@@ -86,24 +80,16 @@ public class Fireboss : IMob, IDrawableLayer
         SetSpawn();
         SetTarget(playerPos);
 
-        Bounds = CollisionManager.SetBoundingRectangle(_fireboss);
+        RebuildBounds();
     }
 
-    public void SetSpawn()
+    protected override void UpdateBehaviour(IPlayer player, GameWorld gameWorld)
     {
-        float x = Globals.R.NextSingle() * (Core.windowWidth - _fireboss.Width  * 2) + _fireboss.Width;
-        float y = - Core.windowHeight * SpawnLayer;
-
-        _fireboss.Position = new Vector2(x, y);
-    }
-    public void Update(Vector2 playerPos, GameWorld gameWorld)
-    {
-        DirectionTimer(playerPos, gameWorld);
-        ShootingTimer(playerPos, gameWorld);
-        UpdateHitTimer();
+        DirectionTimer(player.Position, gameWorld);
+        ShootingTimer(player.Position, gameWorld);
 
         // If boss HP falls below 50%, it changes its attack pattern from 0 to 1
-        if (HP < maxHP / 2)
+        if (HP < MaxHP / 2)
         {
             attackPattern = FirebossAttackPattern.RandomStopAndFastShoot;
         }
@@ -111,35 +97,15 @@ public class Fireboss : IMob, IDrawableLayer
         // MOVE
         if (!inAttack_ap1)
         {
-            (_fireboss.Position, velocity) = MovementUtils.MoveTowardsTarget(_fireboss.Position, target, velocity, speed, max_speed);
-            velocity = MovementUtils.BounceFromEdge(velocity, _fireboss.Position, _fireboss.Width);
+            (Sprite.Position, velocity) = MovementUtils.MoveTowardsTarget(Sprite.Position, target, velocity, speed, max_speed);
+            velocity = MovementUtils.BounceFromEdge(velocity, Sprite.Position, Sprite.Width);
         }
 
-        // Update effects
-        _fireboss.Effects = MovementUtils.FlipSprite(velocity, _fireboss.Effects);
+        Sprite.Effects = MovementUtils.FlipSprite(velocity, Sprite.Effects);
 
-        // Update bounds
-        Bounds = CollisionManager.UpdateBoundingRectangle(Bounds, _fireboss);
+        SyncBounds();
 
-        // Update animated sprite
-        _fireboss.Update();
-    }
-
-    public void Draw()
-    {
-        drawColor = isHit ? Globals.Red : Color.White;
-        _fireboss.Draw(drawColor);
-
-        GamePlayUI.DrawBossHP(HP, _fireboss.Position.X + _fireboss.Width / 2, _fireboss.Position.Y - 20);
-    }
-
-    public void TakeDamage(int damage, IAudioService audio)
-    {
-        HP -= damage;
-        audio.PlaySound(AudioId.FireHit);
-        
-        isHit = true;
-        hitTimer = hitDuration;
+        Sprite.Update();
     }
 
     public void SetTarget(Vector2 playerPosition)
@@ -175,7 +141,7 @@ public class Fireboss : IMob, IDrawableLayer
         {
             case FirebossAttackPattern.RandomStopAndFastShoot when inAttack_ap1 && shootingTimer >= timeBetweenShooting:
                 gameWorld.SpawnMonsterBullet(
-                    _fireboss.Position + new Vector2(_fireboss.Width/2, _fireboss.Height/2),
+                    Sprite.Position + new Vector2(Sprite.Width / 2, Sprite.Height / 2),
                     new Vector2(
                         Globals.R.Next(-projectile_target_offset, projectile_target_offset) + playerPos.X,
                         Globals.R.Next(-projectile_target_offset, projectile_target_offset) + playerPos.Y
@@ -183,7 +149,8 @@ public class Fireboss : IMob, IDrawableLayer
                     projectileType,
                     PROJECTILE_DAMAGE,
                     PROJECTILE_SPEED,
-                    AudioId.PlayerGun
+                    AudioId.PlayerGun,
+                    tint: projectileColour
                 );
                 shootingTimer = 0f;
                 break;
@@ -200,12 +167,13 @@ public class Fireboss : IMob, IDrawableLayer
                 if (directionTimer >= timeBetweenDirectionChangeIdle)
                 {
                     gameWorld.SpawnMonsterBullet(
-                        _fireboss.Position + new Vector2(_fireboss.Width/2, _fireboss.Height/2),
+                        Sprite.Position + new Vector2(Sprite.Width / 2, Sprite.Height / 2),
                         playerPos,
                         projectileType,
                         PROJECTILE_DAMAGE,
                         PROJECTILE_SPEED,
-                        AudioId.PlayerGun
+                        AudioId.PlayerGun,
+                        tint: projectileColour
                     );
                     SetTarget(playerPos);
                     directionTimer = 0f;
@@ -218,15 +186,15 @@ public class Fireboss : IMob, IDrawableLayer
                     if (!inAttack_ap1)
                     {
                         inAttack_ap1 = true;
-                        _fireboss_attack.Position = _fireboss.Position;
-                        _fireboss = _fireboss_attack;
+                        _fireboss_attack.Position = Sprite.Position;
+                        Sprite = _fireboss_attack;
                         directionTimer = 0.5f;
                     }
                     else
                     {
                         inAttack_ap1 = false;
-                        _fireboss_idle.Position = _fireboss.Position;
-                        _fireboss = _fireboss_idle;
+                        _fireboss_idle.Position = Sprite.Position;
+                        Sprite = _fireboss_idle;
                         SetTarget(playerPos);
                         directionTimer = 0f;
                     }
@@ -234,22 +202,4 @@ public class Fireboss : IMob, IDrawableLayer
                 break;
         }
     }
-
-    // Hit for changing color when mob is hit
-    private void UpdateHitTimer()
-    {
-        if (isHit)
-        {
-            hitTimer -= Globals.DT;
-            if (hitTimer <= 0f)
-                isHit = false;
-        }
-    }
-
-    public void BounceFromFloor()
-    {
-        velocity.Y *= -3;
-    }
-
-    public void Explode() {}
 }

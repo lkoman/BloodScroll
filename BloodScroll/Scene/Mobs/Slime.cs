@@ -1,140 +1,95 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+﻿using Microsoft.Xna.Framework;
 using MonoGameLibrary;
-using MonoGameLibrary.Graphics;
 
 namespace BloodScroll;
 
-public class Slime : IMob, IDrawableLayer
+//
+// Bounces left and right across the screen. It never comes straight at you -
+// but every time it hits a wall and turns round it aims the next crossing at
+// whatever height the player is at NOW, so it staircases up through the layers
+// after him rather than sawing across an empty room for the rest of the run.
+//
+
+public class Slime : MobBase
 {
-    public int DrawLayer { get; set; } = 20;
-    
-    public Rectangle Bounds { get; set; }
-    public int HP {get; set;} = 25;
-    public int DAMAGE {get; set; } = 25;
-    public int PointsOnKill {get; set; } = 50;
-    public bool HittingPlayer {get; set;} = false;
-    public string ON_TOUCH {get; set; } = "hurt_player";
-
-    public AnimatedSprite _slime;
-    public AnimatedSprite _slime_idle;
-    public AnimatedSprite _slime_sqish;
-    private float MOVEMENT_SPEED;
     private const int MAX_SPEED = 800, MIN_SPEED = 600;
-    public int SpawnX { get; set; } = 0;
     private Vector2 target = Vector2.Zero;
-    private int targetOffset = 200;
-    private int SpawnLayer;
+    private readonly int targetOffset = 200;
 
-    private Vector2 velocity;
+    protected override Vector2 HitboxScale => new(0.80f, 0.75f);
 
-    // HIT TIMER
-    private bool isHit = false;
-    private float hitTimer = 0f;
-    private const float hitDuration = 0.15f; // seconds
-    Color drawColor = Color.White;
+    public Slime()
+    {
+        SetHP(25);
+        DAMAGE = 25;
+        PointsOnKill = 50;
+    }
 
-    public void LoadContent(Vector2 _, int spawnLayer)
+    public override void LoadContent(Vector2 _, int spawnLayer)
     {
         SpawnLayer = spawnLayer;
 
-        _slime_idle = new AnimatedSprite();
-        _slime_idle = Globals.Enemies.CreateAnimatedSprite("slime-animation");
+        Sprite = Globals.Enemies.CreateAnimatedSprite("slime-animation");
 
-        //_slime_sqish = new AnimatedSprite();
-        //_slime_sqish = Globals.Enemies.CreateAnimatedSprite("slime-sqish-animation");
+        SetSpawn();
 
-        _slime = _slime_idle;
-
-        SetSpawnAndTarget();
-
-        Bounds = CollisionManager.SetBoundingRectangle(_slime);
-    }
-    public void Update(Vector2 _, GameWorld __)
-    {
-        ChangeDirection();
-        UpdateHitTimer();
-
-        (_slime.Position, velocity) =
-            MovementUtils.MoveTowardsTarget(_slime.Position, target, velocity, MOVEMENT_SPEED, MOVEMENT_SPEED * 1.2f);
-
-        _slime.Effects = MovementUtils.FlipSprite(velocity, _slime.Effects);
-
-        Bounds = CollisionManager.UpdateBoundingRectangle(Bounds, _slime);
-
-        _slime.Update();
+        RebuildBounds();
     }
 
-    private void ChangeDirection()
+    protected override void UpdateBehaviour(IPlayer player, GameWorld __)
     {
-        if (_slime.Position.X > 0 && _slime.Position.X < Globals.VIRTUAL_WIDTH - _slime.Width)
+        ChangeDirection(player.Position);
+
+        (Sprite.Position, velocity) =
+            MovementUtils.MoveTowardsTarget(Sprite.Position, target, velocity, speed, speed * 1.2f);
+
+        Sprite.Effects = MovementUtils.FlipSprite(velocity, Sprite.Effects);
+
+        SyncBounds();
+
+        Sprite.Update();
+    }
+
+    private void ChangeDirection(Vector2 playerPos)
+    {
+        if (Sprite.Position.X > 0 && Sprite.Position.X < Globals.VIRTUAL_WIDTH - Sprite.Width)
             return;
-        
-        velocity.X *= -2; // hitrejši odboj
-        SetTarget();
-    }
-    public void Draw()
-    {
-        drawColor = isHit ? Globals.Red : Color.White;
-        _slime.Draw(drawColor);
+
+        velocity.X *= -2; // hitrejÅ¡i odboj
+        SetTarget(playerPos);
     }
 
-    public void TakeDamage(int damage, IAudioService audio)
+    // Starts pinned to the left edge and aims straight across
+    protected override void SetSpawn()
     {
-        HP -= damage;
-        audio.PlaySound(AudioId.BatSqueak);
-        
-        isHit = true;
-        hitTimer = hitDuration;
-    }
-
-    public void SetSpawnAndTarget()
-    {
-        _slime.Position = new(
+        Sprite.Position = new(
             0,
-            -Core.windowHeight * SpawnLayer + Globals.R.Next(0, Globals.VIRTUAL_HEIGHT - (int)_slime.Height)
+            LayerTopY + Globals.R.Next(0, Globals.VIRTUAL_HEIGHT - (int)Sprite.Height)
         );
-        target = new(Globals.VIRTUAL_WIDTH, _slime.Position.Y + Globals.R.Next(-50, 50));
+        target = new(Globals.VIRTUAL_WIDTH, Sprite.Position.Y + Globals.R.Next(-50, 50));
 
-        MOVEMENT_SPEED = Globals.R.Next(MIN_SPEED, MAX_SPEED + 100);
+        speed = Globals.R.Next(MIN_SPEED, MAX_SPEED + 100);
     }
 
-    private void SetTarget()
+    private void SetTarget(Vector2 playerPos)
     {
         if (target.X == 0)
         {
             target.X = Globals.VIRTUAL_WIDTH;
-            _slime.Position = new(1, _slime.Position.Y); // prevent the slime from getting caught in the wall if velocity is too big
+            Sprite.Position = new(1, Sprite.Position.Y); // prevent the slime from getting caught in the wall if velocity is too big
         }
         else
         {
             target.X = 0;
-            _slime.Position = new(Globals.VIRTUAL_WIDTH - 1 - _slime.Width, _slime.Position.Y); // prevent the slime from getting caught in the wall if velocity is too big
+            Sprite.Position = new(Globals.VIRTUAL_WIDTH - 1 - Sprite.Width, Sprite.Position.Y); // prevent the slime from getting caught in the wall if velocity is too big
         }
-        
-        target.Y = _slime.Position.Y + Globals.R.Next(-targetOffset, targetOffset);
-        
+
+        // The one line that lets it leave its layer: the crossing is aimed at
+        // the player's height rather than at its own, so a slime he ran away
+        // from climbs a little closer with every bounce.
+        target.Y = playerPos.Y + Globals.R.Next(-targetOffset, targetOffset);
+
         velocity.Y = 0;
-        MOVEMENT_SPEED = Globals.R.Next(MIN_SPEED, MAX_SPEED + 100);
+        speed = Globals.R.Next(MIN_SPEED, MAX_SPEED + 100);
     }
-
-    // Hit for changing color when mob is hit
-    private void UpdateHitTimer()
-    {
-        if (isHit)
-        {
-            hitTimer -= Globals.DT;
-            if (hitTimer <= 0f)
-                isHit = false;
-        }
-    }
-
-    public void BounceFromFloor()
-    {
-        velocity.Y *= -3;
-    }
-
-    public void Explode() {}
 }

@@ -1,5 +1,5 @@
 using Microsoft.Xna.Framework;
-using System.Collections.Generic;
+using MonoGameLibrary;
 
 namespace BloodScroll;
 
@@ -7,13 +7,50 @@ public interface IMob : IDrawableLayer
 {
     Rectangle Bounds { get; set;}
     int HP { get; set; }
+    int MaxHP { get; }
     int DAMAGE { get; set; }
     int PointsOnKill { get; set; }
     bool HittingPlayer { get; set;}
-    string ON_TOUCH { get; set; } // hurt_player, explode, nothing
+    OnTouch ON_TOUCH { get; set; }
+
+    // Whether this mob has to die before the layer counts as cleared.
+    // False for things that are not really threats, so they cannot stop the
+    // player finishing a layer (a butterfly, or a flower nobody stepped on).
+    bool CountsAsEnemy { get; }
+
+    // Whether a player bullet is spent on this mob. False for the two mobs
+    // that are not shot at all - shots fly straight through a jellyfish and a
+    // butterfly instead of being swallowed by them.
+    bool StopsBullets { get; }
+
+    // Whether killing this feeds the life steal gift. False for the mobs that
+    // die of their own accord: a jellyfish burning its fuse out and a butterfly
+    // finishing its heal are not kills the player earned.
+    bool GivesLifeSteal { get; }
+
+    // The one mob a boss layer is actually about. Killing it clears the layer,
+    // whatever its escort is still doing - see Layer.Update.
+    bool IsBoss { get; }
+
     void LoadContent(Vector2 playerPos, int spawnLayer);
-    void Update(Vector2 playerPos, GameWorld gameWorld);
+    void Update(IPlayer player, GameWorld gameWorld);
     void TakeDamage(int damage, IAudioService audio);
+
+    // Frozen where it stands for this long - the stun gun's whole point
+    void Stun(float seconds);
     void BounceFromFloor();
     void Explode();
+    void MoveTo(Vector2 position);
+
+    // The same thing, given the middle of the mob rather than its top left
+    void MoveCentreTo(Vector2 centre);
+    void ScaleHP(float scale);
+
+    // Hit tests. A mob answers with its polygon outline if it has one,
+    // otherwise with its rectangle.
+    bool CollidesWith(Rectangle rect);
+    bool CollidesWith(Circle circle);
+
+    // Only for the debug overlay - null for mobs that use a plain box
+    Polygon? HitboxPolygon { get; }
 }

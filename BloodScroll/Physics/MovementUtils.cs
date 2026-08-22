@@ -5,6 +5,7 @@ using MonoGameLibrary;
 namespace BloodScroll;
 
 using Vector2 = Microsoft.Xna.Framework.Vector2;
+using MathHelper = Microsoft.Xna.Framework.MathHelper;
 
 //
 // LIBRARY FOR MOVEMENT
@@ -31,6 +32,61 @@ public static class MovementUtils
         else
             effects = SpriteEffects.FlipHorizontally;
         return effects;
+    }
+
+    // Turns a sprite to look at something instead of at wherever it happens to
+    // be drifting. A mob that stops to wind up an attack has no velocity to
+    // read, so FlipSprite above would have it staring the wrong way.
+    public static SpriteEffects FaceTowards(float fromX, float toX, SpriteEffects effects)
+    {
+        if (toX > fromX)
+            return SpriteEffects.None;
+
+        if (toX < fromX)
+            return SpriteEffects.FlipHorizontally;
+
+        return effects;
+    }
+
+    //
+    // AIMING
+    //
+    // Angles are radians, 0 points right, and they grow CLOCKWISE on screen
+    // because up is negative here. Everything below keeps them wrapped to
+    // -PI..PI so "turn the short way round" is just a comparison.
+    //
+
+    public static float AngleTo(Vector2 from, Vector2 to)
+    {
+        Vector2 d = to - from;
+        return MathF.Atan2(d.Y, d.X);
+    }
+
+    public static Vector2 FromAngle(float angle)
+    {
+        return new Vector2(MathF.Cos(angle), MathF.Sin(angle));
+    }
+
+    // The shortest way round from one angle to the other, so a mob looking
+    // just clockwise of its target turns back a hair instead of going the
+    // long way round the circle
+    public static float AngleDifference(float from, float to)
+    {
+        return MathHelper.WrapAngle(to - from);
+    }
+
+    // Swings `angle` towards `target` by at most this frame's worth of turn.
+    // A mob that has to line up before it commits is what makes an attack
+    // readable - the turn IS the telegraph.
+    public static float TurnTowards(float angle, float target, float radiansPerSecond)
+    {
+        float difference = AngleDifference(angle, target);
+        float step = radiansPerSecond * Globals.DT;
+
+        if (MathF.Abs(difference) <= step)
+            return MathHelper.WrapAngle(target);
+
+        return MathHelper.WrapAngle(angle + MathF.Sign(difference) * step);
     }
 
     public static (Vector2, SpriteEffects, Vector2) MoveHorizontally(
@@ -84,59 +140,6 @@ public static class MovementUtils
     {
         pos += direction * speed * Globals.DT;
         return pos;
-    }
-
-    public static (Vector2, Vector2, bool) MoveForwardWithVelocity(
-        Vector2 position, 
-        Vector2 velocity, 
-        Vector2 direction, 
-        bool jerk, 
-        float SPEED, 
-        float MAX_SPEED)
-    {
-        velocity.Y -= direction.Y * SPEED * Globals.DT;
-        velocity.X += direction.X * SPEED * Globals.DT;
-
-        velocity.X = MyMath.Clamp(velocity.X, -MAX_SPEED, MAX_SPEED);
-        velocity.Y = MyMath.Clamp(velocity.Y, -MAX_SPEED, MAX_SPEED);
-
-        if (jerk)
-        {
-            velocity += direction * SPEED;
-            jerk = false;
-        }
-        position += velocity * Globals.DT;
-
-        return (position, velocity, jerk);
-    }
-
-    public static Vector2 RotateForAngle(Vector2 pos, float angle)
-    {
-        float a = angle * Globals.DT;
-
-        float cos = (float)Math.Cos(a);
-        float sin = (float)Math.Sin(a);
-
-        float x = pos.X;
-        float y = pos.Y;
-
-        pos = new Vector2(
-            x * cos - y * sin,
-            x * sin + y * cos
-        );
-
-        return pos;
-    }
-
-    // Left and right
-    public static bool HitEdge(Vector2 pos, float width)
-    {
-        if (pos.X <= 0 - Globals.CameraOffset.X ||
-            pos.X >= Core.windowWidth - Globals.CameraOffset.X - width)
-        {
-            return true;
-        }
-        return false;
     }
 
     public static Vector2 BounceFromEdge(Vector2 velocity, Vector2 pos, float width)

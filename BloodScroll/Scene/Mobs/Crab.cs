@@ -1,42 +1,35 @@
-using System;
-using System.Collections.Generic;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 
 namespace BloodScroll;
 
-public class Crab : IMob, IDrawableLayer
-{
-    public int DrawLayer { get; set; } = 20;
-    
-    public Rectangle Bounds { get; set; }
-    public int HP {get; set;}
-    private int MAX_HP = 200;
-    public int DAMAGE {get; set; } = 300;
-    public int PointsOnKill {get; set; } = 50;
-    public bool HittingPlayer {get; set;} = false;
-    public string ON_TOUCH {get; set; } = "hurt_player";
+//
+// Walks along the ground of its layer. Every few seconds it stops
+// above the player and fires a shot straight up.
+//
 
-    public AnimatedSprite _crab, _crab_attack;
-    private float MOVEMENT_SPEED = 200f;
-    private float ATTACK_MOVEMENT_SPEED = 400f;
-    public int SpawnX { get; set; } = 0;
+public class Crab : MobBase
+{
+    private const int MAX_HP = 200;
+
+    private AnimatedSprite _crab_attack;
+    private readonly float MOVEMENT_SPEED = 200f;
+    private readonly float ATTACK_MOVEMENT_SPEED = 400f;
     private Vector2 target = Vector2.Zero;
     private const int target_offset = 50; // kak offset je za target pos od playerja
 
-    // HIT TIMER
-    private bool isHit = false;
-    private float hitTimer = 0f;
-    private const float hitDuration = 0.15f; // seconds
-    Color drawColor = Color.White;
-
     // ATTACK TIMER
     private float attackTimer = 0;
-    private float attackSeconds = 5f;
+    private readonly float attackSeconds = 5f;
 
+    // The region is how BIG the shot is - it is drawn as a plain red circle and
+    // not from the atlas at all. Red because the crab is the only thing in the
+    // game that fires STRAIGHT UP the shaft you are climbing: a red circle
+    // rising past you means look down, and nothing else in the game is red.
     private const string projectileType = "projectile-fire";
+    private static readonly Color projectileColour = Globals.CrabRed;
     private const int PROJECTILE_DAMAGE = 25;
     private const float PROJECTILE_SPEED = 800.0f;
 
@@ -47,63 +40,70 @@ public class Crab : IMob, IDrawableLayer
     }
     public AttackPattern currentAttackPattern = AttackPattern.IdleMove;
 
-    public void LoadContent(Vector2 _, int spawnLayer)
-    {        
-        _crab = new AnimatedSprite();
-        _crab = Globals.Crab.CreateAnimatedSprite("crab-animation");
+    protected override Vector2 HitboxScale => new(0.70f, 0.85f);
 
-        _crab_attack = new AnimatedSprite();
+    public Crab()
+    {
+        SetHP(MAX_HP);
+        DAMAGE = 300;
+        PointsOnKill = 50;
+    }
+
+    public override void LoadContent(Vector2 _, int spawnLayer)
+    {
+        SpawnLayer = spawnLayer;
+
+        Sprite = Globals.Crab.CreateAnimatedSprite("crab-animation");
         _crab_attack = Globals.Crab.CreateAnimatedSprite("crab-attack-animation");
-
-        HP = MAX_HP;
 
         SetSpawn();
 
-        Bounds = CollisionManager.SetBoundingRectangle(_crab);
+        RebuildBounds();
     }
-    public void Update(Vector2 playerPos, GameWorld gameWorld)
+
+    protected override void UpdateBehaviour(IPlayer player, GameWorld gameWorld)
     {
-        UpdateHitTimer();
-        AttackTimer(playerPos, gameWorld);
+        AttackTimer(player.Position);
 
         // IDLE MOVE
         if (currentAttackPattern == AttackPattern.IdleMove)
         {
-            // Move crab
-            (_crab.Position, _crab.Effects, target) =
-                MovementUtils.MoveHorizontally(_crab.Position, _crab.Effects, target, MOVEMENT_SPEED);
+            (Sprite.Position, Sprite.Effects, target) =
+                MovementUtils.MoveHorizontally(Sprite.Position, Sprite.Effects, target, MOVEMENT_SPEED);
         }
-        
-        // STOP AND SHOOT
-        else {
-            // Move towards target
-            _crab.Position = MovementUtils.MOVE(_crab.Position, target, ATTACK_MOVEMENT_SPEED);
 
-            if (_crab.Position.X < target.X + target_offset &&
-                _crab.Position.X > target.X - target_offset)
+        // STOP AND SHOOT
+        else
+        {
+            // Move towards target
+            Sprite.Position = MovementUtils.MOVE(Sprite.Position, target, ATTACK_MOVEMENT_SPEED);
+
+            if (Sprite.Position.X < target.X + target_offset &&
+                Sprite.Position.X > target.X - target_offset)
             {
                 gameWorld.SpawnMonsterBullet(
                     new Vector2(
-                        _crab.Position.X + _crab.Width / 2,
-                        _crab.Position.Y + _crab.Height / 2
+                        Sprite.Position.X + Sprite.Width / 2,
+                        Sprite.Position.Y + Sprite.Height / 2
                     ),
-                    new Vector2(_crab.Position.X, 0),
+                    new Vector2(Sprite.Position.X, LayerTopY),
                     projectileType,
-                    PROJECTILE_DAMAGE, 
+                    PROJECTILE_DAMAGE,
                     PROJECTILE_SPEED,
-                    AudioId.PlayerGun
+                    AudioId.PlayerGun,
+                    tint: projectileColour
                 );
 
                 currentAttackPattern = AttackPattern.IdleMove;
             }
         }
-        
-        Bounds = CollisionManager.UpdateBoundingRectangle(Bounds, _crab);
 
-        _crab.Update();
+        SyncBounds();
+
+        Sprite.Update();
     }
 
-    public void AttackTimer(Vector2 playerPos, GameWorld _)
+    private void AttackTimer(Vector2 playerPos)
     {
         // TIMER THAT CHANGES TARGET DIRECTION
         attackTimer += Globals.DT;
@@ -119,53 +119,36 @@ public class Crab : IMob, IDrawableLayer
         }
     }
 
-    public void Draw()
+    public override void Draw()
     {
-        drawColor = isHit ? Globals.Red : Color.White;
-
         if (currentAttackPattern == AttackPattern.IdleMove)
-            _crab.Draw(drawColor);
-        else {
-            _crab_attack.Position = _crab.Position;
-            _crab_attack.Draw(drawColor);
+        {
+            base.Draw();
+            return;
         }
+
+        _crab_attack.Position = Sprite.Position;
+        _crab_attack.Effects = Sprite.Effects;
+        _crab_attack.Draw(isHit ? Globals.Red : Color.White);
     }
 
-    public void TakeDamage(int damage, IAudioService audio)
-    {
-        HP -= damage;
-        audio.PlaySound(AudioId.BatSqueak);
-        
-        isHit = true;
-        hitTimer = hitDuration;
-    }
-
-    public void SetSpawn()
+    // Walks the ground slab, which only the ground layer has - MobManager keeps
+    // crabs off every layer above it, so LayerTopY here is always the bottom one
+    protected override void SetSpawn()
     {
         int rand = Globals.R.Next(2);  // 0 or 1
 
-        target.Y = Globals.GroundHeight - _crab.Height / 2;
+        target.Y = LayerTopY + Globals.GroundHeight - Sprite.Height / 2;
         if (rand == 0)
         {
-            _crab.Effects = SpriteEffects.FlipHorizontally;
+            Sprite.Effects = SpriteEffects.FlipHorizontally;
             target.X = Core.windowWidth;
         }
         else target.X = 0;
 
-        _crab.Position = target;
+        Sprite.Position = target;
     }
 
-    // Hit for changing color when mob is hit
-    private void UpdateHitTimer()
-    {
-        if (isHit)
-        {
-            hitTimer -= Globals.DT;
-            if (hitTimer <= 0f)
-                isHit = false;
-        }
-    }
-
-    public void BounceFromFloor() {}
-    public void Explode() {}
+    // Already walking on the floor
+    public override void BounceFromFloor() {}
 }

@@ -20,7 +20,6 @@ public class Layer : IDrawableLayer
     
     private Vector2 layerOffset;
     public int layerIndex;
-    public string layerType;
     public bool LAYER_BEATEN = false;
 
     // BACKGROUND
@@ -34,6 +33,34 @@ public class Layer : IDrawableLayer
     private MobManager mobManager;
     public MobManager MobManager => mobManager;
 
+    // A layer keeps running until its waves are spent AND everything on it is dead.
+    // That is what lets mobs chase the player up through layers he ran past
+    // instead of politely stopping at the ceiling. Once a layer is genuinely
+    // cleared there is nothing left to simulate, so it goes quiet for good.
+    //
+    // Note this is NOT the same question as "has the layer been beaten" below.
+    // A boss layer is beaten the moment its boss drops, but the escort it left
+    // behind is still alive and still chasing the player - so the layer keeps
+    // being simulated long after the gift card has come and gone.
+    public bool NeedsUpdate =>
+        mobManager.wavesTriggered &&
+        !(mobManager.AllEnemiesBeaten && mobManager.waveData.WavesToBeat <= 0);
+
+    //
+    // WHAT COUNTS AS FINISHING THIS LAYER
+    //
+    // A BOSS LAYER IS OVER WHEN ITS BOSS IS. Whatever it brought with it can go
+    // on flying about; the fight the room was built for is finished and the
+    // player has earned the gift. Waiting for the escort as well turned the end
+    // of every boss fight into a hunt for the last two bats in an empty room.
+    //
+    // Every other layer is over when its waves have all been sent out and
+    // everything from them is dead, which is what it has always been.
+    private bool LayerFinished =>
+        mobManager.waveData.LayerType == LayerType.Boss
+            ? mobManager.BossBeaten
+            : mobManager.waveData.WavesToBeat <= 0 && mobManager.AllEnemiesBeaten;
+
 
     // lastPlatformPosition is the position of the last generated platform of the previous layer,
         // to start the generation of this layer (for continuous platform generation)
@@ -44,13 +71,20 @@ public class Layer : IDrawableLayer
 
         // GENERATE LAYER
         _background = LayerGenerator.GetBackground(currentLayerIndex, layerOffset);
-        (platforms, lastPlatformPos) = LayerGenerator.GeneratePlatforms(currentLayerIndex, layerOffset, lastPlatformPos);
+        (platforms, lastPlatformPos) = LayerGenerator.GeneratePlatforms(currentLayerIndex, lastPlatformPos);
 
         // SET MOB MANAGER FOR THIS LAYER
         mobManager = new(layerIndex, waveSettings);
 
-        // All sleeping bats need to be generated first, then we wake them up
-        mobManager.GenerateAllSleepingBats(layerIndex);
+        // Scenery first - it is part of the room, not part of a wave, and it is
+        // hanging there before the player ever sets foot on the layer
+        mobManager.GenerateSceneryMobs(layerIndex);
+
+        // All dormant mobs need to be generated first, then we wake them up wave by wave
+        mobManager.GenerateAllSleepingMobs(layerIndex);
+
+        // Mobs that hide on the terrain, now that the platforms exist
+        mobManager.GeneratePlatformMobs(platforms, layerIndex);
 
         return lastPlatformPos;
     }
@@ -66,38 +100,19 @@ public class Layer : IDrawableLayer
             return;
 
         // IF LAYER WAS JUST BEATEN
-        if (mobManager.waveData.WavesToBeat <= 0 && mobManager.AllEnemiesBeaten)
+        if (LayerFinished)
         {
             LAYER_BEATEN = true;
 
             // IF BOSS LAYER
-            if (mobManager.waveData.LayerType == "Boss Layer")
+            if (mobManager.waveData.LayerType == LayerType.Boss)
             {
                 audio.SwitchToGameMusic();
 
                 ui.GiftCardDisplayed = true;
-                GiveLayerRewards(player, weaponsManager, ui);
+                ui.GiftTitle = RewardService.GiveRewards(mobManager.waveData.Gifts, player, weaponsManager);
             }
         }
-    }
-
-    private void GiveLayerRewards(IPlayer player, IWeaponsManager weaponsManager, IUI ui)
-    {
-        ui.GiftTitle = "- Heal\n";
-        // GET GIFTS / TREASURES FROM BEATING A LEVEL
-        if (mobManager.waveData.GunID.HasValue)
-        {
-            ui.GiftTitle += "- New Gun\n";
-            weaponsManager.UnlockNewWeapon(mobManager.waveData.GunID.Value);
-        }
-
-        if (mobManager.waveData.IncreasedHP.HasValue)
-        {
-            ui.GiftTitle += "- Increased HP\n";
-            player.IncreaseMaxHP(mobManager.waveData.IncreasedHP.Value);
-        }
-        
-        player.Heal();
     }
 
     public List<IDrawableLayer> GetDrawables()
@@ -112,13 +127,11 @@ public class Layer : IDrawableLayer
         return list;
     }
 
+    // ONLY the background. Every platform is handed out by GetDrawables above
+    // as a drawable in its own right, so drawing them here as well submitted
+    // each one twice - once behind the mobs, once in front of them.
     public void Draw()
     {
         _background.Draw(Globals.BackgroundOverlayColor);
-
-        foreach (var p in platforms)
-        {
-            p.Draw();
-        }
     }
 }

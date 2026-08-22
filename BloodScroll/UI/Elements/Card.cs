@@ -60,13 +60,6 @@ public class Card
         );
     }
 
-    public void Show(string text)
-    {
-        _giftText = text;
-        _visible = true;
-        Globals.PAUSE = true;
-    }
-
     public MouseCursor Update(IAudioService audio)
     {
         if (!_visible)
@@ -103,17 +96,56 @@ public class Card
             Color.White
         );
 
-        // Gift text
-        Globals.SpriteBatch.DrawString(
-            UISettings.fontUI,
-            _giftText,
-            new Vector2(
-                _pos.X + (_rect.Width - UISettings.fontUI.MeasureString(_giftText).X) / 2,
-                _pos.Y + 400
-            ),
-            Color.White
-        );
+        DrawGiftText();
 
         _acceptButton.Draw(UISettings.buttonFont);
     }
+
+    //
+    // THE LIST OF WHAT YOU WON, ONE LINE AT A TIME
+    //
+    // Drawn line by line rather than as one block, because a gift is allowed to
+    // explain itself - "New Gun" is followed by the key that swaps to it - and
+    // an explanation is a much longer line than a gift name. Passing the whole
+    // thing to DrawString centred it on the WIDEST line, which left the short
+    // ones hanging off to the left and let the long one run off the card.
+    //
+    // Each line is centred on its own, and any line too wide for the card is
+    // shrunk until it fits. Nothing has to be counted by hand to add a gift.
+    private void DrawGiftText()
+    {
+        if (string.IsNullOrEmpty(_giftText))
+            return;
+
+        float y = _pos.Y + TEXT_TOP;
+
+        foreach (string line in _giftText.Split('\n'))
+        {
+            if (line.Length == 0)
+                continue;
+
+            Vector2 size = UISettings.fontUI.MeasureString(line);
+
+            // Only ever shrinks - a short line is never blown up to fill the card
+            float scale = MathHelper.Min(1f, (_rect.Width - TEXT_MARGIN * 2) / size.X);
+
+            Globals.SpriteBatch.DrawString(
+                UISettings.fontUI,
+                line,
+                new Vector2(_pos.X + (_rect.Width - size.X * scale) / 2, y),
+                Color.White,
+                0f,
+                Vector2.Zero,
+                scale,
+                SpriteEffects.None,
+                0f
+            );
+
+            y += size.Y * scale;
+        }
+    }
+
+    // Where the list starts, and how much clear card is left either side of it
+    private const float TEXT_TOP = 380;
+    private const float TEXT_MARGIN = 48;
 }

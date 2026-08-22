@@ -143,6 +143,21 @@
 #begin images/backgrounds.xml
 /copy:images/backgrounds.xml
 
+#begin images/butterfly.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/butterfly.png
+
+#begin images/butterfly.xml
+/copy:images/butterfly.xml
+
 #begin images/Crab.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -172,6 +187,36 @@
 
 #begin images/enemies.xml
 /copy:images/enemies.xml
+
+#begin images/butterfly.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/butterfly.png
+
+#begin images/butterfly.xml
+/copy:images/butterfly.xml
+
+#begin images/flower.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/flower.png
+
+#begin images/flower.xml
+/copy:images/flower.xml
 
 #begin images/foreground.png
 /importer:TextureImporter
@@ -203,6 +248,21 @@
 #begin images/Jellyfish.xml
 /copy:images/Jellyfish.xml
 
+#begin images/MothBoss.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/MothBoss.png
+
+#begin images/MothBoss.xml
+/copy:images/MothBoss.xml
+
 #begin images/player.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -217,6 +277,21 @@
 
 #begin images/player.xml
 /copy:images/player.xml
+
+#begin images/spiders.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:images/spiders.png
+
+#begin images/spiders.xml
+/copy:images/spiders.xml
 
 #begin images/UI.png
 /importer:TextureImporter
@@ -262,7 +337,4 @@
 
 #begin images/world.xml
 /copy:images/world.xml
-
-#begin Json Files/mobWaves.json
-/copy:Json Files/mobWaves.json
 

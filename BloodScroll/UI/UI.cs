@@ -53,7 +53,9 @@ public class UI : IUI
         pauseScreen.LoadContent(device);
 
         gamePlayUI = new();
-    
+        gamePlayUI.LoadContent(device);
+
+
         // Gift Card
         GiftCard = new();
         GiftCard.LoadContent(device);
@@ -99,7 +101,7 @@ public class UI : IUI
         Mouse.SetCursor(desiredCursor);
     }
 
-    public void Draw(IPlayer player)
+    public void Draw(IPlayer player, IWeaponsManager weapons = null)
     {
         Globals.SpriteBatch.Begin();
 
@@ -119,7 +121,7 @@ public class UI : IUI
 
         else if (Globals.PLAYER_ALIVE)
         {
-            gamePlayUI.Draw(player);
+            gamePlayUI.Draw(player, weapons);
 
             if (Globals.DISPLAY_PAUSE_MENU)
                 pauseScreen.Draw();
