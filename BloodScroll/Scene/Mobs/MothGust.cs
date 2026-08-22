@@ -110,7 +110,7 @@ public class MothGust
 
         Circle air = new((int)middle.X, (int)middle.Y, (int)(size * REACH));
 
-        if (!CollisionManager.CircleIntersectsRectangle(air, player.Bounds))
+        if (!player.HurtBox.Intersects(air))
             return false;
 
         // One hit per blast - it blows through him, it does not grind him down

@@ -468,7 +468,7 @@ public class SpiderQueen : MobBase
                 continue;
             }
 
-            if (webs[i].Bounds.Intersects(player.Bounds))
+            if (player.HurtBox.Intersects(webs[i].Bounds))
                 player.ApplySlow(Player.WEB_SLOW_FACTOR, 0.4f);
         }
     }

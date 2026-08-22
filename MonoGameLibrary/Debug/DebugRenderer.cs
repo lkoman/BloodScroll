@@ -53,15 +53,19 @@ public class DebugRenderer
         pb.AddVertex(tl, c, PrimitiveType.LineList);
     }
 
-    public void DrawPolygon(Polygon poly, Color c)
+    public void DrawPolygon(Polygon poly, Color c) => DrawPolygon(poly, Vector2.Zero, c);
+
+    // The overlay draws in screen space while hitboxes live in world space,
+    // so everything drawn here has to be shifted by the camera first
+    public void DrawPolygon(Polygon poly, Vector2 offset, Color c)
     {
         if (poly.Count < 2)
             return;
 
         for (int i = 0; i < poly.Count; i++)
         {
-            pb.AddVertex(poly[i], c, PrimitiveType.LineList);
-            pb.AddVertex(poly[(i + 1) % poly.Count], c, PrimitiveType.LineList);
+            pb.AddVertex(poly[i] + offset, c, PrimitiveType.LineList);
+            pb.AddVertex(poly[(i + 1) % poly.Count] + offset, c, PrimitiveType.LineList);
         }
     }
 

@@ -57,7 +57,7 @@ public class CollisionResponse
             if (mobProjectile.active == 0)
                 continue;
             
-            if (CollisionManager.CircleIntersectsRectangle(mobProjectile.bulletBounds, player.Bounds))
+            if (player.HurtBox.Intersects(mobProjectile.bulletBounds))
             {
                 switch (mobProjectile.Effect)
                 {
@@ -125,7 +125,7 @@ public class CollisionResponse
     
     public static void HandlePlayerMobCollision(IMob mob, IPlayer player, IAudioService audio)
     {
-        bool touching = mob.CollidesWith(player.Bounds);
+        bool touching = mob.CollidesWith(player.HurtBox);
 
         if (!mob.HittingPlayer && touching)
         {
@@ -175,16 +175,23 @@ public class CollisionResponse
         Difficulty.Scale(GreenBat.POISON_DAMAGE, Difficulty.MobDamage);
 
     // PLAYER CANNOT WALK OFF BIG PLATFORM
+    //
+    // HIS FEET, not the frame around him. The hood is a good deal wider than
+    // the tendrils under it, so asking the frame this question kept him up in
+    // the air for another thirty pixels after his feet had left the ledge -
+    // which is exactly what it looked like.
     private void CheckPlayerWalkedOff(IPlayer player)
     {
-        if (player.Bounds.Right < activePlatform.Y ||
-            player.Bounds.Left > activePlatform.X)
+        if (player.FootingBounds.Right < activePlatform.Y ||
+            player.FootingBounds.Left > activePlatform.X)
             player.SetPlayerInAir(true);
     }
 
     public void HandlePlayerPlatformCollision(IPlayer player, Rectangle plat)
     {
-        if (!player.Bounds.Intersects(plat))
+        // Same box as the walked-off test above, or the two would disagree
+        // about where he is on the frame he steps off an edge
+        if (!player.FootingBounds.Intersects(plat))
         {
             if (plat == enterFromBelowPlatform[0])
                 enterFromBelowPlatform[0] = Rectangle.Empty;

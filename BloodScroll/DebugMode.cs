@@ -40,11 +40,11 @@ public static class DebugMode
 {
     // Damage never reaches the player while this is on. See Player.TakeDamage
     // and Player.UpdatePoison - those are the only two ways HP ever goes down.
-    public static bool Invulnerable { get; private set; } = true;
+    public static bool Invulnerable { get; private set; } = false;
 
     // Off by default. It is a tool for tuning the HitboxScale on a mob - the
     // box should hug the creature, not the empty space around it.
-    public static bool ShowHitboxes { get; private set; } = true;
+    public static bool ShowHitboxes { get; private set; } = false;
 
     // The same capacity the boss hands out (see mobWaves.json), so what F4
     // gives you is the real gift and not a debug-only version of it that

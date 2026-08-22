@@ -427,7 +427,7 @@ public class Flower : MobBase, IPlatformMob
 
     private void Sleeping(IPlayer player)
     {
-        if (!trigger.Intersects(player.Bounds) && !WithinOf(player, reach))
+        if (!player.HurtBox.Intersects(trigger) && !WithinOf(player, reach))
             return;
 
         EnterState(FlowerState.Waking);

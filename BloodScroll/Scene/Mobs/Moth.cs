@@ -673,6 +673,9 @@ public class Moth : MobBase
     public override bool CollidesWith(Circle circle) =>
         phase != Phase.Hidden && base.CollidesWith(circle);
 
+    public override bool CollidesWith(Polygon polygon) =>
+        phase != Phase.Hidden && base.CollidesWith(polygon);
+
     //
     // DRAWING
     //

@@ -388,15 +388,7 @@ public class BloodScroll : Core
                 // Mobs with a real outline draw that instead of the box
                 if (m.HitboxPolygon.HasValue)
                 {
-                    Polygon poly = m.HitboxPolygon.Value;
-                    for (int i = 0; i < poly.Count; i++)
-                    {
-                        Vector2 a = poly[i] + Globals.CameraOffset;
-                        Vector2 b = poly[(i + 1) % poly.Count] + Globals.CameraOffset;
-
-                        debugRenderer.pb.AddVertex(a, Color.Yellow, PrimitiveType.LineList);
-                        debugRenderer.pb.AddVertex(b, Color.Yellow, PrimitiveType.LineList);
-                    }
+                    debugRenderer.DrawPolygon(m.HitboxPolygon.Value, Globals.CameraOffset, Color.Yellow);
                     continue;
                 }
 
@@ -413,10 +405,16 @@ public class BloodScroll : Core
             tmpC.Y += (int)Globals.CameraOffset.Y;
             debugRenderer.DrawCircle(tmpC, Color.Red);
         }
-        tmp = player.PlayerBounds;
+        // THE PLAYER'S TWO BOXES, in two colours because they do two jobs.
+        // Green is what can be hit, cyan is what he stands on - and the gap
+        // between the cyan and the sides of the sprite is the whole reason
+        // he no longer hangs off the edge of a platform.
+        debugRenderer.DrawPolygon(player.HurtBox, Globals.CameraOffset, Color.Green);
+
+        tmp = player.FootingBounds;
         tmp.X += (int)Globals.CameraOffset.X;
         tmp.Y += (int)Globals.CameraOffset.Y;
-        debugRenderer.DrawRect(tmp, Color.Green);
+        debugRenderer.DrawRect(tmp, Color.Cyan);
         debugRenderer.pb.End();
     }
 }

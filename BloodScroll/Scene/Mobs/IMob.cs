@@ -56,9 +56,11 @@ public interface IMob : IDrawableLayer
     void ApplyDifficulty(int layerIndex);
 
     // Hit tests. A mob answers with its polygon outline if it has one,
-    // otherwise with its rectangle.
+    // otherwise with its rectangle. The Polygon one is what the player is
+    // asked with, so an outline meets an outline where both have one.
     bool CollidesWith(Rectangle rect);
     bool CollidesWith(Circle circle);
+    bool CollidesWith(Polygon polygon);
 
     // Only for the debug overlay - null for mobs that use a plain box
     Polygon? HitboxPolygon { get; }

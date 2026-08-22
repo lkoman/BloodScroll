@@ -380,6 +380,17 @@ public abstract class MobBase : IMob
         return CollisionManager.CircleIntersectsRectangle(circle, Bounds);
     }
 
+    // Outline against outline - the player is the one thing that asks this
+    // way. A mob without an outline of its own still answers honestly: SAT
+    // treats a box as the four sided polygon it is.
+    public virtual bool CollidesWith(Polygon polygon)
+    {
+        if (hasPolygon)
+            return hitboxPolygon.Intersects(polygon);
+
+        return polygon.Intersects(Bounds);
+    }
+
     // True once the direction timer has run out. Call ResetDirectionTimer()
     // *after* reacting to it, so the random stream is used in the same order.
     protected bool DirectionTimerElapsed()

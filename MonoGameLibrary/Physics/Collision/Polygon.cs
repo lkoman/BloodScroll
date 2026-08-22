@@ -30,18 +30,31 @@ public struct Polygon
     private float rotation;
     private Vector2 pivot;
 
+    // For shapes that FACE (the player, who flips when he runs left). Mirroring
+    // is what lets an outline be drawn tight around a sprite that is not
+    // symmetric - without it the only safe outline is a symmetric one, which
+    // means a loose one. Mirroring also leaves a convex shape convex, though it
+    // reverses the winding, which is why the normals below take their sign from
+    // nothing and only the axis matters.
+    private bool mirrored;
+    private float mirrorWidth;
+
     public Polygon(Vector2[] localVertices)
     {
         vertices = localVertices;
         offset = Vector2.Zero;
         rotation = 0f;
         pivot = Vector2.Zero;
+        mirrored = false;
+        mirrorWidth = 0f;
     }
 
     public readonly int Count => vertices?.Length ?? 0;
 
-    // Vertex i in world space
-    public readonly Vector2 this[int i] => Turned(vertices[i]) + offset;
+    // Vertex i in world space. Mirrored FIRST, so the flip happens in the
+    // sprite's own frame the way SpriteBatch does it, and any rotation then
+    // applies to the shape the viewer is actually looking at.
+    public readonly Vector2 this[int i] => Turned(Flipped(vertices[i])) + offset;
 
     public void SetPosition(Vector2 position)
     {
@@ -54,6 +67,22 @@ public struct Polygon
     {
         rotation = radians;
         pivot = about;
+    }
+
+    // Left/right flip about the middle of a frame this wide, matching
+    // SpriteEffects.FlipHorizontally on a sprite of the same size
+    public void SetMirrored(bool flip, float frameWidth)
+    {
+        mirrored = flip;
+        mirrorWidth = frameWidth;
+    }
+
+    private readonly Vector2 Flipped(Vector2 vertex)
+    {
+        if (!mirrored)
+            return vertex;
+
+        return new Vector2(mirrorWidth - vertex.X, vertex.Y);
     }
 
     private readonly Vector2 Turned(Vector2 vertex)

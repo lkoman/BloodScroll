@@ -24,7 +24,6 @@ public class Player : IPlayer, IDrawableLayer
         set => playerHP = value; 
     }
     public int MaxHP => playerMaxHP;
-    public Rectangle Bounds => playerBounds;
     public Vector2 Position => _player.Position;
     public float Bottom => _player.Bottom;
     public float Height => _player.Height;
@@ -42,9 +41,81 @@ public class Player : IPlayer, IDrawableLayer
 
     private AnimatedSprite _player;
     private AnimatedSprite _player_idle, _player_running, _player_in_jump;
-    private Rectangle playerBounds;
-    public Rectangle PlayerBounds => playerBounds;
     private Vector2 prevPos;
+
+    //
+    // TWO HITBOXES, BECAUSE THEY ANSWER TWO DIFFERENT QUESTIONS
+    //
+    // The wraith is a wide hood hanging over a pair of thin tendrils. One box
+    // cannot be both the thing that gets hit and the thing that stands on a
+    // ledge, and using the sprite frame for both is what makes him look like
+    // he is standing on nothing:
+    //
+    //   HURT BOX   - the body. What every mob, shot and blast is tested
+    //                against. An outline, so the empty corners of a 120x120
+    //                frame stop counting as the player.
+    //
+    //   FOOTING    - only as wide as the tendrils. What the platform code is
+    //                tested against, and nothing else.
+    //
+    // Mobs already work exactly like this - see MobBase.HitboxShape - so the
+    // fractions below mean the same thing they do over there: a share of the
+    // sprite frame, (0.5f, 0f) being top centre.
+    //
+
+    // Convex, because SAT cannot do anything else, and LOPSIDED, because he is:
+    // the hood sits right of centre in the frame, so a symmetric outline is
+    // either too fat on one side or too thin on the other. It leans with him
+    // instead - see SetMirrored, and facingLeft below.
+    //
+    // Traced off the artwork with all seven frames laid over each other, so no
+    // frame of any animation pokes out of it. What is deliberately left OUTSIDE
+    // is the ragged cloak streaming off to one side: it reads as motion rather
+    // than as him, and being hit by it is the kind of hit that feels stolen.
+    // The outline holds about 93% of the drawing in a little over half the area
+    // of the frame that used to be the hitbox.
+    private static readonly Vector2[] HURTBOX_SHAPE =
+    [
+        new(0.46f, 0.00f),   // the point of the hood
+        new(0.60f, 0.01f),
+        new(0.78f, 0.14f),
+        new(0.87f, 0.33f),   // the brow, the widest he ever gets
+        new(0.87f, 0.74f),
+        new(0.70f, 0.96f),
+        new(0.40f, 1.00f),   // the tendrils
+        new(0.26f, 0.84f),
+        new(0.21f, 0.40f),
+        new(0.29f, 0.13f),
+    ];
+
+    // THE COLUMN HE STANDS IN.
+    //
+    // Measured off the artwork: across all seven frames the tendrils never
+    // leave x 0.29..0.73 of the frame, while the hood reaches 0.22..0.86 and
+    // is nowhere near the ground. The frame is 120 across and his feet are
+    // 48 of it, so "standing on" a ledge used to mean the hood was over it
+    // while the tendrils hung in mid air 30 pixels to the side.
+    //
+    // Full frame height on purpose - every line of the platform code measures
+    // from the frame's bottom edge (PlacePlayerOnPlatform, and the two prevPos
+    // tests below), and shortening this to an ankle band would change how
+    // every landing in the game is timed. Only the width was ever wrong.
+    private const float FOOTING_LEFT = 0.30f;
+    private const float FOOTING_RIGHT = 0.70f;
+
+    // Which way he is facing, kept HERE rather than read back off the sprite.
+    // Draw swaps between three AnimatedSprite objects and each carries its own
+    // Effects, so asking the current one which way it is turned answers for
+    // whenever that particular sprite was last on screen - a frame ago, or a
+    // hundred. The outline has to lean the same way the drawing does on the
+    // very frame it is tested, so both now read this.
+    private bool facingLeft = false;
+
+    private Polygon hurtBox;
+    private Rectangle footingBounds;
+
+    public Polygon HurtBox => hurtBox;
+    public Rectangle FootingBounds => footingBounds;
     private readonly float playerStartHeight = Core.windowHeight - 300;
 
     private const int StartPlayerHP = 500;
@@ -221,9 +292,10 @@ public class Player : IPlayer, IDrawableLayer
 
         _player = _player_idle;
         _player.Position = new Vector2(Core.windowWidth / 2 - _player.Width / 2, playerStartHeight);
-        playerBounds = CollisionManager.SetBoundingRectangle(_player);
+        BuildHitboxes();
 
         speed = 0f; max_speed = 0f; jump = 0f;
+        facingLeft = false;
         canJump = true;
         velocity = new (0f, 0f);
         SetPlayerInAir(true);
@@ -261,7 +333,7 @@ public class Player : IPlayer, IDrawableLayer
 
         _player = _player_idle;
         _player.Position = new Vector2(Core.windowWidth / 2 - _player.Width / 2, playerStartHeight);
-        playerBounds = CollisionManager.SetBoundingRectangle(_player);
+        BuildHitboxes();
 
         PLAYER_HEIGHT = _player.Height;
 
@@ -306,13 +378,34 @@ public class Player : IPlayer, IDrawableLayer
             _player.Position += velocity * Globals.DT;
         }
 
-        playerBounds = CollisionManager.UpdateBoundingRectangle(playerBounds, _player);
+        SyncHitboxes();
 
         _player.Update();
 
         if (playerHP <= 0) {
             Globals.PLAYER_ALIVE = false;
         }
+    }
+
+    // Cut once. All three animations share one frame size, so the outline
+    // never needs rebuilding after this - only moving.
+    private void BuildHitboxes()
+    {
+        hurtBox = Polygon.FromFractions(HURTBOX_SHAPE, _player.Width, _player.Height);
+        SyncHitboxes();
+    }
+
+    // Both of them follow the sprite, every frame, from the same one place
+    private void SyncHitboxes()
+    {
+        hurtBox.SetPosition(_player.Position);
+        hurtBox.SetMirrored(facingLeft, _player.Width);
+
+        footingBounds = new Rectangle(
+            (int)(_player.Position.X + _player.Width * FOOTING_LEFT),
+            (int)_player.Position.Y,
+            (int)(_player.Width * (FOOTING_RIGHT - FOOTING_LEFT)),
+            (int)_player.Height);
     }
 
     public void Draw()
@@ -329,6 +422,12 @@ public class Player : IPlayer, IDrawableLayer
             _player_idle.Position = _player.Position;
             _player = _player_idle;
         }
+
+        // AFTER the swap, from the same field the outline mirrors off. The
+        // sprite that has just come on screen was last turned whenever it was
+        // last used, which may have been a long time ago and facing the other
+        // way - so it is told now, every frame, rather than trusted.
+        _player.Effects = facingLeft ? SpriteEffects.FlipHorizontally : SpriteEffects.None;
 
         Color drawColor = Color.White;
         if (isHit)
@@ -460,13 +559,13 @@ public class Player : IPlayer, IDrawableLayer
         // LEVO
         if (keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left))
         {
-            _player.Effects = SpriteEffects.FlipHorizontally;
+            facingLeft = true;
             velocity.X -= speed;
         }
         // DESNO
         else if (keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right))
         {
-            _player.Effects = SpriteEffects.None;
+            facingLeft = false;
             velocity.X += speed;
         }
         // PREVENT SLIDE

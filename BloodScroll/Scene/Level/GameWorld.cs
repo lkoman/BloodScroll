@@ -340,7 +340,7 @@ public class GameWorld
             }
         }
 
-        if (blast.HurtsPlayer && CollisionManager.CircleIntersectsRectangle(blast.Bounds, player.Bounds))
+        if (blast.HurtsPlayer && player.HurtBox.Intersects(blast.Bounds))
             player.TakeDamage(blast.PlayerDamage, audioService);
     }
 

@@ -190,7 +190,7 @@ public class Butterfly : MobBase
         // "inside the cloud" means the same thing here as it does over there.
         Circle reach = new((int)centre.X, (int)centre.Y, (int)HEAL_RADIUS);
 
-        if (CollisionManager.CircleIntersectsRectangle(reach, player.Bounds))
+        if (player.HurtBox.Intersects(reach))
             player.Heal(HEAL_AMOUNT);
 
         gameWorld.SpawnGoldDust(centre);

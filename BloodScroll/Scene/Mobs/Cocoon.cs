@@ -144,6 +144,7 @@ public class Cocoon : MobBase
     // Nothing touches it: not the player, not his bullets, not the floor
     public override bool CollidesWith(Rectangle rect) => false;
     public override bool CollidesWith(Circle circle) => false;
+    public override bool CollidesWith(Polygon polygon) => false;
 
     public override void TakeDamage(int damage, IAudioService audio) {}
 

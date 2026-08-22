@@ -1,4 +1,5 @@
 using Microsoft.Xna.Framework;
+using MonoGameLibrary;
 
 namespace BloodScroll;
 
@@ -11,7 +12,23 @@ public interface IPlayer
     float Width { get; }
     bool InAir { get; }
     Vector2 Position { get; }
-    Rectangle Bounds { get; }
+
+    //
+    // HIS TWO HITBOXES, AND THERE IS NO THIRD.
+    //
+    // The sprite frame used to be offered here as well and everything reached
+    // for it, which is how a hood 120 pixels across ended up deciding whether
+    // his feet were on a ledge. Ask for whichever of these two actually
+    // answers your question.
+    //
+
+    // The body, as an outline. Every mob, shot, web and blast is tested
+    // against this - see the note on HURTBOX_SHAPE in Player.
+    Polygon HurtBox { get; }
+
+    // Only as wide as his feet. Platforms, and nothing else: it is what
+    // decides whether there is anything under him to stand on.
+    Rectangle FootingBounds { get; }
 
     // GIFT STATE (shown in the HUD)
     int Shield { get; }
