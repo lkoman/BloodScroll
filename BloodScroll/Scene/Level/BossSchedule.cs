@@ -5,12 +5,11 @@ namespace BloodScroll;
 //
 // KEEPS THE CLIMB ENDLESS
 //
-// mobWaves.json describes the first stretch of the game by hand. Past the last
-// layer written there, this takes over: every BOSS_EVERY layers is a boss layer,
-// cycling through the roster and getting harder each time round.
+// mobWaves.json describes the first stretch by hand. Past the last layer written
+// there this takes over: every BOSS_EVERY layers is a boss layer, cycling the
+// roster and getting harder each lap.
 //
-// Returns null for a normal layer, which is exactly what the old code got from
-// FirstOrDefault, so those layers still fall back to the WaveData formula.
+// Returns NULL for a normal layer, so those fall back to the WaveData formula.
 //
 
 public static class BossSchedule
@@ -21,13 +20,8 @@ public static class BossSchedule
     // (2 keeps the rhythm of the hand authored layers 2, 5, 8)
     private const int BOSS_OFFSET = 2;
 
-    // HOW BOSSES GET TOUGHER IS NOT DECIDED HERE ANY MORE.
-    //
-    // This used to scale every boss by how many times the ROSTER had come
-    // round, which meant a boss the player was meeting for the first time on a
-    // late layer arrived pre-scaled by fights it had nothing to do with.
-    // BossTally counts each boss's own appearances instead, and every boss in
-    // the game goes through it - hand authored ones included.
+    // HOW BOSSES GET TOUGHER IS NOT DECIDED HERE. BossTally counts each boss's
+    // OWN appearances, and every boss goes through it, hand authored included.
 
     // One entry per boss fight: the boss itself plus whatever it fights alongside.
     // Fireboss goes last because the player already fought it on the hand
@@ -44,16 +38,12 @@ public static class BossSchedule
     //
     // THE PRIZES THAT CAN ONLY BE WON ONCE
     //
-    // Handed out in this order, one per boss, and then never again. The last
-    // gun goes first: the hand authored layers hand out guns 1 and 2, so the
-    // shell gun is the one thing left the player has not seen and it should not
-    // be sitting behind four other prizes.
+    // One per boss, in this order, then never again. The last gun goes first -
+    // the hand authored layers already hand out guns 1 and 2.
     //
-    // This list used to be cycled forever alongside the boss roster, which
-    // meant the second lap handed the player things he already had - and worse,
-    // handed him ABSOLUTE numbers: a second "IncreasedHP = 900" on a player who
-    // had built past 900 was a gift that took HP off him. Past the end of it
-    // the bosses now pay out in increments instead - see Upgrade.
+    // NOT cycled: these carry ABSOLUTE numbers, and a second "IncreasedHP = 900"
+    // on a player past 900 would take HP off him. Past the end of this list the
+    // bosses pay out in increments - see Upgrade.
     //
     private static readonly List<GiftData> GiftPool =
     [
@@ -68,23 +58,18 @@ public static class BossSchedule
     //
     // AND THE ONES THAT KEEP COMING
     //
-    // Four gifts, cycled forever, each of them a small permanent step:
+    // Four gifts, cycled forever, each a small permanent step:
     //
-    //   more HP        so the player's ceiling keeps rising with the bosses'
-    //   more shield    the same, for the part of him that grows back
+    //   more HP        the player's ceiling keeps rising with the bosses'
+    //   more shield    the same, for the part that grows back
     //   a faster gun   ONE gun, a notch quicker
     //   a stronger gun THE SAME gun, a notch harder hitting
     //
-    // The gun moves on each time round, so all four are brought along evenly
-    // instead of the pistol running away with every upgrade in the game. Speed
-    // and damage land on the same gun in the same lap on purpose: two small
-    // steps on one gun is something the player can feel, where one step each on
-    // two guns is something he only reads on a card.
+    // The gun moves on each lap, so all four are brought along evenly. Speed and
+    // damage land on the same gun in the same lap.
     //
-    // NONE OF THIS MOVES WITH THE DIFFICULTY. The bosses get harder on hell and
-    // easier on baby - what the player is HANDED for beating one is the same
-    // either way. A setting that also scaled the rewards would be scaling both
-    // sides of the same fight and mostly cancelling itself out.
+    // NONE OF THIS MOVES WITH THE DIFFICULTY - that scales the bosses, not what
+    // the player is handed for beating one.
     //
     private const int UPGRADE_CYCLE = 4;
 

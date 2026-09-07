@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
@@ -8,34 +8,18 @@ namespace BloodScroll;
 //
 // THE FRIENDLY ONE - the jellyfish turned inside out
 //
-// Drifts around harmlessly. WALK INTO IT and it starts a short fuse, then
-// bursts into a cloud that HEALS whoever is standing in it.
+// Drifts around harmlessly. WALK INTO IT to light a fuse, then it bursts and
+// HEALS whoever is still standing in it. Cannot be shot - touch only, same as
+// the jellyfish.
 //
-// Touching is what sets it off, exactly like the jellyfish it is built from -
-// and that is the point of the pair. Both are set off by the same act, one
-// heals you and one kills you, and the green is all you get to tell them
-// apart. Shooting it used to work, which let the player pop it from across the
-// room for free; now getting to it is the whole cost, and the fuse means he has
-// to still be there a second and a half later.
+// Its drift leans towards the player, so one he climbed past follows him up
+// instead of being stranded a layer below.
 //
-// Its drift leans towards the player, same as the jellyfish it is built from,
-// so a butterfly he climbed past follows him up instead of being stranded a
-// layer below. This one is in the player's favour: the only healing outside a
-// boss kill stays reachable.
+// It throws gold dust (see GoldDust), not a fireball - the one thing in the
+// game that helps must not look like the two that blow you up.
 //
-// IT BURSTS INTO DUST, NOT INTO A FIREBALL
-//
-// The burst used to be a hand drawn cloud - which was a drawing of an
-// explosion, and so the one thing in the game that HELPS you looked exactly
-// like the two things that blow you up. Now it throws gold dust (see GoldDust):
-// warm, rising, and the only gold on the screen. A player who has learnt what
-// pink means does not have to learn what gold means twice.
-//
-// AND IT ONLY EVER HEALS THE PLAYER. The jellyfish next door asks the world for
-// a blast that catches everything standing in it, mobs included. This one does
-// not go anywhere near that path - it hands the player his health directly and
-// the dust is only a picture. A healing field that touched mobs would quietly
-// heal the swarm chasing him, which is the exact opposite of a reward.
+// IT ONLY EVER HEALS THE PLAYER. It never asks the world for a blast the way
+// the jellyfish does, so it can never heal the swarm chasing him.
 //
 
 public class Butterfly : MobBase
@@ -46,36 +30,24 @@ public class Butterfly : MobBase
     private Vector2 target = Vector2.Zero;
     private readonly int targetOffset = 250;
 
-    // How far each new drift target is pulled towards the player. Kept under
-    // targetOffset above so the wobble still dominates any one step.
+    // How far each new drift target is pulled towards the player. Under
+    // targetOffset, so the wobble still dominates any one step.
     private const float DRIFT_TOWARDS = 200f;
 
     private const int HEAL_AMOUNT = 60;
     private const float FUSE_SECONDS = 1.5f;
 
+    // HOW CLOSE HE HAS TO BE WHEN IT GOES OFF - he lit the fuse by walking into
+    // it, so this asks whether he STAYED.
     //
-    // HOW CLOSE HE HAS TO BE WHEN IT GOES OFF
-    //
-    // He lit the fuse by walking into it, so this is really asking whether he
-    // STAYED - which is the whole cost of the heal, and why it is not simply
-    // handed to whoever brushed past.
-    //
-    // The old burst was a small cloud the player could touch on any frame of a
-    // one second animation: a tight area, a long window. This is one instant
-    // check instead, so the area has to be wider to be the same bargain - but
-    // only about twice the old cloud, not the whole puff of dust. The dust
-    // scatters further than this on purpose; it is the THICK of it that heals,
-    // and standing in the thin edge of it was never going to be enough.
+    // ONE instant check, not a window. The dust scatters further than this on
+    // purpose - only the THICK of it heals.
     private const float HEAL_RADIUS = 160f;
 
     private bool fuseLit = false;
     private float fuseTimer = 0f;
 
-    // ITS OWN ARTWORK, IN ITS OWN COLOURS. It used to be the jellyfish drawing
-    // washed green, because the shape was shared and the hue was the only thing
-    // separating the mob that heals from the mob that explodes in your face.
-    // With a butterfly that actually looks like a butterfly there is nothing
-    // left to disambiguate, so it is drawn exactly as it was painted.
+    // Its own art, so it is drawn white with no tint
     private static readonly Color BODY = Color.White;
 
     private Color bodyColor = BODY;
@@ -86,12 +58,10 @@ public class Butterfly : MobBase
     // A pickup, not an enemy - never blocks the layer from being cleared
     public override bool CountsAsEnemy => false;
 
-    // Shots pass straight through, same as the jellyfish. It is not shot at
-    // all now, so it must not eat the bullets meant for what is behind it -
-    // and with nothing ever hitting it, it never flashes red either.
+    // Shots pass through, so it never eats the bullets meant for what is behind
     public override bool StopsBullets => false;
 
-    // It burns itself out handing the player a heal. That is not a kill.
+    // It burns itself out - not a kill, so no life steal
     public override bool GivesLifeSteal => false;
 
     protected override Vector2 HitboxScale => new(0.65f, 0.65f);
@@ -100,9 +70,7 @@ public class Butterfly : MobBase
     {
         SetHP(100);
 
-        // Nothing reads this - it never touches the player for damage OR for
-        // healing. The heal is handed over in Burst, where it can be given to
-        // the player and to nobody else.
+        // Nothing reads this. The heal is handed over in Burst.
         DAMAGE = 0;
 
         PointsOnKill = 0;       // the heal IS the reward
@@ -114,8 +82,7 @@ public class Butterfly : MobBase
     {
         SpawnLayer = spawnLayer;
 
-        // The burst animation is not loaded at all any more - the dust is
-        // thrown by the world, not drawn by the mob that left it
+        // No burst animation - the dust is thrown by the world
         _idle = MobArt.Butterflies(MobArt.Butterfly);
 
         Sprite = _idle;
@@ -160,10 +127,7 @@ public class Butterfly : MobBase
 
         if (fuseTimer < FUSE_SECONDS)
         {
-            // Flashes towards the green everything helpful in this game is
-            // drawn in, faster the closer the burst is. The art is warm yellow,
-            // so the green reads clearly against it without hiding it - and it
-            // says "this is about to heal you" in the game's own colour.
+            // Flashes towards HealGreen, faster the closer the burst is
             float t = fuseTimer / FUSE_SECONDS;
             float pulse = 0.5f + 0.5f * MathF.Sin(fuseTimer * MathHelper.TwoPi * (2f + 6f * t));
 
@@ -177,17 +141,15 @@ public class Butterfly : MobBase
     //
     // IT BURSTS, AND IT IS GONE
     //
-    // The heal is given here and nowhere else, which is what keeps it the
-    // player's alone: there is no healing hitbox left lying around for a mob to
-    // wander into. The dust is handed to the world afterwards because the
-    // butterfly is dead on this frame and cannot draw anything itself.
+    // The heal is given HERE and nowhere else, so there is no healing hitbox
+    // left lying around for a mob to wander into. The dust goes to the world
+    // because the butterfly is dead on this frame and cannot draw itself.
     //
     private void Burst(IPlayer player, GameWorld gameWorld)
     {
         Vector2 centre = Sprite.Position + new Vector2(Sprite.Width, Sprite.Height) * 0.5f;
 
-        // Only if he stayed for it. Measured the same way a blast is, so
-        // "inside the cloud" means the same thing here as it does over there.
+        // Only if he stayed. Measured the same way a blast is.
         Circle reach = new((int)centre.X, (int)centre.Y, (int)HEAL_RADIUS);
 
         if (player.HurtBox.Intersects(reach))
@@ -199,8 +161,7 @@ public class Butterfly : MobBase
     }
 
     // Walking into it lights the fuse. Called from the collision response, the
-    // same OnTouch.Explode path the jellyfish uses - the two mobs are set off
-    // by the same act on purpose.
+    // same OnTouch.Explode path the jellyfish uses.
     public override void Explode()
     {
         if (fuseLit)

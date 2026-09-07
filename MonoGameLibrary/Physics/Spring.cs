@@ -6,30 +6,24 @@ namespace MonoGameLibrary;
 //
 // OMEJEVANJE - A DAMPED SPRING BETWEEN A FIXED POINT AND ONE PARTICLE
 //
-// Objects in a game are not only connected by collisions. This one is the
-// classic pendulum-on-a-wall case: a single particle (the moving end) is tied
-// to an Anchor that never moves, and the tie is a spring rather than a rod, so
-// the particle can be pulled out of place, wobble and settle back.
+// The pendulum-on-a-wall case: one particle tied to an Anchor that never moves.
+// The tie is a spring, not a rod, so the particle can be pulled out of place,
+// wobble and settle back.
 //
-// The spring pulls the particle towards a REST POINT rather than only towards
-// the anchor, because a purely radial spring has no opinion about which way it
-// hangs - it would let the end drift anywhere on a circle. The rest point is
-// written as a direction plus a length so the two can be driven separately:
-//   - turn RestDirection and the whole thing swings round to point that way
-//   - grow RestLength and it stretches out along that direction
-// which is exactly how a stalk that has to point at something and then shoot
-// out at it wants to be steered.
+// It pulls towards a REST POINT, not just towards the anchor - a purely radial
+// spring would let the end drift anywhere on a circle. The rest point is a
+// direction plus a length so the two can be driven separately:
+//   - turn RestDirection and the whole thing swings round
+//   - grow RestLength and it stretches along that direction
 //
-//   F = -k * (position - rest point)   Hooke's law, the pull back into place
-//     - c * velocity                   damping, what stops it ringing forever
-//     + whatever ApplyForce was given  a push from outside (wind, a sway)
+//   F = -k * (position - rest point)   Hooke's law
+//     - c * velocity                   damping
+//     + whatever ApplyForce was given  outside push
 //
-// Integrated semi-implicit (velocity first, then position with the NEW
-// velocity), which stays stable at stiffnesses where plain Euler blows up.
+// SEMI-IMPLICIT integration (velocity first, then position with the NEW
+// velocity) - stays stable at stiffnesses where plain Euler blows up.
 //
-// Nothing here draws anything. What the connection LOOKS like is the caller's
-// business - see TiledRope for the flower's stem, which is this spring with a
-// texture repeated along it.
+// Draws nothing. See TiledRope for the flower's stem.
 //
 
 public class Spring
@@ -46,7 +40,7 @@ public class Spring
 
     // c - how much of the movement is bled off every frame. Around
     // 2 * sqrt(Stiffness * Mass) it stops dead without overshooting; below
-    // that it bounces past and comes back, which is the interesting part.
+    // that it bounces past and comes back.
     public float Damping { get; set; } = 6f;
 
     public float Mass { get; set; } = 1f;

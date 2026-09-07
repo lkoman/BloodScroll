@@ -6,21 +6,14 @@ namespace BloodScroll;
 //
 // THE THREE DIFFICULTIES, WRITTEN ONCE
 //
-// MEDIUM IS THE GAME. Every constant below is the MEDIUM figure. Baby is that
-// same figure bent one step down and hell is it bent one step up, so there is
-// no second and third copy of the tuning to keep in step - retuning the game
-// means editing the medium number and letting the other two follow it.
+// MEDIUM IS THE GAME. Every constant below is the MEDIUM figure; baby and hell
+// are that same figure bent one step down or up. Retuning means editing the
+// medium number and letting the other two follow.
 //
-// Globals.DIFFICULTY is 0 baby / 1 medium / 2 hell, and Step turns that into
-// -1 / 0 / +1. Every formula here is built on Step rather than on the setting
-// itself, which is what makes medium the thing the other two are measured
-// against instead of one end of a scale.
+// Globals.DIFFICULTY is 0 baby / 1 medium / 2 hell. Step turns that into
+// -1 / 0 / +1, and every formula here is built on Step.
 //
-// NONE OF THESE IS A BIG LEVER. Each one moves a little: a fifth more HP on a
-// mob, a quarter more bite, a swarm that thickens a bit faster, bosses that
-// grow a bit harder with the climb. Four small nudges all leaning the same way
-// is what makes hell hell - any one of them on its own would only be a
-// nuisance, and one big multiplier would make the difference feel arbitrary.
+// Four small nudges all leaning the same way, not one big multiplier.
 //
 
 public static class Difficulty
@@ -31,11 +24,8 @@ public static class Difficulty
     //
     // AN ORDINARY MOB IS THE SAME MOB ALL THE WAY UP
     //
-    // A bat on layer 40 has exactly the HP and exactly the bite of a bat on
-    // layer 1. What makes the late layers hard is how MANY of them arrive (see
-    // Count) - the swarm IS the difficulty curve. A bat that also quietly grew
-    // would mean the player's guns falling behind for a reason he can never
-    // see happening, and every mob in this game is meant to be legible.
+    // A bat on layer 40 has the HP and bite of a bat on layer 1. What makes late
+    // layers hard is how MANY arrive - see Count. The swarm IS the curve.
     //
     private const float MOB_HP_STEP = 0.2f;
     private const float MOB_DAMAGE_STEP = 0.25f;
@@ -44,16 +34,11 @@ public static class Difficulty
     public static float MobDamage => 1f + MOB_DAMAGE_STEP * Step;
 
     //
-    // A BOSS IS THE OPPOSITE, AND GROWS WITH THE CLIMB
+    // A BOSS GROWS WITH THE CLIMB
     //
-    // A boss is a fight rather than a hazard, and the player who reaches layer
-    // 30 is not the player who reached layer 5 - he has more HP, a shield, four
-    // guns and life steal. A boss written once and never scaled is a boss that
-    // gets easier every time the roster comes round.
-    //
-    // Per layer, on medium. Small figures because they compound with BossTally,
-    // which is already making each boss tougher on each of ITS own appearances -
-    // this is the climb's share of it, not the whole of it.
+    // Per layer, on medium. Small figures because they COMPOUND with BossTally,
+    // which already scales each boss per appearance - this is only the climb's
+    // share of it.
     //
     private const float BOSS_HP_PER_LAYER = 0.035f;
     private const float BOSS_DAMAGE_PER_LAYER = 0.025f;
@@ -61,10 +46,8 @@ public static class Difficulty
     //
     // HOW FAST ANYTHING TIED TO THE LAYER GROWS
     //
-    // The second half of what the difficulty does, and the more important half.
     // The numbers above shift where the game STARTS; this shifts how steeply it
-    // climbs from there, which is what the player actually feels over a long
-    // run. Baby climbs at just over half the rate, hell at about half again.
+    // climbs. Baby climbs at just over half the rate, hell at about half again.
     //
     private const float GROWTH_STEP = 0.45f;
     private static float Growth => 1f + GROWTH_STEP * Step;
@@ -77,13 +60,8 @@ public static class Difficulty
     public static float BossDamage(int layerIndex) =>
         1f + BOSS_DAMAGE_PER_LAYER * Growth * Math.Max(0, layerIndex);
 
-    //
-    // HOW FAST THE ROOMS FILL UP
-    //
-    // Kept separate from Growth above because a mob count is a small whole
-    // number and a multiplier that reads well on a boss's HP bar is far too
-    // coarse on "three bats or four". Same shape, gentler.
-    //
+    // HOW FAST THE ROOMS FILL UP. Separate from Growth above - a mob count is a
+    // small whole number, so it needs a gentler curve than a boss HP bar.
     private const float COUNT_GROWTH_STEP = 0.4f;
     private static float CountGrowth => 1f + COUNT_GROWTH_STEP * Step;
 
@@ -91,15 +69,11 @@ public static class Difficulty
     // HOW MANY OF A MOB A LAYER ASKS FOR
     //
     //   baseCount  what layer 0 sends on medium
-    //   progress   how far into the climb this layer is, in whatever steps that
-    //              particular mob has always grown on
+    //   progress   how far into the climb this layer is, in that mob's own steps
     //   cap        the most this mob may ever send at once
     //
-    // The difficulty does two things to it, and they are different things on
-    // purpose: it shifts the starting number by one either way, and it speeds
-    // up or slows down the growth. Baby therefore starts with one fewer AND
-    // falls further behind the longer the run goes on, which is what "slower"
-    // has to mean for a game with no ending.
+    // The difficulty shifts the STARTING number by one either way AND speeds up
+    // or slows the growth, so baby starts lower and falls further behind.
     //
     public static int Count(int baseCount, int progress, int cap = int.MaxValue)
     {
@@ -111,10 +85,8 @@ public static class Difficulty
     //
     // A DAMAGE FIGURE WITH THE DIFFICULTY IN IT
     //
-    // Never rounds a hit that was meant to land down to nothing: baby mode
-    // makes things hurt less, it does not switch a mob's attack off. A figure
-    // that was already zero stays zero - that is a mob which deliberately does
-    // no contact damage (the jellyfish, the butterfly), not a rounding error.
+    // Never rounds a real hit down to nothing. A figure that was ALREADY zero
+    // stays zero - that is a mob with no contact damage, not a rounding error.
     //
     public static int Scale(int damage, float scale)
     {

@@ -101,7 +101,7 @@ public class Fireboss : MobBase
             velocity = MovementUtils.BounceFromEdge(velocity, Sprite.Position, Sprite.Width);
         }
 
-        Sprite.Effects = MovementUtils.FlipSprite(velocity, Sprite.Effects);
+        Sprite.Effects = MovementUtils.FlipSprite(velocity);
 
         SyncBounds();
 

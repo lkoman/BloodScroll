@@ -7,14 +7,11 @@ namespace BloodScroll;
 //
 // SHARED BASE FOR THE CEILING PATROL
 //
-// A spider walks back and forth along the top of its own layer and spits webs
-// down at the player. It never comes down and the floor is not its problem, so
-// the only way it touches you is by what it drops on you.
+// Walks back and forth along the top of its own layer and spits webs down. It
+// never comes down, so the only way it touches you is what it drops.
 //
-// NEITHER WEB DOES ANY DAMAGE AT ALL. What separates one spider from another is
-// what its web does INSTEAD - a tax on your movement, or the loss of it - plus
-// how fast it walks, how often it shoots, and what colour it is. A subclass sets
-// those and writes nothing else.
+// NEITHER WEB DOES ANY DAMAGE. A subclass sets what its web does instead, how
+// fast it walks, how often it shoots, and its colour. Nothing else.
 //
 
 public abstract class CeilingSpider : MobBase

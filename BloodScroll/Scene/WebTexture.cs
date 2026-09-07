@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGameLibrary;
+using MonoGameLibrary.Graphics;
 
 namespace BloodScroll;
 
@@ -10,9 +9,8 @@ namespace BloodScroll;
 // THE WEB ITSELF, BAKED PIXEL BY PIXEL
 //
 // There is no web art in any of the atlases (the patches on the ground borrow
-// a platform sprite), so the strands are drawn here the same way the shield
-// bubble is: once, at the size they are drawn at, because the world is drawn
-// with PointClamp and scaling would chew up lines this thin.
+// a platform sprite), so the strands are worked out here - see BakedTexture,
+// which owns the cache and the pixel walk.
 //
 // An orb web: spokes out from the middle, rings around it that sag inwards
 // between the spokes the way a real one does.
@@ -43,21 +41,10 @@ public static class WebTexture
     // thing fills in into a white disc - so a small web is woven loose instead.
     private const int LOOSE_UNDER = 96;
 
-    // One texture per size. A spider spits the same web over and over, and the
-    // player asks for his again every time the game is restarted.
-    private static readonly Dictionary<int, Texture2D> baked = [];
+    private static readonly TextureCache cache = new(Bake);
 
     // size is how wide the web comes out, in pixels
-    public static Texture2D Get(int size)
-    {
-        if (baked.TryGetValue(size, out Texture2D texture))
-            return texture;
-
-        texture = Bake(size);
-        baked[size] = texture;
-
-        return texture;
-    }
+    public static Texture2D Get(int size) => cache.Get(size);
 
     private static Texture2D Bake(int size)
     {
@@ -65,47 +52,35 @@ public static class WebTexture
         int spokes = loose ? LOOSE_SPOKES : FULL_SPOKES;
         float[] rings = loose ? LooseRings : FullRings;
 
-        Texture2D texture = new(Core.GraphicsDevice, size, size);
-        Color[] pixels = new Color[size * size];
-        float radius = size / 2f;
         float spokeStep = MathF.Tau / spokes;
 
-        for (int y = 0; y < size; y ++)
+        return BakedTexture.Mask(size, (dx, dy, radius) =>
         {
-            for (int x = 0; x < size; x ++)
-            {
-                float dx = x + 0.5f - radius;
-                float dy = y + 0.5f - radius;
-                float dist = MathF.Sqrt(dx * dx + dy * dy);
-                float r = dist / radius;
+            float dist = MathF.Sqrt(dx * dx + dy * dy);
+            float r = dist / radius;
 
-                if (r > 1f)
-                    continue;
+            if (r > 1f)
+                return 0f;
 
-                float angle = MathF.Atan2(dy, dx);
+            float angle = MathF.Atan2(dy, dx);
 
-                // Distance to the nearest spoke, measured along the arc so the
-                // strand stays the same thickness all the way out
-                float spokeDist = MathF.Abs(MathF.IEEERemainder(angle, spokeStep)) * dist;
-                float spoke = Falloff(spokeDist) * MathHelper.Clamp((r - HUB) / HUB, 0f, 1f);
+            // Distance to the nearest spoke, measured along the arc so the
+            // strand stays the same thickness all the way out
+            float spokeDist = MathF.Abs(MathF.IEEERemainder(angle, spokeStep)) * dist;
+            float spoke = Falloff(spokeDist) * MathHelper.Clamp((r - HUB) / HUB, 0f, 1f);
 
-                // Pulled tight where a spoke holds them, sagging inwards in between
-                float sag = 1f - SAG * (1f - MathF.Cos(angle * spokes));
+            // Pulled tight where a spoke holds them, sagging inwards in between
+            float sag = 1f - SAG * (1f - MathF.Cos(angle * spokes));
 
-                float ring = 0f;
-                foreach (float ringRadius in rings)
-                    ring = MathF.Max(ring, Falloff(MathF.Abs(dist - ringRadius * sag * radius)));
+            float ring = 0f;
+            foreach (float ringRadius in rings)
+                ring = MathF.Max(ring, Falloff(MathF.Abs(dist - ringRadius * sag * radius)));
 
-                // Softened towards the rim so the web does not end on a cut circle
-                float rim = MathHelper.Clamp((1f - r) / 0.08f, 0f, 1f);
+            // Softened towards the rim so the web does not end on a cut circle
+            float rim = MathHelper.Clamp((1f - r) / 0.08f, 0f, 1f);
 
-                float alpha = MathF.Max(spoke, ring) * rim;
-                pixels[y * size + x] = Color.White * alpha;
-            }
-        }
-
-        texture.SetData(pixels);
-        return texture;
+            return MathF.Max(spoke, ring) * rim;
+        });
     }
 
     // One pixel of softness on either side of a strand, so the lines are not jagged

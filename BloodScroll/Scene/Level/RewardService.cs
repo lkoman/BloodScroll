@@ -3,12 +3,11 @@ using System.Text;
 namespace BloodScroll;
 
 //
-// Hands out what the player won for clearing a boss layer, and writes
-// the text that goes on the gift card.
+// Hands out what the player won for clearing a boss layer, and writes the text
+// that goes on the gift card.
 //
-// This used to live inside Layer, which meant a class about level geometry
-// also knew about guns and max HP. New gift types only touch this file,
-// GiftData and the player/weapons side that actually stores them.
+// A new gift type only touches this file, GiftData, and the player/weapons side
+// that stores it.
 //
 
 public static class RewardService
@@ -33,6 +32,17 @@ public static class RewardService
                 text.Append("  G or mousewheel for change of weapon\n");
 
                 weaponsManager.UnlockNewWeapon(gifts.GunID.Value);
+            }
+
+            // Named with its key, the same way the gun gift names G and the
+            // wheel. Nothing else in the game is on Q, so a sword the player
+            // never finds the key for is a gift he never received.
+            if (gifts.Sword == true)
+            {
+                text.Append("- Sword\n");
+                text.Append("  Q to swing it, aimed with the mouse\n");
+
+                weaponsManager.UnlockSword();
             }
 
             if (gifts.IncreasedHP.HasValue)
@@ -65,14 +75,8 @@ public static class RewardService
                 player.GrantLifeSteal(gifts.LifeSteal.Value);
             }
 
-            //
-            // THE ENDLESS ONES
-            //
-            // Every one of these is measured against what the player already
-            // has rather than against a number written somewhere else, which is
-            // what lets the same gift be won twenty times and be worth
-            // something on the twentieth.
-            //
+            // THE ENDLESS ONES. Measured against what the player ALREADY has, so
+            // the same gift is still worth something the twentieth time.
 
             if (gifts.BonusHP.HasValue)
             {

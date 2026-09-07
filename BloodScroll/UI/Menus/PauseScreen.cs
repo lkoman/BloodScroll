@@ -1,7 +1,5 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
-using MonoGameLibrary.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 namespace BloodScroll;
@@ -24,40 +22,21 @@ public class PauseScreen
 
     private string ScoreNote = "";
 
-    public void LoadContent(GraphicsDevice device)
+    public void LoadContent()
     {
-        ButtonResume = new Button();
-        ButtonResume.LoadContent("RESUME", UISettings.buttonSize, device);
-
-        ButtonRestart = new Button();
-        ButtonRestart.LoadContent("RESTART", UISettings.buttonSize, device);
-
-        ButtonMenu = new Button();
-        ButtonMenu.LoadContent("MENU", UISettings.buttonSize, device);
+        ButtonResume = new Button("RESUME", UISettings.buttonSize);
+        ButtonRestart = new Button("RESTART", UISettings.buttonSize);
+        ButtonMenu = new Button("MENU", UISettings.buttonSize);
     }
 
     public MouseCursor Update(IAudioService audio)
     {
-        MouseCursor desiredCursor;
-
         ScoreNote = "SCORE " + Globals.POINTS + "          BEST " + Globals.HIGH_SCORE[Globals.DIFFICULTY];
 
         MenuLayout layout = Measure();
 
-        ButtonResume.Place(layout.ButtonAt(0, UISettings.buttonSize));
-        ButtonRestart.Place(layout.ButtonAt(1, UISettings.buttonSize));
-        ButtonMenu.Place(layout.ButtonAt(2, UISettings.buttonSize));
-
-        ButtonRestart.UpdateHoverColor(audio);
-        ButtonMenu.UpdateHoverColor(audio);
-        ButtonResume.UpdateHoverColor(audio);
-
-        if (ButtonRestart.Hover() || ButtonMenu.Hover() || ButtonResume.Hover()) {
-            desiredCursor = MouseCursor.Hand;
-        }
-        else {
-            desiredCursor = MouseCursor.Arrow;
-        }
+        MouseCursor desiredCursor = layout.PlaceButtons(audio, UISettings.buttonSize,
+            ButtonResume, ButtonRestart, ButtonMenu);
 
         if (ButtonRestart.ButtonClicked(audio))
         {
@@ -95,8 +74,7 @@ public class PauseScreen
 
         layout.DrawSubtitle(UISettings.fontUI, ScoreNote, UITheme.TextMuted);
 
-        ButtonResume.Draw(UISettings.buttonFont);
-        ButtonRestart.Draw(UISettings.buttonFont);
-        ButtonMenu.Draw(UISettings.buttonFont);
+        MenuLayout.DrawButtons(UISettings.buttonFont,
+            ButtonResume, ButtonRestart, ButtonMenu);
     }
 }

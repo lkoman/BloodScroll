@@ -7,20 +7,14 @@ namespace MonoGameLibrary.Graphics;
 //
 // DRAWS A CONNECTION AS ONE SHORT PIECE REPEATED ALONG IT
 //
-// A Spring is maths - two points and the pull between them. This turns that
-// into something you can see WITHOUT the length ever being drawn as one
-// stretched sprite: it lays copies of a single small piece end to end from one
-// point to the other, turned so they run down the line, and adds a copy as the
-// gap grows. Stretch the connection and more pieces appear, let it back and
-// they go away again.
-//
-// That means one 4x8 drawing of a bit of stem covers a stalk of any length,
-// at any angle, and never smears the way a scaled sprite would.
+// Lays copies of one small piece end to end between two points, turned to run
+// down the line, adding a copy as the gap grows. One 4x8 drawing covers a stalk
+// of any length at any angle and never smears the way a scaled sprite would.
 //
 // HOW TO DRAW THE PIECE:
-//   Draw it UPRIGHT, growing upwards, with the end that joins the piece below
-//   it at the BOTTOM of the frame. Keep it narrow and short - the shorter the
-//   piece, the smoother the curve it can follow.
+//   UPRIGHT, growing upwards, with the end that joins the piece below it at the
+//   BOTTOM of the frame. Narrow and short - the shorter the piece, the smoother
+//   the curve it can follow.
 //
 
 public class TiledRope

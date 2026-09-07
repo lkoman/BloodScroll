@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
@@ -8,13 +8,11 @@ namespace BloodScroll;
 //
 // SHARED BASE FOR EVERY MOB
 //
-// Holds the parts each mob used to repeat by hand: the red hit-flash timer,
-// the random direction timer, spawning, the floor bounce and the standard draw.
-// A subclass only has to write LoadContent + UpdateBehaviour, and override the
-// rest where it actually differs.
+// Red hit-flash timer, random direction timer, spawning, floor bounce, draw.
+// A subclass writes LoadContent + UpdateBehaviour and overrides the rest.
 //
-// Coordinate note: up is NEGATIVE. A mob on layer N lives around
-// y = -windowHeight * N, which is what LayerTopY gives you.
+// UP IS NEGATIVE. A mob on layer N lives around y = -windowHeight * N,
+// which is what LayerTopY gives you.
 //
 
 public abstract class MobBase : IMob
@@ -29,45 +27,36 @@ public abstract class MobBase : IMob
     public bool HittingPlayer { get; set; } = false;
     public OnTouch ON_TOUCH { get; set; } = OnTouch.HurtPlayer;
 
-    // The sprite the base class draws and builds the bounding box from.
-    // Mobs that swap between animations reassign this as they change state.
+    // What the base class draws and builds the bounding box from. Mobs that swap
+    // animations reassign this.
     protected AnimatedSprite Sprite;
 
     protected int SpawnLayer;
     protected Vector2 velocity;
     protected float speed, max_speed;
 
-    // How far the sprite is turned, in radians, about the middle of its frame.
-    // Almost every mob leaves this alone and flips left or right instead; the
-    // ones that aim their whole body at the player drive it, and their outline
-    // hitbox turns with the drawing.
+    // Radians, about the middle of the frame. Most mobs leave it alone and flip
+    // instead. The outline hitbox turns with it.
     protected float SpriteRotation = 0f;
 
-    // An invulnerable mob still flashes and makes a noise when shot,
-    // it just does not lose HP (the moth while it hides in its cocoon).
+    // Still flashes and makes a noise when shot, just loses no HP
+    // (the moth while it hides in its cocoon)
     protected bool Invulnerable = false;
 
-    // A BOSS IS THE MOB THAT DRAWS ITS HP OVER ITS HEAD.
-    //
-    // The two used to be separate and could drift apart; they are the same
-    // question asked twice. If the player can see its health bar, it is the
-    // thing the room is about - so it is also the thing whose death ends the
-    // room, and the thing whose HP grows each time it comes round again.
+    // A BOSS IS THE MOB THAT DRAWS ITS HP OVER ITS HEAD. One flag, so "ends the
+    // room" and "scales with the climb" can never drift apart.
     public virtual bool IsBoss => ShowBossHP;
 
     // Bosses draw their remaining HP above their head
     protected virtual bool ShowBossHP => false;
 
-    // Has to die before the layer is cleared. Overridden by the mobs that
-    // are pickups or ambushes rather than enemies you are meant to hunt down.
+    // Has to die before the layer is cleared. False for pickups and ambushes.
     public virtual bool CountsAsEnemy => true;
 
-    // Bullets stop in almost everything. The two that are set off by touching
-    // them rather than by shooting them say no here, and shots pass through.
+    // False for the two mobs set off by touching, so shots pass through them
     public virtual bool StopsBullets => true;
 
-    // And those same two are not kills the player made, so they do not feed
-    // the life steal gift.
+    // Those same two are not player kills, so no life steal
     public virtual bool GivesLifeSteal => true;
 
     // Sound played when this mob is shot. Null means silent.
@@ -78,35 +67,51 @@ public abstract class MobBase : IMob
     private float hitTimer = 0f;
     private const float hitDuration = 0.15f; // seconds
 
-    // STUN TIMER
-    // A stunned mob is skipped entirely: it does not move, does not aim, does
-    // not tick its own state machine on. It still has a hitbox and it still
-    // hurts to walk into - it is frozen, not switched off.
+    // STUN TIMER. A stunned mob does not move, aim, or tick its state machine.
+    // It keeps its hitbox and still hurts to walk into.
     private float stunTimer = 0f;
     protected bool Stunned => stunTimer > 0f;
 
-    // KNOCKBACK
+    // THE FREEZE BREAKING. Being hit by a mob that snaps back to full speed out
+    // of nowhere is not fair, so the last stretch of the stun is TELEGRAPHED and
+    // the mob then THAWS instead of jumping.
     //
-    // A shove the mob did not ask for, in pixels per second, bled off a little
-    // more every frame. Only the rifle deals any - see WeaponSpec.Knockback.
+    // 1. WARNING - the blue blinks off and on, faster the closer it gets
+    // 2. THAW    - it moves again, at a fraction of its speed, ramped back to
+    //              full while the blue drains out of it
+    private const float STUN_WARNING = 0.7f;      // blinking starts this long before the end
+    private const float STUN_FLICKER_SLOW = 5f;   // blinks per second when the warning starts
+    private const float STUN_FLICKER_FAST = 18f;  // ...and just before the freeze breaks
+    private const float STUN_THAW = 0.45f;        // slow motion after the freeze ends
+    private const float STUN_THAW_START = 0.15f;  // share of its speed the moment it wakes
+
+    // Counts DOWN like the stun. Everything the mob does is run on a scaled DT
+    // while it is above zero.
+    private float thawTimer = 0f;
+
+    // Blinks per second change as the stun runs out, so the phase has to be
+    // ACCUMULATED - a blink read straight off the remaining time would jump
+    // every time the rate changed.
+    private float flickerPhase = 0f;
+
+    // Half of each blink the blue is off
+    private bool StunFlickerOff => stunTimer <= STUN_WARNING && flickerPhase % 1f >= 0.5f;
+
+    // KNOCKBACK. Pixels per second, bled off every frame. Only the rifle deals
+    // any - see WeaponSpec.Knockback.
     //
-    // It is a DISPLACEMENT laid over whatever the mob was doing rather than a
-    // change to its own velocity, because almost every mob steers itself and
-    // would simply steer the push out again. Shoved back, then walking back in,
-    // is exactly what the gun is for.
+    // A DISPLACEMENT laid over what the mob was doing, not a change to its own
+    // velocity - a self steering mob would just steer the push out again.
     private Vector2 knockback = Vector2.Zero;
 
-    // How fast the shove dies. The mob travels roughly force/decay pixels in
-    // total, so at 7 a hit of 800 moves it a little over a hundred - a real
-    // step backwards, not a teleport.
+    // The mob travels roughly force/decay pixels total, so at 7 a hit of 800
+    // moves it a little over a hundred
     private const float KNOCKBACK_DECAY = 7f;
 
     // Below this it is a pixel a second and not worth the arithmetic
     private const float KNOCKBACK_CUTOFF = 4f;
 
-    // A BOSS IS HEAVY. It takes the same shove as everything else and moves a
-    // third as far - enough to see the hit land, never enough to walk the thing
-    // the room is about into a corner and hold it there.
+    // A BOSS IS HEAVY - same shove, a third of the distance
     private const float BOSS_KNOCKBACK_SHARE = 0.35f;
 
     // DIRECTION TIMER
@@ -122,53 +127,103 @@ public abstract class MobBase : IMob
     {
         UpdateHitTimer();
 
-        // BEFORE THE MOB MOVES, and before the stun check, because being shoved
-        // is not the mob acting - a frozen mob still slides when it is hit.
-        // Going first also means the handful of mobs that write an absolute
-        // position every frame (the queen on her track, the moth on its perch)
-        // simply overwrite it and stand their ground, instead of flickering
-        // between shoved and snapped back.
+        // BEFORE the mob moves and before the stun check - being shoved is not
+        // the mob acting, so a frozen mob still slides.
+        // Going first also lets mobs that write an absolute position every frame
+        // (the queen, the moth) simply overwrite it instead of flickering.
         UpdateKnockback();
 
-        // FROZEN. Everything below this line is the mob acting, and a stunned
-        // mob does not act - so the whole behaviour is simply not run.
+        // FROZEN - everything below is the mob acting, so it is not run
         if (stunTimer > 0f)
         {
             stunTimer -= Globals.DT;
+
+            // Blinking faster and faster over the last stretch of the freeze
+            if (stunTimer <= STUN_WARNING)
+            {
+                float t = 1f - MathHelper.Clamp(stunTimer / STUN_WARNING, 0f, 1f);
+                flickerPhase += MathHelper.Lerp(STUN_FLICKER_SLOW, STUN_FLICKER_FAST, t) * Globals.DT;
+            }
+
+            if (stunTimer <= 0f)
+            {
+                stunTimer = 0f;
+                flickerPhase = 0f;
+                thawTimer = STUN_THAW;  // wakes up slowed, not at full speed
+            }
+
+            return;
+        }
+
+        // THAWING - the mob acts, but its whole frame is shorter, so it moves,
+        // aims and ticks its timers in slow motion. Scaling DT rather than a
+        // speed means it works for every mob without touching one of them.
+        if (thawTimer > 0f)
+        {
+            thawTimer = MathF.Max(0f, thawTimer - Globals.DT);
+
+            float realDT = Globals.DT;
+            Globals.DT = realDT * MathHelper.Lerp(1f, STUN_THAW_START, thawTimer / STUN_THAW);
+
+            try
+            {
+                UpdateBehaviour(player, gameWorld);
+            }
+            finally
+            {
+                // Every mob after this one reads the same global - it MUST go back
+                Globals.DT = realDT;
+            }
+
             return;
         }
 
         UpdateBehaviour(player, gameWorld);
     }
 
-    // Everything this particular mob does each frame: move, aim, shoot, change state.
+    // What this mob does each frame: move, aim, shoot, change state
     protected abstract void UpdateBehaviour(IPlayer player, GameWorld gameWorld);
 
-    // The longest stun on the mob wins, so a second shot on something already
-    // frozen tops the timer up instead of cutting it short.
+    // Longest stun wins - a second shot tops the timer up, never cuts it short
     public void Stun(float seconds)
     {
         stunTimer = MathF.Max(stunTimer, seconds);
+
+        // Shot again mid thaw - it is frozen solid, not still waking up
+        thawTimer = 0f;
+        flickerPhase = 0f;
     }
 
     //
     // SHOVED
     //
-    // The direction is the way the shot was flying, so the mob always goes the
-    // way the bullet was going rather than away from the player - shooting a bat
-    // that has got above you knocks it up, not sideways.
+    // Direction is the way the SHOT was flying, not away from the player.
+    // REPLACED rather than added to, so emptying the rifle does not stack into
+    // a launch.
     //
-    // REPLACED rather than added to, the same way the player's own knockback is:
-    // emptying the rifle into one thing pushes it steadily, it does not stack
-    // into a launch.
-    //
-    // Whether a shove moves this mob at all. Anything GROWN where it stands
-    // says no - it is not standing there, it is attached there.
+
+    // False for anything GROWN where it stands - it is attached, not standing
     protected virtual bool CanBeKnockedBack => true;
+
+    //
+    // A MOB THAT ONLY WALKS IS ONLY SHOVED SIDEWAYS
+    //
+    // The vertical half of the shove is dropped and what is left is normalised
+    // again, so only the DIRECTION is flattened and the force is unchanged.
+    // Set this on anything that walks and does not fly.
+    //
+    protected virtual bool HorizontalOnly => false;
 
     public void Knockback(Vector2 direction, float force)
     {
         if (!CanBeKnockedBack || force <= 0f || direction.LengthSquared() < 0.0001f)
+            return;
+
+        if (HorizontalOnly)
+            direction = new Vector2(direction.X, 0f);
+
+        // Straight up or down at a walker leaves nothing once flattened
+        if (direction.LengthSquared() < 0.0001f)
             return;
 
         direction.Normalize();
@@ -176,9 +231,8 @@ public abstract class MobBase : IMob
         knockback = direction * force * (IsBoss ? BOSS_KNOCKBACK_SHARE : 1f);
     }
 
-    // Slides the mob along what is left of the shove and takes some of it away.
-    // MoveTo rather than touching the sprite, so the mobs that are more than one
-    // sprite (the flower's whole stem) move in one piece.
+    // MoveTo rather than the sprite directly, so multi sprite mobs (the flower's
+    // stem) move in one piece
     private void UpdateKnockback()
     {
         if (knockback == Vector2.Zero)
@@ -192,23 +246,25 @@ public abstract class MobBase : IMob
             knockback = Vector2.Zero;
     }
 
-    // What the sprite is drawn in: the art as it was drawn, flashing red while
-    // the mob is taking a hit. Overridden by the mobs that carry their own
-    // colour instead of art, where the flash has to be something else to show.
+    // The art as drawn, flashing red on a hit. Overridden by mobs that carry
+    // their own colour.
     protected virtual Color DrawColour => Tinted(Color.White);
 
-    // The state a mob is in, painted over whatever colour it normally wears.
-    // Frozen beats bleeding: a stunned mob has to stay readable as stunned even
-    // while the player is unloading into it.
-    //
-    // Mobs that draw themselves (the jellyfish, the butterfly, the flower)
-    // route their own colour through here rather than repeating the order.
+    // State painted over the mob's normal colour. FROZEN BEATS BLEEDING.
+    // Mobs that draw themselves route their own colour through here.
     protected Color Tinted(Color body)
     {
-        if (Stunned)
-            return Globals.StunBlue;
+        Color own = isHit ? Globals.Red : body;
 
-        return isHit ? Globals.Red : body;
+        // Blue, except on the off half of a blink near the end of the freeze
+        if (Stunned)
+            return StunFlickerOff ? own : Globals.StunBlue;
+
+        // Waking up - the blue drains out as it gets its speed back
+        if (thawTimer > 0f)
+            return Color.Lerp(own, Globals.StunBlue, thawTimer / STUN_THAW);
+
+        return own;
     }
 
     public virtual void Draw()
@@ -239,8 +295,7 @@ public abstract class MobBase : IMob
 
     public virtual void Explode() {}
 
-    // Sets current and maximum HP together. Bosses compare HP against MaxHP
-    // to decide which attack pattern they are on.
+    // Current and max together. Bosses compare HP to MaxHP to pick a pattern.
     protected void SetHP(int hp)
     {
         HP = hp;
@@ -259,14 +314,10 @@ public abstract class MobBase : IMob
     //
     // WHAT THE DIFFICULTY DID TO THIS MOB
     //
-    // Applied ONCE, as the mob joins a layer (see MobManager.AddMob) - which is
-    // the first moment both halves of the question can be answered: whether it
-    // is a boss, and which layer it is standing on. Neither is known in the
-    // constructor, where the raw HP and damage are written.
+    // Applied ONCE, as the mob joins a layer (MobManager.AddMob) - the first
+    // point where both "is it a boss" and "which layer" are known.
     //
-    // An ordinary mob takes a flat multiplier and the layer never enters into
-    // it. A boss takes one that grows with the climb. That difference is the
-    // whole shape of the curve - see Difficulty.
+    // Ordinary mob: flat multiplier. Boss: grows with the layer. See Difficulty.
     //
     public void ApplyDifficulty(int layerIndex)
     {
@@ -278,10 +329,8 @@ public abstract class MobBase : IMob
         ScaleHP(boss ? Difficulty.BossHp(layerIndex) : Difficulty.MobHp);
     }
 
-    // What this mob's damage is actually worth. Contact damage above is put
-    // through it once and stored; everything a mob THROWS is worked out while
-    // it is alive, so each shooter runs its own figures through here at the
-    // moment it fires - see BatBase.Shoot for the pattern.
+    // Contact damage goes through this once and is stored. Anything a mob THROWS
+    // runs its own figures through here when it fires - see BatBase.Shoot.
     private float damageScale = 1f;
 
     protected int ScaleDamage(int damage) => Difficulty.Scale(damage, damageScale);
@@ -292,9 +341,8 @@ public abstract class MobBase : IMob
         SyncBounds();
     }
 
-    // Puts the MIDDLE of the mob on the point instead of its top left corner.
-    // What a mob handing out other mobs wants: the hole spits its adds out of
-    // its centre, not out of the corner of the frame around it.
+    // MIDDLE of the mob on the point, not its top left corner. What a mob
+    // spawning other mobs wants.
     public void MoveCentreTo(Vector2 centre)
     {
         MoveTo(centre - new Vector2(Sprite.Width, Sprite.Height) / 2f);
@@ -309,14 +357,12 @@ public abstract class MobBase : IMob
         );
     }
 
-    // How much of the sprite frame actually counts as the mob. Most frames are
-    // mostly empty space, and using the whole thing is what makes hits feel
-    // cheap. Each mob narrows this to fit its own artwork.
+    // How much of the sprite frame counts as the mob - most frames are mostly
+    // empty space. Each mob narrows this to its own art.
     protected virtual Vector2 HitboxScale => Vector2.One;
 
-    // An outline for mobs whose shape is nothing like a box, given as
-    // fractions of the sprite frame - (0.5f, 0f) is top centre. Null means
-    // the rectangle above is good enough, which it is for most mobs.
+    // Outline for mobs that are nothing like a box, as fractions of the frame -
+    // (0.5f, 0f) is top centre. Null means the rectangle above is enough.
     protected virtual Vector2[] HitboxShape => null;
 
     private Polygon hitboxPolygon;
@@ -334,8 +380,8 @@ public abstract class MobBase : IMob
             PlacePolygon();
     }
 
-    // Rebuilds the box from scratch. Needed after swapping to an animation
-    // of a different size, because SyncBounds only moves the box.
+    // From scratch. Needed after swapping to a differently sized animation,
+    // because SyncBounds only MOVES the box.
     protected void RebuildBounds()
     {
         Bounds = CollisionManager.SetBoundingRectangle(Sprite, HitboxScale);
@@ -349,21 +395,18 @@ public abstract class MobBase : IMob
         }
     }
 
-    // The outline follows the drawing on both counts: where it is and which
-    // way it is turned, about the same middle of the frame the sprite turns on
+    // Follows the drawing in both position and rotation, about the same middle
     private void PlacePolygon()
     {
         hitboxPolygon.SetPosition(Sprite.Position);
         hitboxPolygon.SetRotation(SpriteRotation, new Vector2(Sprite.Width / 2f, Sprite.Height / 2f));
     }
 
-    // Collision goes through here rather than reading Bounds directly, so a mob
-    // can answer with its outline instead of its box without the collision code
-    // needing to care which it is.
+    // Collision goes through here, not Bounds directly, so a mob can answer with
+    // its outline and the caller need not care which it is.
     //
-    // Virtual because a couple of mobs are not there to be touched at all: the
-    // cocoon is scenery, and the moth inside it is not in the arena. Answering
-    // no here is what lets bullets fly straight through them.
+    // Virtual because some mobs are not there to be touched (the cocoon is
+    // scenery) - answering no lets bullets fly through them.
     public virtual bool CollidesWith(Rectangle rect)
     {
         if (hasPolygon)
@@ -380,9 +423,8 @@ public abstract class MobBase : IMob
         return CollisionManager.CircleIntersectsRectangle(circle, Bounds);
     }
 
-    // Outline against outline - the player is the one thing that asks this
-    // way. A mob without an outline of its own still answers honestly: SAT
-    // treats a box as the four sided polygon it is.
+    // Outline against outline - only the player asks this way. A mob with no
+    // outline still answers correctly; SAT treats a box as a 4 sided polygon.
     public virtual bool CollidesWith(Polygon polygon)
     {
         if (hasPolygon)
@@ -391,8 +433,8 @@ public abstract class MobBase : IMob
         return polygon.Intersects(Bounds);
     }
 
-    // True once the direction timer has run out. Call ResetDirectionTimer()
-    // *after* reacting to it, so the random stream is used in the same order.
+    // Call ResetDirectionTimer() AFTER reacting to it, so the random stream is
+    // used in the same order every run
     protected bool DirectionTimerElapsed()
     {
         directionTimer += Globals.DT;
@@ -417,7 +459,7 @@ public abstract class MobBase : IMob
         hitTimer = hitDuration;
     }
 
-    // Drives the red flash after the mob is shot
+    // The red flash after the mob is shot
     private void UpdateHitTimer()
     {
         if (!isHit)

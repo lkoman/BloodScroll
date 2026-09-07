@@ -5,10 +5,8 @@ namespace BloodScroll;
 //
 // THE PURPLE BAT
 //
-// The plain bat's flight with a gun bolted on: it fires every time it picks a
-// new heading, so the shot always arrives from wherever it has just turned. The
-// fastest of the three and the frailest - half the plain bat's HP - because a
-// mob that shoots at you from across the room has to be killable from there too.
+// The plain bat's flight with a gun on it - fires every time it picks a new
+// heading. Fastest of the three and the frailest, at half the plain bat's HP.
 //
 
 public class PurpleBat : BatBase

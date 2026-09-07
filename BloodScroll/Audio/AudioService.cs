@@ -20,6 +20,12 @@ public sealed class AudioService : IAudioService
         sounds[AudioId.PlayerJump] = content.Load<SoundEffect>("Audio/player-jump").CreateInstance();
         sounds[AudioId.PlayerHit] = content.Load<SoundEffect>("Audio/player-hit").CreateInstance();
 
+        // THE SWORD IS SILENT until there is a wosh to play. PlaySound only
+        // plays ids it has been given, so the swing asks for one every time and
+        // quietly gets nothing - dropping the file into Content and taking the
+        // comment off the line below is the whole job.
+        //sounds[AudioId.SwordSwing] = content.Load<SoundEffect>("Audio/sword-swing").CreateInstance();
+
         // MONSTERS
         sounds[AudioId.BatSqueak] = content.Load<SoundEffect>("Audio/bat-squeak").CreateInstance();
 

@@ -18,7 +18,7 @@ public enum MobType
     Spider,
     Butterfly,
     GreenBat,
-    BlackSpider,
+    GreenSpider,
 
     // BOSSES
     Fireboss,

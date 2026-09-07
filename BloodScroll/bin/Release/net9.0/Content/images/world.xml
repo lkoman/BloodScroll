@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="world.png">
+	<Texture>images/world</Texture>
+	<Regions>
+		<SubTexture name="platform" x="0" y="0" width="1924" height="177" frameX="2" frameY="-20" frameWidth="1920" frameHeight="256"/>
+		<SubTexture name="small-platform" x="0" y="239" width="128" height="32" frameX="0" frameY="0" frameWidth="128" frameHeight="32"/>
+	</Regions>
+	<Animations>
+	</Animations>
+</TextureAtlas>

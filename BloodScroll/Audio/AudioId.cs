@@ -17,6 +17,11 @@ public enum AudioId
     PlayerJump,
     PlayerHit,
 
+    // The sword. NO FILE FOR IT YET - see AudioService, where every other
+    // sound is loaded. PlaySound looks the id up and finds nothing, so the
+    // swing is simply silent until one is dropped in.
+    SwordSwing,
+
     // Monsters
     BatSqueak,
 

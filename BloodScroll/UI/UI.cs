@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -17,7 +16,6 @@ public class UI : IUI
 
     // VARIABLES
     private Sprite _menuBackground;
-    private Texture2D ScreenOverlayRectangle;
     private MouseCursor desiredCursor = MouseCursor.Arrow;
 
     // Gift Card
@@ -33,71 +31,53 @@ public class UI : IUI
         set => GiftCard.GiftText = value;
     }
 
-    public void LoadContent(GraphicsDevice device, IAudioService audioService)
+    public void LoadContent()
     {
         // BACKGROUND
-        _menuBackground = new();
         _menuBackground = Globals.UI.CreateSprite("menu-background");
 
         // CREATE ALL MENUS
         mainMenu = new();
-        mainMenu.LoadContent(device);
+        mainMenu.LoadContent();
 
         settingsMenu = new();
-        settingsMenu.LoadContent(device);
-    
+        settingsMenu.LoadContent();
+
         deathScreen = new();
-        deathScreen.LoadContent(device);
+        deathScreen.LoadContent();
 
         pauseScreen = new();
-        pauseScreen.LoadContent(device);
+        pauseScreen.LoadContent();
 
         gamePlayUI = new();
-        gamePlayUI.LoadContent(device);
-
 
         // Gift Card
         GiftCard = new();
-        GiftCard.LoadContent(device);
-
-        // Screen Overlay
-        ScreenOverlayRectangle = new Texture2D(device, 1, 1);
-        ScreenOverlayRectangle.SetData([Color.White]); // Set Screen overlay rectangle to White
+        GiftCard.LoadContent();
     }
 
+    // WHICHEVER SCREEN IS IN FRONT GETS THE MOUSE, and it is the only one that
+    // updates. Each of them answers with the cursor it wants, so the choice of
+    // screen and the setting of the cursor stay one line apart instead of being
+    // repeated five times.
     public void Update(IAudioService audio)
     {
         if (Globals.SETTINGS_MENU)
-        {
             desiredCursor = settingsMenu.Update(audio);
-            Mouse.SetCursor(desiredCursor);
-            return;
-        }
 
-        if (Globals.MENU)
-        {
+        else if (Globals.MENU)
             desiredCursor = mainMenu.Update(audio);
-            Mouse.SetCursor(desiredCursor);
-            return;
-        }
 
-        if (Globals.DISPLAY_PAUSE_MENU)
-        {
+        else if (Globals.DISPLAY_PAUSE_MENU)
             desiredCursor = pauseScreen.Update(audio);
-            Mouse.SetCursor(desiredCursor);
-            return;
-        }
 
-        // IF PLAYER IS DEAD
-        if (!Globals.PLAYER_ALIVE)
-        {
+        else if (!Globals.PLAYER_ALIVE)
             desiredCursor = deathScreen.Update(audio);
-            Mouse.SetCursor(desiredCursor);
-            return;
-        }
 
         // PLAYER IS ALIVE
-        desiredCursor = GiftCard.Update(audio);
+        else
+            desiredCursor = GiftCard.Update(audio);
+
         Mouse.SetCursor(desiredCursor);
     }
 
@@ -143,13 +123,14 @@ public class UI : IUI
         DrawVignette();
     }
 
-    private void DrawOverlay()
+    // The whole screen washed in whatever the game state calls for - black
+    // while paused, dark red on death. RoundedRect owns the white pixel this
+    // is stretched from, so the UI no longer keeps one of its own.
+    private static void DrawOverlay()
     {
-        Globals.SpriteBatch.Draw(
-            ScreenOverlayRectangle,
+        RoundedRect.Rect(
             new Rectangle(0, 0, Globals.VIRTUAL_WIDTH, Globals.VIRTUAL_HEIGHT),
-            Globals.ScreenOverlayColor
-        );
+            Globals.ScreenOverlayColor);
     }
 
     //

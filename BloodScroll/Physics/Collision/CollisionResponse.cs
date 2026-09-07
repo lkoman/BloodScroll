@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary;
@@ -22,10 +23,8 @@ public class CollisionResponse
 
     public void HandleAllCollisions(IPlayer player, GameWorld gameWorld, IWeaponsManager weaponsManager, IAudioService audio)
     {
-        // FALL OFF CHECK (did the player walk off the active platform?)
-        // Asked ONCE. It is about the platform he is standing on, not about the
-        // one being tested, so running it inside the loop below only asked the
-        // same question once per platform on the layer.
+        // FALL OFF CHECK. Asked ONCE - it is about the platform he is standing
+        // on, not the one being tested, so it does not belong in the loop.
         CheckPlayerWalkedOff(player);
 
         // FOR EACH PLATFORM //
@@ -38,8 +37,7 @@ public class CollisionResponse
         }
 
         // FOR EACH LAYER NEAR THE PLAYER //
-        // Mobs further away than one screen cannot be reached or reach us,
-        // so there is no point testing them every frame.
+        // Mobs more than one screen away cannot reach or be reached
         foreach (var layer in gameWorld.ActiveLayers())
         {
             // FOR EACH MOB IN LAYER
@@ -61,17 +59,17 @@ public class CollisionResponse
             {
                 switch (mobProjectile.Effect)
                 {
-                    // Webs stick you to the floor instead of hurting you
+                    // Webs slow you instead of hurting you
                     case BulletEffect.Slow:
                         player.ApplySlow(Player.WEB_SLOW_FACTOR, Player.WEB_SLOW_SECONDS);
                         break;
 
-                    // And a black one takes the controls off you outright
+                    // A green spider's web takes the controls off you
                     case BulletEffect.Root:
-                        player.Root(BlackSpider.ROOT_SECONDS);
+                        player.Root(GreenSpider.ROOT_SECONDS);
                         break;
 
-                    // Hurts now, and keeps hurting - see Player.UpdatePoison
+                    // Hurts now and keeps hurting - see Player.UpdatePoison
                     case BulletEffect.Poison:
                         player.TakeDamage(mobProjectile.DAMAGE, audio);
                         player.ApplyPoison(PoisonDose(), GreenBat.POISON_SECONDS);
@@ -90,13 +88,8 @@ public class CollisionResponse
             //
             // SHOOTING A SHOT OUT OF THE AIR
             //
-            // Any bullet of the player's trades itself for the one coming at
-            // him: both are gone. What the SHELL adds is that it goes off where
-            // they met - a mob shot flying in over a crowd is a free blast, and
-            // that is worth aiming for.
-            //
-            // The stun does not freeze anything here. Its shot is spent the same
-            // as any other, because there is nothing in the air to hold still.
+            // Both bullets are spent. A SHELL also goes off where they met.
+            // The stun freezes nothing here - there is nothing to hold still.
             //
             foreach (var playerBullet in weaponsManager.Bullets)
             {
@@ -109,8 +102,7 @@ public class CollisionResponse
                 playerBullet.active = 0;
                 mobProjectile.active = 0;
 
-                // The mob's shot is dead - it must not take a second one
-                // of the player's down with it
+                // The mob's shot is dead - it must not take a second one down
                 break;
             }
         }
@@ -145,13 +137,12 @@ public class CollisionResponse
                     player.ApplySlow(Player.WEB_SLOW_FACTOR, Player.WEB_SLOW_SECONDS);
                     break;
 
-                // DAMAGE doubles as the heal amount for friendly mobs
+                // DAMAGE doubles as the heal amount here
                 case OnTouch.HealPlayer:
                     player.Heal(mob.DAMAGE);
                     break;
 
-                // Both: the hit is what you feel now, the poison is what
-                // costs you the next ten seconds
+                // Both - the hit now, the poison over the next twenty seconds
                 case OnTouch.PoisonPlayer:
                     player.TakeDamage(mob.DAMAGE, audio);
                     player.ApplyPoison(PoisonDose(), GreenBat.POISON_SECONDS);
@@ -164,22 +155,14 @@ public class CollisionResponse
         }
     }
 
-    // THE POISON IS THE ONE HIT THE BAT DOES NOT DEAL ITSELF.
-    //
-    // Everything else a mob costs the player is scaled where the mob is (see
-    // MobBase.ApplyDifficulty), but a bite and a poison shot both end up here
-    // holding nothing but a constant off GreenBat. Only the green bat poisons
-    // anything and it is never a boss, so an ordinary mob's multiplier is the
-    // right one - the same figure its contact damage already went through.
+    // Scaled here rather than in MobBase.ApplyDifficulty, because both a bite
+    // and a poison shot arrive holding nothing but a GreenBat constant.
+    // Only the green bat poisons, and it is never a boss, so MobDamage is right.
     private static int PoisonDose() =>
         Difficulty.Scale(GreenBat.POISON_DAMAGE, Difficulty.MobDamage);
 
-    // PLAYER CANNOT WALK OFF BIG PLATFORM
-    //
-    // HIS FEET, not the frame around him. The hood is a good deal wider than
-    // the tendrils under it, so asking the frame this question kept him up in
-    // the air for another thirty pixels after his feet had left the ledge -
-    // which is exactly what it looked like.
+    // HIS FEET, not the frame around him - the hood is much wider than the
+    // tendrils, so the frame would keep him up 30px past the edge
     private void CheckPlayerWalkedOff(IPlayer player)
     {
         if (player.FootingBounds.Right < activePlatform.Y ||
@@ -189,8 +172,8 @@ public class CollisionResponse
 
     public void HandlePlayerPlatformCollision(IPlayer player, Rectangle plat)
     {
-        // Same box as the walked-off test above, or the two would disagree
-        // about where he is on the frame he steps off an edge
+        // Same box as the walked-off test above, or the two disagree on the
+        // frame he steps off an edge
         if (!player.FootingBounds.Intersects(plat))
         {
             if (plat == enterFromBelowPlatform[0])
@@ -220,9 +203,8 @@ public class CollisionResponse
 
     private static void HandleMobBulletCollision(List<Bullet> bullets, IMob mob, IAudioService audio, GameWorld gameWorld)
     {
-        // SHOTS FLY THROUGH SOME MOBS. The jellyfish and the butterfly are not
-        // shot at all - they are set off by walking into them - so they must not
-        // stand in front of the things that ARE worth shooting.
+        // SHOTS FLY THROUGH SOME MOBS. The jellyfish and butterfly are set off
+        // by touch, so they must not block shots at what is behind them.
         if (!mob.StopsBullets)
             return;
 
@@ -235,8 +217,8 @@ public class CollisionResponse
             if (!mob.CollidesWith(bullet.bulletBounds))
                 continue;
 
-            // A SHELL never damages what it touched. It goes off there, and the
-            // blast is what everything nearby - this mob included - takes.
+            // A SHELL never damages what it touched - it goes off there and the
+            // blast is what everything nearby takes, this mob included
             if (bullet.Explosive)
                 gameWorld.Detonate(bullet);
             else
@@ -246,10 +228,8 @@ public class CollisionResponse
                 if (bullet.StunSeconds > 0f)
                     mob.Stun(bullet.StunSeconds);
 
-                // THE SHOVE GOES THE WAY THE SHOT WAS GOING, which is why the
-                // bullet's own direction is handed over rather than the line
-                // from the player - a shot that bounced off a ledge pushes the
-                // way it is travelling now, not the way it was fired.
+                // THE SHOVE GOES THE WAY THE SHOT WAS GOING - the bullet's own
+                // direction, so a bounced shot pushes the way it travels NOW
                 if (bullet.Knockback > 0f)
                     mob.Knockback(bullet.direction, bullet.Knockback);
             }
@@ -269,8 +249,7 @@ public class CollisionResponse
             if (!CollisionManager.CircleIntersectsRectangle(bullet.bulletBounds, platBounds))
                 continue;
 
-            // A shell hitting the ground is a shell that has landed - it does
-            // not bounce off a ledge and carry on, it goes off on it
+            // A shell does not bounce - it goes off on the ledge
             if (bullet.Explosive)
             {
                 gameWorld.Detonate(bullet);
@@ -278,12 +257,63 @@ public class CollisionResponse
                 continue;
             }
 
-            if (!bullet.bounce)
+            if (bullet.bounce)
             {
-                bullet.direction.Y *= -1;
-                bullet.bounce = true;
+                bullet.active = 0;
+                continue;
             }
-            else bullet.active = 0;
+
+            // OFF THE FACE IT ACTUALLY HIT. Reflecting off the real normal
+            // turns the shot around whichever face it met; a corner sends it
+            // back diagonally.
+            (Vector2 normal, float depth) = SurfaceHit(bullet.bulletBounds, platBounds);
+
+            bullet.direction = Vector2.Reflect(bullet.direction, normal);
+            bullet.bounce = true;
+
+            // And back out of the ledge, or the next frame finds it still inside
+            // and spends the bounce it just used
+            bullet.PushOut(normal * (depth + PUSH_OUT_MARGIN));
         }
+    }
+
+    // A pixel of daylight, so the shot is clear even after the bounds round
+    // back down to whole pixels
+    private const float PUSH_OUT_MARGIN = 1f;
+
+    //
+    // WHICH WAY IS OUT
+    //
+    // The nearest point of the rect to the middle of the shot is where it
+    // touched, so the line back to the middle is the surface normal. How far
+    // short of the radius it falls is the depth.
+    //
+    // A shot whose middle is INSIDE the rect has no such line, so it leaves by
+    // the nearest wall.
+    //
+    private static (Vector2 normal, float depth) SurfaceHit(Circle shot, Rectangle plat)
+    {
+        int closestX = Math.Clamp(shot.X, plat.Left, plat.Right);
+        int closestY = Math.Clamp(shot.Y, plat.Top, plat.Bottom);
+
+        Vector2 out_ = new(shot.X - closestX, shot.Y - closestY);
+        float distance = out_.Length();
+
+        if (distance > 0f)
+            return (out_ / distance, shot.Radius - distance);
+
+        // Centre inside: the shortest way to a wall wins
+        float left   = shot.X - plat.Left;
+        float right  = plat.Right - shot.X;
+        float top    = shot.Y - plat.Top;
+        float bottom = plat.Bottom - shot.Y;
+
+        float nearest = MathF.Min(MathF.Min(left, right), MathF.Min(top, bottom));
+
+        if (nearest == left)  return (-Vector2.UnitX, left   + shot.Radius);
+        if (nearest == right) return ( Vector2.UnitX, right  + shot.Radius);
+        if (nearest == top)   return (-Vector2.UnitY, top    + shot.Radius);
+
+        return (Vector2.UnitY, bottom + shot.Radius);
     }
 }

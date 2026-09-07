@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
@@ -6,27 +6,17 @@ using MonoGameLibrary.Graphics;
 namespace BloodScroll;
 
 //
-// Drifts around and cannot be shot down. Touching it lights a one second fuse
-// and then it GOES OFF - a real blast, the same one the flower bomb leaves, in
-// the same hot pink it was flashing at you while the fuse burned.
+// THE JELLYFISH
 //
-// The drift leans towards the player instead of wandering on the spot, so one
-// left behind slowly comes up through the layers after him. It is the slowest
-// thing in the game and it is meant to be: it never catches anyone who is
-// moving, it just turns up later, in a room he thought he had finished with.
+// Drifts around and cannot be shot down. Touching it lights a one second fuse,
+// then it GOES OFF - the same blast a flower bomb leaves, in the hot pink it
+// was flashing while the fuse burned.
 //
-// IT USED TO BE A DRAWING OF AN EXPLOSION
+// The drift leans towards the player, so one left behind slowly comes up
+// through the layers after him. Slowest thing in the game.
 //
-// The old version played a hand drawn explode animation and hurt the player
-// only if he was still standing in the frames of it - so a mob whose entire
-// purpose is going off in your face dealt a single point of damage and could
-// not touch anything else in the room. Now it asks the world for a blast, the
-// same way a shell and a bomb do, and the world does the rest: one circle, one
-// hit, everything inside it, and the jellyfish itself is gone that instant.
-//
-// SO IT HURTS MOBS TOO. That is the trade the player is being offered - the
-// jellyfish is a bomb he can walk into and lead somewhere, at the price of
-// being close enough to set it off. Nothing in the game makes that free.
+// It asks the world for a blast the same way a shell and a bomb do, so IT HURTS
+// MOBS TOO - a bomb the player can walk into and lead somewhere.
 //
 
 public class JellyFish : MobBase
@@ -40,16 +30,9 @@ public class JellyFish : MobBase
     // targetOffset above so the wobble still dominates any one step.
     private const float DRIFT_TOWARDS = 200f;
 
-    //
-    // THE BLAST
-    //
-    // Smaller and weaker than a flower bomb, because a bomb costs the player a
-    // flower and a trip to the ledge it grew on, while a jellyfish is simply
-    // there. It still kills every small mob it reaches outright.
-    //
-    // What it takes off the PLAYER is the number that matters. A second is not
-    // long to get clear of something you have just walked into, and that is the
-    // whole mob: it is not hunting anyone, it only ever punishes carelessness.
+    // THE BLAST. Smaller and weaker than a flower bomb, but still kills every
+    // small mob it reaches. PLAYER_DAMAGE is the number that matters - one
+    // second is not long to get clear.
     private const int BLAST_DAMAGE = 200;
     private const int PLAYER_DAMAGE = 100;
     private const float BLAST_RADIUS = 200f;
@@ -175,10 +158,9 @@ public class JellyFish : MobBase
     //
     // IT GOES OFF, AND IT IS GONE
     //
-    // The blast is handed to the world and outlives the mob by a third of a
-    // second, so there is nothing left here to draw or collide with. Killing it
-    // on the same frame is what stops the old bug where a jellyfish sat in the
-    // middle of its own explosion still being a thing you could walk into.
+    // The blast outlives the mob by a third of a second, so it is killed on the
+    // SAME frame - otherwise it sits in the middle of its own explosion still
+    // being something you can walk into.
     //
     private void Detonate(GameWorld gameWorld)
     {

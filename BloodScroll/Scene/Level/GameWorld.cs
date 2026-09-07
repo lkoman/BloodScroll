@@ -31,10 +31,9 @@ public class GameWorld
 
     private IAudioService audioService;
 
-    // Mobs get the world every frame but not the audio service, and a mob that
-    // hurts the player from inside its own update (the moth's wing blast) needs
-    // it to make the hit sound - every damage source in the game goes through
-    // Player.TakeDamage, which plays it.
+    // Mobs get the world every frame but not the audio service. A mob that hurts
+    // the player from inside its own update (the moth's gust) needs it, because
+    // Player.TakeDamage is what plays the sound.
     public IAudioService Audio => audioService;
     private List<WaveData> wavesData;
     private int maxAuthoredLayerIndex;
@@ -50,17 +49,14 @@ public class GameWorld
     // ALL PROJECTILES FROM ENEMIES
     public List<Bullet> MobProjectiles { get; set; } = [];
 
-    // EVERYTHING THAT GOES OFF
-    //
-    // Bombs the player has put down and the blasts they leave behind. They live
-    // in the world rather than with the weapons, because a blast has to reach
-    // every mob on every layer near the player and this is the only thing that
+    // EVERYTHING THAT GOES OFF. Lives here rather than with the weapons because
+    // a blast has to reach every mob on every nearby layer, and only the world
     // can see them all.
     private readonly List<FlowerBomb> bombs = [];
     private readonly List<Explosion> explosions = [];
 
-    // Butterfly dust. Purely a picture - it lives out here rather than on the
-    // butterfly only because the butterfly is gone the instant it bursts.
+    // Butterfly dust. Purely a picture - it lives here because the butterfly is
+    // gone the instant it bursts.
     private readonly List<GoldDust> dust = [];
 
     public void LoadContent(IAudioService audio)
@@ -79,8 +75,7 @@ public class GameWorld
         StartNewWorld();
     }
 
-    // Everything a fresh run needs: reload the wave table and build the
-    // first two layers. LoadContent and Restart used to be copies of this.
+    // Everything a fresh run needs: reload the wave table, build two layers
     private void StartNewWorld()
     {
         maxLayerGenerated = 1;
@@ -92,8 +87,7 @@ public class GameWorld
 
         lastPlatformPos = new Vector2[numOfPaths];
 
-        // The gifts are earned again from scratch every run, so the bosses
-        // start again from their written HP too
+        // Gifts are earned again every run, so bosses start at their written HP
         BossTally.Reset();
 
         LoadWaveData();
@@ -117,8 +111,8 @@ public class GameWorld
     {
         GenerateLayers();
 
-        // BEFORE the layers, so a mob killed by a blast is cleared out on the
-        // same frame the blast landed rather than one frame later
+        // BEFORE the layers, so a mob killed by a blast is cleared on the same
+        // frame the blast landed
         UpdateBombs(player);
         UpdateExplosions(player);
         UpdateDust();
@@ -129,12 +123,8 @@ public class GameWorld
 
     public List<IDrawableLayer> GetDrawables()
     {
-        var list = new List<IDrawableLayer>();
-
         // Add all monster bullets
-        foreach (Bullet bullet in MobProjectiles) {
-            list.Add(bullet);
-        }
+        var list = new List<IDrawableLayer>(MobProjectiles);
 
         // Bombs waiting to go off, the fireballs they left, and the butterfly dust
         list.AddRange(bombs);
@@ -158,11 +148,9 @@ public class GameWorld
         return list;
     }
 
-    // Every layer that still has something going on, plus the ones on screen.
-    //
-    // Unfinished layers are ALWAYS included no matter how far below the player
-    // they are, so mobs he ran away from keep coming after him. Only layers that
-    // are properly cleared drop out, and those have nothing left to simulate.
+    // Every layer still running, plus the ones on screen.
+    // Unfinished layers are ALWAYS included however far below the player they
+    // are, so mobs he ran from keep coming. Cleared layers drop out.
     public IEnumerable<Layer> ActiveLayers()
     {
         int firstVisible = Globals.CurrentLayerIndex - VisibleLayerRange;
@@ -187,10 +175,9 @@ public class GameWorld
 
     // MOB PROJECTILES
     //
-    // tint is what the shot is painted. Every mob that shoots names its own
-    // colour, because a bullet is a plain circle now and the colour is the only
-    // thing that says which mob it came from - see Globals. Left null it keeps
-    // whatever the effect gives it (poison shots are green whoever fires them).
+    // Every shooter names its own tint - a bullet is a plain circle, so colour
+    // is the only thing saying where it came from (see Globals). Null keeps
+    // whatever the effect gives it (poison shots are always green).
     public void SpawnMonsterBullet(Vector2 spawn, Vector2 playerPos, string projectileType, int PROJECTILE_DAMAGE, float PROJECTILE_SPEED, AudioId soundType, BulletEffect effect = BulletEffect.Damage, Color? tint = null)
     {
         //audioService.PlaySound(soundType);
@@ -205,15 +192,13 @@ public class GameWorld
             effect
         );
 
-        // After LoadContent, so a mob that names a colour outranks the one the
-        // effect would have given it
+        // After LoadContent, so a named colour outranks the effect's
         if (tint.HasValue)
             MobProjectiles.Last().Tint = tint.Value;
     }
 
-    // Lets one mob find another on its own layer, so a pair that belongs
-    // together can find each other after they were spawned separately
-    // (the moth looking for its cocoon).
+    // Lets one mob find another on its own layer after they were spawned
+    // separately (the moth looking for its cocoon)
     public T FindMobOnLayer<T>(int layerIndex) where T : class, IMob
     {
         if (layerIndex < 0 || layerIndex >= layers.Count)
@@ -228,9 +213,8 @@ public class GameWorld
         return null;
     }
 
-    // Lets a mob create another mob (the hole spitting out adds) without
-    // touching the list that is being iterated at the time. The new mob is
-    // placed with its MIDDLE on the point it is given.
+    // Lets a mob spawn another without touching the list being iterated. The new
+    // mob is placed with its MIDDLE on the point.
     public void RequestMobSpawn(int layerIndex, MobType type, Vector2 centre)
     {
         if (layerIndex < 0 || layerIndex >= layers.Count)
@@ -243,10 +227,9 @@ public class GameWorld
     // BOMBS AND BLASTS
     //
 
-    // A shell going off, wherever it had got to. Asked for by whoever noticed
-    // it - the weapons manager when a fuse ran out, the collision response when
-    // one hit something. Its DAMAGE is the blast's, not a bullet's: the shell
-    // itself never touches anything.
+    // A shell going off wherever it got to. Asked for by whoever noticed - the
+    // weapons manager on a spent fuse, the collision response on a hit.
+    // Its DAMAGE is the blast's; the shell itself never hits.
     public void Detonate(Bullet shell)
     {
         SpawnExplosion(shell.Centre, shell.DAMAGE, shell.BlastRadius, Globals.BlastOrange);
@@ -263,9 +246,8 @@ public class GameWorld
 
     private void UpdateBombs(IPlayer player)
     {
-        // PUTTING ONE DOWN BEATS PICKING ONE UP. The world asks for the key
-        // press before any flower gets a look at it, so a player with full
-        // hands standing on a flower always drops what he is carrying.
+        // PUTTING ONE DOWN BEATS PICKING ONE UP - the world asks for the key
+        // press before any flower sees it
         if (player.HasBomb && player.TryTakeInteract())
         {
             bombs.Add(new FlowerBomb(player.Position + new Vector2(player.Width, player.Height) * 0.5f));
@@ -291,9 +273,8 @@ public class GameWorld
         }
     }
 
-    // A butterfly bursting. Nothing lands and nothing is healed here - the
-    // butterfly does that itself, on the frame it asks for this - so the dust
-    // is only ever updated and drawn until it has blown away.
+    // Nothing lands and nothing is healed here - the butterfly does that itself.
+    // The dust is only updated and drawn until it blows away.
     public void SpawnGoldDust(Vector2 centre)
     {
         dust.Add(new GoldDust(centre));
@@ -324,9 +305,8 @@ public class GameWorld
         }
     }
 
-    // ONE CIRCLE, ONE HIT. Everything standing in it takes the damage once, on
-    // the frame the blast appeared, and after that the fireball is only a
-    // picture - see the note at the top of Explosion.
+    // ONE CIRCLE, ONE HIT, on the frame the blast appeared. After that the
+    // fireball is only a picture - see Explosion.
     private void LandBlast(Explosion blast, IPlayer player)
     {
         blast.NeedsToLand = false;
@@ -375,8 +355,8 @@ public class GameWorld
 
     private void GenerateNewLayer(int layerIndex)
     {
-        // Hand authored settings win. Past the end of the JSON the boss
-        // schedule takes over so the climb keeps producing bosses.
+        // Hand authored settings win. Past the end of the JSON the boss schedule
+        // takes over so the climb keeps producing bosses.
         WaveData settings = wavesData.FirstOrDefault(e => e.LayerIndex == layerIndex)
                             ?? BossSchedule.Generate(layerIndex, maxAuthoredLayerIndex);
 

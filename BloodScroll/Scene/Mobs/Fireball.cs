@@ -54,7 +54,7 @@ public class Fireball : MobBase
         (Sprite.Position, velocity) = MovementUtils.MoveTowardsTarget(Sprite.Position, target, velocity, speed, max_speed);
         velocity = MovementUtils.BounceFromEdge(velocity, Sprite.Position, Sprite.Width);
 
-        Sprite.Effects = MovementUtils.FlipSprite(velocity, Sprite.Effects);
+        Sprite.Effects = MovementUtils.FlipSprite(velocity);
 
         SyncBounds();
 

@@ -17,21 +17,17 @@ public static class MovementUtils
     {
         velocity += Vector2.Normalize(target - pos) * speed * Globals.DT;
 
-        velocity.X = MyMath.Clamp(velocity.X, -MAX_SPEED, MAX_SPEED);
-        velocity.Y = MyMath.Clamp(velocity.Y, -MAX_SPEED, MAX_SPEED);
+        velocity.X = Math.Clamp(velocity.X, -MAX_SPEED, MAX_SPEED);
+        velocity.Y = Math.Clamp(velocity.Y, -MAX_SPEED, MAX_SPEED);
 
         pos += velocity * Globals.DT;
 
         return (pos, velocity);
     }
 
-    public static SpriteEffects FlipSprite(Vector2 velocity, SpriteEffects effects)
+    public static SpriteEffects FlipSprite(Vector2 velocity)
     {
-        if (velocity.X > 1)
-            effects = SpriteEffects.None;
-        else
-            effects = SpriteEffects.FlipHorizontally;
-        return effects;
+        return velocity.X > 1 ? SpriteEffects.None : SpriteEffects.FlipHorizontally;
     }
 
     // Turns a sprite to look at something instead of at wherever it happens to
@@ -49,11 +45,9 @@ public static class MovementUtils
     }
 
     //
-    // AIMING
-    //
-    // Angles are radians, 0 points right, and they grow CLOCKWISE on screen
-    // because up is negative here. Everything below keeps them wrapped to
-    // -PI..PI so "turn the short way round" is just a comparison.
+    // AIMING. Radians, 0 points right, growing CLOCKWISE on screen because up is
+    // negative. Everything below stays wrapped to -PI..PI, so "turn the short
+    // way round" is just a comparison.
     //
 
     public static float AngleTo(Vector2 from, Vector2 to)
@@ -145,10 +139,7 @@ public static class MovementUtils
     public static Vector2 BounceFromEdge(Vector2 velocity, Vector2 pos, float width)
     {
         if (pos.X <= 0 || pos.X >= Core.windowWidth - width)
-        {
             velocity.X *= -3;
-            return velocity;
-        }
 
         return velocity;
     }

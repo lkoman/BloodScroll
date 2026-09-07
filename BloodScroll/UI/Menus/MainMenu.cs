@@ -1,6 +1,4 @@
-using System;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using Microsoft.Xna.Framework.Input;
 
@@ -38,48 +36,27 @@ public class MainMenu
 
     private static readonly string[] DIFFICULTY_NAMES = ["BABY MODE", "MEDIUM", "HELL"];
 
-    public void LoadContent(GraphicsDevice device)
+    public void LoadContent()
     {
-        ButtonPlay = new Button();
-        ButtonPlay.LoadContent("PLAY", UISettings.buttonSize, device);
+        ButtonPlay = new Button("PLAY", UISettings.buttonSize);
 
-        ButtonDifficulty = new Button();
-        ButtonDifficulty.LoadContent("DIFFICULTY", UISettings.buttonSize, device);
+        ButtonDifficulty = new Button("DIFFICULTY", UISettings.buttonSize);
         ButtonDifficulty.SetValue(DIFFICULTY_NAMES[Globals.DIFFICULTY]);
 
-        ButtonSettings = new Button();
-        ButtonSettings.LoadContent("SETTINGS", UISettings.buttonSize, device);
-
-        ButtonExitGame = new Button();
-        ButtonExitGame.LoadContent("EXIT", UISettings.buttonSize, device);
+        ButtonSettings = new Button("SETTINGS", UISettings.buttonSize);
+        ButtonExitGame = new Button("EXIT", UISettings.buttonSize);
     }
 
     public MouseCursor Update(IAudioService audio)
     {
-        MouseCursor desiredCursor;
-
         // Read off the button rather than kept twice - the difficulty the
         // button is showing IS the one whose score belongs up there
         HighScoreNote = "BEST ON " + ButtonDifficulty.Value + ":  " + Globals.HIGH_SCORE[Globals.DIFFICULTY];
 
         MenuLayout layout = Measure();
 
-        ButtonPlay.Place(layout.ButtonAt(0, UISettings.buttonSize));
-        ButtonDifficulty.Place(layout.ButtonAt(1, UISettings.buttonSize));
-        ButtonSettings.Place(layout.ButtonAt(2, UISettings.buttonSize));
-        ButtonExitGame.Place(layout.ButtonAt(3, UISettings.buttonSize));
-
-        ButtonPlay.UpdateHoverColor(audio);
-        ButtonSettings.UpdateHoverColor(audio);
-        ButtonExitGame.UpdateHoverColor(audio);
-        ButtonDifficulty.UpdateHoverColor(audio);
-
-        if (ButtonPlay.Hover() || ButtonSettings.Hover() || ButtonExitGame.Hover() || ButtonDifficulty.Hover()) {
-            desiredCursor = MouseCursor.Hand;
-        }
-        else {
-            desiredCursor = MouseCursor.Arrow;
-        }
+        MouseCursor desiredCursor = layout.PlaceButtons(audio, UISettings.buttonSize,
+            ButtonPlay, ButtonDifficulty, ButtonSettings, ButtonExitGame);
 
         if (ButtonPlay.ButtonClicked(audio))
         {
@@ -126,10 +103,8 @@ public class MainMenu
 
         layout.DrawSubtitle(UISettings.fontUI, HighScoreNote, UITheme.TextMuted);
 
-        ButtonPlay.Draw(UISettings.buttonFont);
-        ButtonDifficulty.Draw(UISettings.buttonFont);
-        ButtonSettings.Draw(UISettings.buttonFont);
-        ButtonExitGame.Draw(UISettings.buttonFont);
+        MenuLayout.DrawButtons(UISettings.buttonFont,
+            ButtonPlay, ButtonDifficulty, ButtonSettings, ButtonExitGame);
 
         DrawHint(layout);
     }

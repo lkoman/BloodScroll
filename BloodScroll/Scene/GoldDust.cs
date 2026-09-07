@@ -8,31 +8,18 @@ namespace BloodScroll;
 //
 // GOLD DUST - what the butterfly leaves behind
 //
-// The butterfly used to burst into a hand drawn cloud, which was a picture of
-// an explosion and read like one: the thing in the game that HEALS you looked
-// exactly like the two things that blow you up. So it bursts into dust instead.
+// A hundred small motes thrown outwards, slowing, drifting UP as they fade.
+// Nothing else in the game rises, so a butterfly going off cannot be mistaken
+// for a jellyfish going off.
 //
-// WHY DUST AND WHY GOLD
-//
-// The blast (see Explosion) is one hard circle that arrives all at once, and
-// that is right for something that hits you. This is the opposite shape on
-// purpose - a hundred small motes thrown outwards, slowing, drifting UP as they
-// fade. Nothing else in the game rises. Between the direction and the gold, the
-// butterfly going off cannot be mistaken for a jellyfish going off even out of
-// the corner of an eye, which is the entire point of the pair.
-//
-// IT IS ONLY A PICTURE. There is no hitbox here and nothing in this file deals
-// damage or healing to anybody - the butterfly hands the player his health
-// itself, on the frame the dust appears, and then this just plays out. See
+// IT IS ONLY A PICTURE - no hitbox, no damage, no healing. The butterfly hands
+// the player his health itself on the frame the dust appears. See
 // Butterfly.Burst.
 //
-// THE RANDOM STREAM
-//
-// This uses its OWN Random and must keep doing so. Globals.R is the seeded
-// stream the whole world is generated from, and the order of draws from it is
-// load bearing (see MobManager.SpawnOrder) - a puff of dust is spawned whenever
-// the player happens to walk into a butterfly, so taking even one number from
-// that stream would change every layer generated above it.
+// USES ITS OWN Random AND MUST KEEP DOING SO. Globals.R is the seeded stream
+// the world is generated from and the order of draws is load bearing (see
+// MobManager.SpawnOrder) - dust is spawned whenever the player happens to walk
+// into a butterfly, so taking even one number would change every layer above.
 //
 
 public class GoldDust : IDrawableLayer

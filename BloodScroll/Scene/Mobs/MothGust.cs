@@ -8,17 +8,14 @@ namespace BloodScroll;
 //
 // THE MOTH'S WING BLAST
 //
-// Two curved white lines of shoved air, as wide as the moth itself. There is
-// no art for this anywhere in the atlases, so it is baked here the same way
-// the shield bubble and the web overlay are: once, at the size it is drawn at,
-// because the world is drawn with PointClamp and scaling would chew up lines
-// this thin.
+// Two curved white lines of shoved air, as wide as the moth. No art in the
+// atlases - baked here at the size it is drawn at, because the world uses
+// PointClamp and scaling would chew up lines this thin.
 //
-// The texture is drawn travelling to the RIGHT, and then simply turned to
-// point wherever the moth blew it, so one picture covers every direction.
+// Baked travelling RIGHT and then turned, so one picture covers every direction.
 //
-// Owned and driven by the moth rather than being a mob or a bullet of its own.
-// The moth keeps the damage numbers; this keeps the shape and the flight.
+// Owned and driven by the moth, not a mob or a bullet. The moth keeps the
+// damage numbers; this keeps the shape and the flight.
 //
 
 public class MothGust

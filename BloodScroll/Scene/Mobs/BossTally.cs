@@ -6,26 +6,18 @@ namespace BloodScroll;
 //
 // HOW MANY TIMES THE PLAYER HAS ALREADY FOUGHT EACH BOSS
 //
-// The climb never ends, so the boss roster comes round again and again. The
-// player does not come round with it: by his second spider queen he has more
-// HP, a shield, a second gun, life steal and a faster trigger than he had at
-// his first. A boss with the HP it was written with is a boss that gets easier
-// every time it appears, which makes the middle of a long run feel like the
-// game has given up.
+// The climb never ends, so the roster comes round again and again while the
+// player keeps gaining HP, shields, guns and life steal.
 //
-// So each boss TYPE is counted separately and gets tougher on each of ITS own
-// appearances. Counting per type rather than per boss layer matters: meeting
-// the moth for the first time on layer 20 should be meeting the moth as it was
-// written, not a moth scaled up by every fight that happened before it.
+// Each boss TYPE is counted SEPARATELY and gets tougher on each of ITS own
+// appearances - per type, not per boss layer, so meeting the moth for the first
+// time on layer 20 is the moth as it was written.
 //
 //   1st time  what the mob asked for in its own constructor
-//   2nd time  half again - noticeably longer, still the same fight
-//   3rd time  more than double - it now outlasts the gear that beat it twice
-//   and up from there, faster each time
+//   2nd time  half again
+//   3rd time  more than double, and up from there, faster each time
 //
-// The growth accelerates on purpose. The player's own power does too: the
-// gifts stack, and life steal plus a shield that regrows is worth far more on
-// a long fight than on a short one.
+// The growth accelerates because the player's own power does.
 //
 
 public static class BossTally

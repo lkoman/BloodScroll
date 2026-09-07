@@ -9,32 +9,22 @@ namespace BloodScroll;
 //
 // BOSS - SPIDER QUEEN
 //
-// She is pinned to the screen by the middle of her body: she never flips left
-// or right, she TURNS, about that middle point, and her face follows the player
-// wherever he goes.
+// Pinned by the middle of her body: she never flips, she TURNS about that
+// point, and her face follows the player.
 //
-// SHE HAS ONE ATTACK AND SHE NEVER STOPS DOING IT:
+// ONE ATTACK, ON A LOOP:
 //
-//   AIM      she plants her feet and turns until she is looking straight at
-//            him. The turn is the tell - once she commits, the ram goes where
-//            she was pointing and nowhere else, so reading it and stepping
-//            aside is the whole defence.
-//   RAM      straight down that line, fast, until she hits the floor, a wall,
-//            or runs out of ram.
-//   RETREAT  she backs away from wherever he is now, drops the web the ram
-//            cost him, and lines the next one up from a distance.
+//   AIM      plants her feet and turns to look straight at him. The turn is the
+//            tell - once she commits the ram goes where she was pointing.
+//   RAM      straight down that line until she hits the floor, a wall, or runs
+//            out of ram.
+//   RETREAT  backs away, drops a web, lines the next one up from a distance.
 //
-// She never hovers over him and she never sits still - if she is not aiming she
-// is either coming at him or backing off, so the fight always has a direction.
+// Under half HP: faster ram, shorter wind up, shorter retreat.
 //
-// Under half HP she does the same thing angrier: faster ram, shorter wind up,
-// shorter retreat. Same attack to read, less time to read it.
+// The webs never damage - they take away your footwork.
 //
-// The webs never damage you. They take away your footwork, and the arena
-// does the rest.
-//
-// She also follows. Climb away from her mid fight and she comes up through
-// the floor after you - see ClimbingAfterPlayer.
+// She follows the player up through the floor - see ClimbingAfterPlayer.
 //
 
 public class SpiderQueen : MobBase
@@ -54,17 +44,11 @@ public class SpiderQueen : MobBase
     //
     // WHICH WAY THE ART FACES
     //
-    // Everything below turns her so her face points at the player, which means
-    // the code has to know where the face is in the drawing BEFORE anything is
-    // turned. Change this one line to match what you draw:
+    // The code turns her face towards the player, so it needs to know where the
+    // face points in the drawing BEFORE any rotation:
+    //   UP -> -PiOver2,  RIGHT -> 0f,  DOWN -> PiOver2
     //
-    //   face drawn pointing UP    -> -MathHelper.PiOver2   (top down spider)
-    //   face drawn pointing RIGHT ->  0f                   (side on spider)
-    //   face drawn pointing DOWN  ->  MathHelper.PiOver2
-    //
-    // Draw her with the body centred in the frame - the middle of the frame is
-    // the pin she spins on, so a body drawn off to one side will swing around
-    // instead of turning on the spot.
+    // Draw the body CENTRED in the frame - the middle is the pin she spins on.
     //
     private const float ART_FACING = -MathHelper.PiOver2;
 
@@ -86,11 +70,9 @@ public class SpiderQueen : MobBase
 
     private const float RAM_SECONDS = 0.9f;
 
-    // A ram that STARTS against the floor or a wall - she rammed into the
-    // corner last time and the player followed her into it - would otherwise
-    // be over on its first frame, and she would sit in that corner twitching
-    // out one useless ram after another. Every ram gets at least this long to
-    // get clear of whatever it began on.
+    // A ram that STARTS against a wall or the floor would end on its first
+    // frame and leave her twitching in the corner. Every ram gets at least this
+    // long to get clear of whatever it began on.
     private const float RAM_MIN_SECONDS = 0.12f;
 
     private float stalkTimer = 0f;
@@ -103,14 +85,8 @@ public class SpiderQueen : MobBase
     private Vector2 ramDirection = Vector2.Zero;
     private bool hitTheFloor = false;
 
-    //
-    // BACKING OFF
-    //
-    // She wants daylight between them before the next ram, because a ram that
-    // starts on top of the player is not something he can step out of - it just
-    // lands. Any one of the three ends the retreat: far enough, long enough, or
-    // a wall at her back.
-    //
+    // BACKING OFF. Any one of the three ends the retreat: far enough, long
+    // enough, or a wall at her back.
     private const float RETREAT_SPEED = 420f;
     private const float RETREAT_SECONDS = 1.1f;
     private const float RETREAT_DISTANCE = 620f;
@@ -149,11 +125,8 @@ public class SpiderQueen : MobBase
         // that hurts. BossTally grows her on every later meeting anyway.
         SetHP(750);
 
-        // THE RAM HITS OFTEN, SO IT MUST NOT HIT HARD. She is the fastest
-        // thing in the game and she attacks without pause - at a bite this
-        // size the fight is decided by how many rams the player misreads,
-        // which is what it is meant to be about. A heavier bite made the
-        // same fight a two mistake fight, and two mistakes is not a lesson.
+        // THE RAM HITS OFTEN, SO IT MUST NOT HIT HARD - she is the fastest thing
+        // in the game and attacks without pause
         DAMAGE = 55;
         PointsOnKill = 1500;
     }
@@ -326,17 +299,14 @@ public class SpiderQueen : MobBase
     //
     // WHEN THE PLAYER RUNS
     //
-    // A layer keeps running after the player has left it, so without this she
-    // would spend the rest of the fight ramming an empty arena a screen below
-    // him while he walked away from a boss he never beat.
+    // A layer keeps running after the player leaves it, so without this she
+    // would ram an empty arena while he walked away from the fight.
     //
-    // So she climbs. She stops attacking, hauls herself straight at him through
-    // the ceiling, and the moment she is inside his layer she takes it as her
-    // arena and picks the fight up there. Running buys a few seconds and the
-    // webs she has already laid - it does not end the fight.
+    // She stops attacking, climbs straight at him through the ceiling, and takes
+    // his layer as her new arena.
     //
-    // SpawnLayer is where her arena is, not only where she started, and every
-    // arena edge she is held to is measured from it.
+    // SpawnLayer is where her ARENA is, not only where she started. Every arena
+    // edge is measured from it.
     //
 
     private const float CLIMB_SPEED = 600f;
@@ -429,14 +399,12 @@ public class SpiderQueen : MobBase
         );
     }
 
-    // A ram that reaches the ground ends there. This is called from the
-    // collision pass rather than from our own update, so it leaves a note
-    // instead of changing state halfway through a frame.
+    // A ram that reaches the ground ends there. Called from the collision pass,
+    // not our own update, so it leaves a note instead of changing state mid frame.
     //
-    // Nothing else here bounces: the base flings a mob back up off the floor
-    // every frame it touches it, and a boss the size of the screen touching the
-    // ground for a whole retreat would spend that retreat vibrating on it. The
-    // arena clamp already stops her going through the floor.
+    // NO BOUNCE: the base flings a mob off the floor every frame it touches, and
+    // a boss this size would vibrate on it for a whole retreat. The arena clamp
+    // already stops her going through the floor.
     public override void BounceFromFloor()
     {
         if (stalk == Stalk.Ramming)

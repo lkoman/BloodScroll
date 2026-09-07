@@ -6,41 +6,32 @@ namespace BloodScroll;
 //
 // WHERE EVERY MOB GETS ITS SPRITES
 //
-// The mobs below are finished and playable, but they are still drawing with
-// borrowed art. Everything marked PLACEHOLDER points at an existing region so
-// the behaviour could be built and tested before the real sprites exist.
+// Everything marked PLACEHOLDER points at borrowed art.
 //
 // TO SWAP IN YOUR OWN DRAWINGS:
-//   1. put the PNG in Content/images/ and write the matching atlas XML
-//      (<Texture>, one <SubTexture> per frame, one <Animation> per state -
-//       the <Animations> element must exist even if it is empty)
-//   2. add two blocks to Content/Content.mgcb: /build: the PNG, /copy: the XML
-//   3. if it is a new atlas file, add a Globals.<Name> field and a
-//      TextureAtlas.FromFile line in BloodScroll.LoadContent
-//   4. change the constant here, and point the mob at the lookup for that
-//      atlas at the bottom of this file - nothing else needs to change
+//   1. PNG in Content/images/ + matching atlas XML (<Texture>, one <SubTexture>
+//      per frame, one <Animation> per state - <Animations> must exist even if
+//      it is empty)
+//   2. two blocks in Content/Content.mgcb: /build: the PNG, /copy: the XML
+//   3. new atlas file -> add a Globals.<Name> field and a TextureAtlas.FromFile
+//      line in BloodScroll.LoadContent
+//   4. change the constant here and point the mob at that atlas lookup below
 //
-// Sizes that fit the existing art: flower <=128 wide (a platform is 128px),
-// butterfly 96x96 idle / ~192x192 burst, bosses 512x512 (what the fire boss,
-// the spider queen and the moth all are).
+// Sizes that fit: flower <=128 wide (a platform is 128px), butterfly 96x96 idle
+// / ~192x192 burst, bosses 512x512.
 //
 
 public static class MobArt
 {
-    // FLOWER - sleeps on a platform until you come near, then bites
+    // FLOWER - sleeps on a platform until you come near, then bites.
     //
-    // Drawn in THREE PARTS, because the stalk is a spring and not a picture:
-    //   the head    is the mob - it is what gets shot and what bites
-    //   the leaves  are the fixed root it is tied to
-    //   the stem    is ONE short piece, repeated from the leaves to the head
-    //               as many times as the stalk is currently long. Draw it
-    //               upright and narrow, growing upwards, with the end that
-    //               joins the piece below at the BOTTOM of the frame.
+    // THREE PARTS, because the stalk is a spring not a picture:
+    //   head    the mob - what gets shot and what bites
+    //   leaves  the fixed root
+    //   stem    ONE short piece, repeated from leaves to head. Draw it upright
+    //           and narrow, growing upwards, joining end at the BOTTOM.
     //
-    // All four are their own animation in flower.xml, so extra frames are
-    // added there and nothing in the code changes. The ones marked PLACEHOLDER
-    // are still pointing at the idle head because that drawing does not exist
-    // yet - draw it, give it an Animation of its own, and repoint the constant.
+    // Each is its own animation in flower.xml.
     public const string FlowerSleeping = "flower-sleeping";     // PLACEHOLDER - closed up, asleep
     public const string FlowerIdle = "flower-idle";             // awake, swaying
     public const string FlowerBite = "flower-bite";             // PLACEHOLDER - jaws open, mid lunge
@@ -48,68 +39,45 @@ public static class MobArt
     public const string FlowerStem = "flower-stem";             // one repeated piece
 
     // SPIDER - patrols the ceiling and spits webs.
-    // Drawn side on facing LEFT, which is the opposite of what the movement
-    // helper assumes, so Spider.cs flips it back. Redraw it facing right and
-    // that flip is what you delete.
+    // Drawn side on facing LEFT, the opposite of what the movement helper
+    // assumes, so CeilingSpider flips it back.
     public const string Spider = "spider";                      // spiders atlas
 
-    // BUTTERFLY - walk into it, wait out the fuse, stand in the burst to heal
-    //
-    // Real art of its own now, in its own warm yellows. It used to be the
-    // jellyfish drawing washed green, because the two mobs shared a shape and
-    // the colour was the only thing telling "heals you" from "kills you" - with
-    // a drawing that is plainly a butterfly and plainly not a jellyfish, that
-    // tint is not needed any more and would only mud up the artwork. Which is
-    // why Butterfly.cs draws it white: the art carries its own meaning.
+    // BUTTERFLY - walk into it, wait out the fuse, stand in the burst to heal.
+    // Its own art, so Butterfly.cs draws it white with no tint.
     public const string Butterfly = "butterfly-animation";
     public const string ButterflyBurst = "butterfly-explode-animation";
 
-    // SPIDER QUEEN
-    // She is pinned to the middle of her own body and TURNS to look at the
-    // player instead of flipping, so all three of these have to be drawn
-    // the same way: body centred in the frame, face pointing the same
-    // direction. Tell the code which direction that is with ART_FACING at the
-    // top of SpiderQueen.cs.
-    // The art is top down with her face pointing UP, so ART_FACING there is
-    // already set to match. There is only the one animation so far - give the
-    // aim and the ram their own the moment they are drawn, because the turn
-    // before a ram is the only warning the player gets.
+    // SPIDER QUEEN. She TURNS instead of flipping, so all three must be drawn
+    // the same way: body centred in the frame, face pointing the same direction.
+    // Set ART_FACING at the top of SpiderQueen.cs to match (currently UP).
+    // Only one animation so far - aim and ram still point at the walk frames.
     public const string SpiderQueen = "spiderBoss";      // spiders atlas - walking
     public const string SpiderQueenAim = "spiderBoss";   // spiders atlas - turning to face you
     public const string SpiderQueenLunge = "spiderBoss"; // spiders atlas - the ram
 
-    // MOTH AND ITS COCOON
-    // Like the spider queen, the moth is pinned to the middle of its own body
-    // and TURNS to look at the player instead of flipping, so both moth frames
-    // have to be drawn the same way round: body centred, head pointing the same
-    // direction. The art is top down with the head UP, and ART_FACING at the
-    // top of Moth.cs is already set to match.
+    // MOTH AND ITS COCOON. Same as the queen - it TURNS, so both moth frames
+    // must be body centred with the head pointing the same way. ART_FACING at
+    // the top of Moth.cs matches the art (head UP).
     //
-    // MothAttack is the WING BEAT it does standing still, right before a gust
-    // goes out - not a flying pose. Moth is used for everything else, the ram
-    // included.
+    // MothAttack is the WING BEAT before a gust, not a flying pose. Moth is used
+    // for everything else including the ram.
     //
-    // The gust itself has no art: it is two curved white lines baked in
-    // MothGust.cs, sized off whatever the moth turns out to be.
+    // The gust has no art - see MothGust.cs.
     public const string Moth = "MothBoss_idle";                   // flying
     public const string MothAttack = "MothBoss_attack";           // wings beating
     public const string CocoonClosed = "MothBoss_cocoon_closed";  // moth inside, healing
     public const string CocoonOpen = "MothBoss_cocoon_open";      // empty
 
-    // THE HOLE deliberately has no art either - it is a black hole, baked pixel
-    // by pixel in Hive.cs and turned instead of animated. Nothing to draw.
+    // THE HOLE has no art - baked pixel by pixel in Hive.cs and turned rather
+    // than animated.
 
-    // WEBS. Every web in the game - the patch you stand in, the shot a spider
-    // spits and the one wrapped round the player - is the baked orb web from
-    // WebTexture, so there is no region for any of them.
-    //
-    // The projectile still names one, because a bullet hangs its hitbox on a
-    // sprite. It is the carcass under the web, never what gets drawn.
+    // WEBS. Every web in the game is the baked orb web from WebTexture, so there
+    // is no region for any of them. The projectile still names one only because
+    // a bullet hangs its hitbox on a sprite - it is never drawn.
     public const string WebProjectile = "projectile-purple";    // PLACEHOLDER (from the weapons atlas)
 
-    // One lookup per atlas. Most placeholder art comes out of the enemies
-    // atlas - the butterfly is the exception, it borrows the jellyfish - and a
-    // mob with real art of its own calls the lookup for the file it lives in.
+    // One lookup per atlas
     public static AnimatedSprite Enemy(string region) => Globals.Enemies.CreateAnimatedSprite(region);
     public static AnimatedSprite Spiders(string region) => Globals.Spiders.CreateAnimatedSprite(region);
     public static AnimatedSprite Flower(string region) => Globals.Flower.CreateAnimatedSprite(region);
@@ -117,7 +85,6 @@ public static class MobArt
     public static AnimatedSprite Butterflies(string region) => Globals.Butterfly.CreateAnimatedSprite(region);
     public static AnimatedSprite MothBoss(string region) => Globals.MothBoss.CreateAnimatedSprite(region);
 
-    // SHADOW TWIN deliberately has no art of its own - it is the player,
-    // drawn in near black. Nothing to draw for this one.
+    // SHADOW TWIN has no art - it is the player sprite, drawn in near black
     public static AnimatedSprite PlayerLookalike() => Globals.Player.CreateAnimatedSprite("player-idle");
 }

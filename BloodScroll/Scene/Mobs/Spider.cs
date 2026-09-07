@@ -4,8 +4,7 @@ namespace BloodScroll;
 // THE ORDINARY SPIDER
 //
 // The ceiling patrol at its plainest. Its web does no damage at all - it just
-// glues you to the floor for a couple of seconds, which is usually worse. See
-// CeilingSpider for everything it actually does.
+// slows you down. See CeilingSpider for everything it actually does.
 //
 
 public class Spider : CeilingSpider

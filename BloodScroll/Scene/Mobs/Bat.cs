@@ -3,10 +3,9 @@ namespace BloodScroll;
 //
 // THE PLAIN BAT
 //
-// The basic chaser, and the yardstick every other bat is read against. It has
-// no shot at all - it can only reach the player by arriving where he is - and it
-// is the slowest of the three, so a room of nothing but these is a room you can
-// out-run. Everything it does is in BatBase; all that is here is the numbers.
+// The basic chaser. No shot at all and the slowest of the three, so a room of
+// only these can be out-run. Everything it does is in BatBase - this is just
+// the numbers.
 //
 
 public class Bat : BatBase

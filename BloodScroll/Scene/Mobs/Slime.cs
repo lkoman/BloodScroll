@@ -43,7 +43,7 @@ public class Slime : MobBase
         (Sprite.Position, velocity) =
             MovementUtils.MoveTowardsTarget(Sprite.Position, target, velocity, speed, speed * 1.2f);
 
-        Sprite.Effects = MovementUtils.FlipSprite(velocity, Sprite.Effects);
+        Sprite.Effects = MovementUtils.FlipSprite(velocity);
 
         SyncBounds();
 

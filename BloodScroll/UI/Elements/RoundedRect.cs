@@ -9,20 +9,15 @@ namespace BloodScroll;
 //
 // ROUNDED RECTANGLES, DRAWN OUT OF ONE BAKED CORNER
 //
-// Every panel, button, bar and chip in the UI is the same shape - a rectangle
-// with its corners taken off - so it is worth drawing that shape properly once
-// rather than reaching for a 1x1 white pixel and living with square edges.
+// Every panel, button, bar and chip in the UI is the same shape.
 //
-// It is NOT baked per rectangle. A health bar changes width every frame and a
-// hovered button changes size, so baking one texture per size would quietly
-// fill memory with three hundred slightly different bars. What is baked is a
-// single DISC, one per corner radius: its four quadrants are the four corners,
-// and the flat parts between them are the plain white pixel stretched. Half a
-// dozen radii exist in the whole game, so this bakes six small textures and
-// then never allocates again.
+// NOT baked per rectangle - a bar changes width every frame and would fill
+// memory with hundreds of near identical textures. What is baked is one DISC
+// PER RADIUS: its four quadrants are the four corners, and the flats between
+// them are the plain white pixel stretched. About six radii exist in the whole
+// game, so this bakes six textures and never allocates again.
 //
-// The disc carries the antialiasing at its rim, which is the only place the
-// shape is not axis aligned and the only place a hard edge would be visible.
+// The disc carries the antialiasing at its rim.
 //
 
 public static class RoundedRect
@@ -93,15 +88,12 @@ public static class RoundedRect
     //
     // THE SAME SHAPE, SHADED TOP TO BOTTOM
     //
-    // A flat slab of colour is the thing that makes a hand rolled UI look hand
-    // rolled. The fill is laid down in the bottom colour first so the rounded
-    // rim is antialiased against the background exactly once, and the lighter
-    // top is then painted over it in horizontal bands.
+    // The bottom colour is laid down first so the rounded rim is antialiased
+    // against the background exactly once, then the lighter top is painted over
+    // it in horizontal bands.
     //
-    // Each band is inset by however far the rounded corner has eaten into that
-    // row, so the gradient follows the corner instead of squaring it off. The
-    // band edges land on top of an already painted rim in a near identical
-    // colour, so the corner keeps the smooth edge it was given.
+    // Each band is inset by however far the corner has eaten into that row, so
+    // the gradient follows the corner instead of squaring it off.
     //
     public static void FillGradient(Rectangle r, Color top, Color bottom, int radius)
     {
@@ -172,13 +164,10 @@ public static class RoundedRect
     //
     // A SOFT EDGE AROUND THE RECTANGLE
     //
-    // Used both ways round: in black under a panel it is the drop shadow that
-    // lifts the panel off the background, and in the accent colour behind a
-    // hovered button it is the glow that says the button is live.
+    // Both ways round: black under a panel is the drop shadow, the accent colour
+    // behind a hovered button is the glow.
     //
-    // It is the same fill drawn a handful of times, each one a little larger
-    // and a little fainter. Cheap, and with alpha stacking the way it does the
-    // falloff comes out close enough to a blur that nobody has ever asked.
+    // The same fill drawn a handful of times, each a little larger and fainter.
     //
     public static void Glow(Rectangle r, Color colour, int radius, int spread, float strength = 0.16f)
     {
@@ -224,13 +213,8 @@ public static class RoundedRect
     private static int ClampRadius(Rectangle r, int radius)
         => Math.Max(0, Math.Min(radius, Math.Min(r.Width, r.Height) / 2));
 
-    //
-    // THE BAKES
-    //
-    // A disc of diameter 2r, and a ring of the same size t pixels thick. One
-    // pixel of softness at each rim, the same trick the bullets use - without
-    // it a corner this small reads as a visibly stepped stair.
-    //
+    // THE BAKES. A disc of diameter 2r, and a ring of the same size t pixels
+    // thick. One pixel of softness at each rim, same as the bullets.
     private static Texture2D Disc(int radius)
     {
         if (_discs.TryGetValue(radius, out Texture2D cached))

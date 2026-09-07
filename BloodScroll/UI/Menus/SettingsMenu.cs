@@ -1,8 +1,6 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using Microsoft.Xna.Framework.Input;
-using System;
 
 namespace BloodScroll;
 
@@ -22,41 +20,22 @@ public class SettingsMenu
     // BUTTONS
     private Button ButtonFullScreen, SoundButton, ButtonMenu;
 
-    public void LoadContent(GraphicsDevice device)
+    public void LoadContent()
     {
-        ButtonFullScreen = new Button();
-        ButtonFullScreen.LoadContent("FULLSCREEN", UISettings.buttonSize, device);
-
-        SoundButton = new Button();
-        SoundButton.LoadContent("SOUND", UISettings.buttonSize, device);
-
-        ButtonMenu = new Button();
-        ButtonMenu.LoadContent("BACK", UISettings.buttonSize, device);
+        ButtonFullScreen = new Button("FULLSCREEN", UISettings.buttonSize);
+        SoundButton = new Button("SOUND", UISettings.buttonSize);
+        ButtonMenu = new Button("BACK", UISettings.buttonSize);
     }
 
     public MouseCursor Update(IAudioService audio)
     {
-        MouseCursor desiredCursor;
-
         ButtonFullScreen.SetValue(Globals.FULLSCREEN ? "ON" : "OFF");
         SoundButton.SetValue(audio.GetMasterVolume() == 0f ? "OFF" : "ON");
 
         MenuLayout layout = Measure();
 
-        ButtonFullScreen.Place(layout.ButtonAt(0, UISettings.buttonSize));
-        SoundButton.Place(layout.ButtonAt(1, UISettings.buttonSize));
-        ButtonMenu.Place(layout.ButtonAt(2, UISettings.buttonSize));
-
-        ButtonFullScreen.UpdateHoverColor(audio);
-        SoundButton.UpdateHoverColor(audio);
-        ButtonMenu.UpdateHoverColor(audio);
-
-        if (ButtonFullScreen.Hover() || SoundButton.Hover() || ButtonMenu.Hover()) {
-            desiredCursor = MouseCursor.Hand;
-        }
-        else {
-            desiredCursor = MouseCursor.Arrow;
-        }
+        MouseCursor desiredCursor = layout.PlaceButtons(audio, UISettings.buttonSize,
+            ButtonFullScreen, SoundButton, ButtonMenu);
 
         if (ButtonFullScreen.ButtonClicked(audio))
         {
@@ -91,8 +70,7 @@ public class SettingsMenu
 
         layout.DrawDivider();
 
-        ButtonFullScreen.Draw(UISettings.buttonFont);
-        SoundButton.Draw(UISettings.buttonFont);
-        ButtonMenu.Draw(UISettings.buttonFont);
+        MenuLayout.DrawButtons(UISettings.buttonFont,
+            ButtonFullScreen, SoundButton, ButtonMenu);
     }
 }

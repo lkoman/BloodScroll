@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="weapons.png">
+	<Texture>images/weapons</Texture>
+	<Regions>
+		<SubTexture name="bullet-blue" x="116" y="36" width="12" height="12" frameX="2" frameY="2" frameWidth="8" frameHeight="8"/>
+		<SubTexture name="bullet-gold" x="0" y="64" width="20" height="20" frameX="2" frameY="2" frameWidth="16" frameHeight="16"/>
+		<SubTexture name="gun-blue" x="0" y="36" width="68" height="28" frameX="2" frameY="2" frameWidth="64" frameHeight="24"/>
+		<SubTexture name="gun-gold" x="0" y="0" width="132" height="36" frameX="2" frameY="2" frameWidth="128" frameHeight="32"/>
+		<SubTexture name="projectile-fire" x="68" y="36" width="28" height="28" frameX="2" frameY="2" frameWidth="24" frameHeight="24"/>
+		<SubTexture name="projectile-purple" x="96" y="36" width="20" height="20" frameX="2" frameY="2" frameWidth="16" frameHeight="16"/>
+	</Regions>
+	<Animations>
+	</Animations>
+</TextureAtlas>

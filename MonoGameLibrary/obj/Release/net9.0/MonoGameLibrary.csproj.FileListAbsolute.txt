@@ -1,0 +1,13 @@
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\bin\Release\net9.0\MonoGameLibrary.deps.json
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\bin\Release\net9.0\MonoGameLibrary.dll
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\bin\Release\net9.0\MonoGameLibrary.pdb
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\MonoGameLibrary.csproj.AssemblyReference.cache
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\MonoGameLibrary.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\MonoGameLibrary.AssemblyInfoInputs.cache
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\MonoGameLibrary.AssemblyInfo.cs
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\MonoGameLibrary.csproj.CoreCompileInputs.cache
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\MonoGameLibrary.sourcelink.json
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\MonoGameLibrary.dll
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\refint\MonoGameLibrary.dll
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\MonoGameLibrary.pdb
+C:\Users\Laraana\Desktop\Me\Faks\3. letnik VSS\TINR\Game\MonoGameLibrary\obj\Release\net9.0\ref\MonoGameLibrary.dll

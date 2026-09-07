@@ -11,26 +11,27 @@ public class GiftData
     //
     // THE ONE-OFF PRIZES
     //
-    // Things the player either has or does not, and which are worth winning
-    // exactly once. Every one of them is an ABSOLUTE value - the new maximum,
-    // the new capacity - which is why they cannot be handed out twice: the
-    // second one would be measured against the number in the JSON rather than
-    // against what the player has actually built up.
+    // Worth winning exactly once. Every one is an ABSOLUTE value - the new
+    // maximum, the new capacity - so handing one out twice would measure against
+    // the JSON rather than against what the player has built up.
     //
     public int? IncreasedHP { get; set; }  // new maximum HP
     public int? GunID { get; set; }        // unlocks and equips this weapon
     public int? Shield { get; set; }       // shield capacity, soaks damage before HP
     public bool? DoubleJump { get; set; }  // a second jump in mid air
+
+    // The blade on Q. Not a GunID: it is not in the arsenal and nothing about
+    // it can be won twice, so it is a flag rather than a weapon slot.
+    public bool? Sword { get; set; }
     public float? FireRate { get; set; }   // multiplier on how fast EVERY gun shoots
     public int? LifeSteal { get; set; }    // HP returned per mob killed
 
     //
     // THE ONES THAT KEEP COMING
     //
-    // The climb has no end and the list above does, so past it the bosses hand
-    // out increments instead - see BossSchedule.Upgrade. These are ADDED to
-    // what the player already has rather than replacing it, which is the whole
-    // difference: winning one twenty times over is twenty steps forward.
+    // Past the end of the list above the bosses hand out increments instead -
+    // see BossSchedule.Upgrade. ADDED to what the player has rather than
+    // replacing it, so winning one twenty times is twenty steps forward.
     //
     public int? BonusHP { get; set; }      // added to the current maximum HP
     public int? BonusShield { get; set; }  // added to the current shield capacity
@@ -52,6 +53,7 @@ public class GiftData
         GunID = other.GunID ?? GunID;
         Shield = other.Shield ?? Shield;
         DoubleJump = other.DoubleJump ?? DoubleJump;
+        Sword = other.Sword ?? Sword;
         FireRate = other.FireRate ?? FireRate;
         LifeSteal = other.LifeSteal ?? LifeSteal;
 

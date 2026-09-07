@@ -10,21 +10,14 @@ namespace BloodScroll;
 // A MENU BUTTON
 //
 // A rounded slab that warms towards red under the mouse, with an accent bar
-// growing in at its left edge and the label sliding out of the way to make room
-// for it. Nothing about it snaps: hovering on and hovering off are the same
-// movement run in opposite directions, which is the whole difference between a
-// menu that feels built and one that feels like a list of rectangles.
+// growing in at the left edge and the label sliding right to make room.
 //
-// The state is one number, _hover, that walks between 0 and 1. Every part of
-// the drawing reads it - the colours, the border, the glow, the width of the
-// accent bar, how far the label has slid, how big the whole thing is - so the
-// button can never be caught halfway into one look and halfway out of another.
+// ALL THE STATE IS ONE NUMBER, _hover, walking between 0 and 1. Every part of
+// the drawing reads it - colours, border, glow, bar width, label slide, size -
+// so the button can never be half in one look and half in another.
 //
-// A SECOND, OPTIONAL LINE ON THE RIGHT. Some buttons are not a command but a
-// setting you cycle: difficulty, sound, fullscreen. Those carry a Value, drawn
-// right aligned in the accent colour, so the button reads as "this is the
-// thing, and this is what it is currently set to" instead of the label having
-// to be rewritten into a sentence.
+// AN OPTIONAL VALUE ON THE RIGHT, for buttons that are a setting you cycle
+// (difficulty, sound, fullscreen) rather than a command.
 //
 
 public class Button
@@ -64,19 +57,15 @@ public class Button
     private const int TEXT_PAD = 34;
     private const int VALUE_GAP = 28;
 
-    public void LoadContent(string text, Vector2 size, GraphicsDevice device)
+    // A button needs no GraphicsDevice of its own - it is drawn entirely out of
+    // RoundedRect, which owns the one white pixel and the baked corners. Where
+    // it GOES is not its business either; the menu that owns it calls Place
+    // with whatever MenuLayout worked out.
+    public Button(string text, Vector2 size)
     {
         _text = text;
         Width = (int)size.X;
         Height = (int)size.Y;
-    }
-
-    public void LoadContent(string text, Vector2 p, Vector2 size, GraphicsDevice device)
-    {
-        LoadContent(text, size, device);
-
-        pos = p;
-        _rect = new Rectangle((int)pos.X, (int)pos.Y, Width, Height);
     }
 
     //
@@ -152,16 +141,12 @@ public class Button
     //
     // THE LABEL, AND THE VALUE BESIDE IT
     //
-    // A plain button centres its label. A button with a value cannot - the two
-    // strings have to be pinned to opposite ends or they drift about as the
-    // value changes width - so that one goes left aligned with the value on the
-    // right, and the padding at each end is what keeps them off the accent bar.
+    // A plain button centres its label. One with a value pins the two to
+    // opposite ends instead, or they drift as the value changes width.
     //
-    // BOTH ARE SHRUNK UNTIL THEY FIT. "DIFFICULTY" and "BABY MODE" together are
-    // wider than the button they have to share, and pinned to opposite ends
-    // that meant they simply overlapped in the middle. They are scaled down
-    // together rather than one at a time, so the pair always stays the same
-    // size as each other and the button reads as one line either way.
+    // BOTH ARE SHRUNK TOGETHER until they fit - "DIFFICULTY" and "BABY MODE" are
+    // wider than the button they share, and scaling them apart would leave the
+    // pair different sizes.
     //
     private void DrawLabel(SpriteFont font, Rectangle r)
     {
@@ -202,13 +187,8 @@ public class Button
     private static float Centred(Rectangle r, float textHeight, float scale)
         => r.Y + r.Height / 2f - textHeight * scale / 2f;
 
-    //
-    // THE HOVER, WALKED ONE FRAME AT A TIME
-    //
-    // Still called UpdateHoverColor and still returns whether the mouse is on
-    // it, because that is what four menus ask it - but there is no colour left
-    // to set. It moves the animation on and the drawing works the rest out.
-    //
+    // THE HOVER, WALKED ONE FRAME AT A TIME. Sets no colour despite the name -
+    // it moves _hover on and Draw works the rest out.
     public bool UpdateHoverColor(IAudioService audioService)
     {
         bool over = Hover();

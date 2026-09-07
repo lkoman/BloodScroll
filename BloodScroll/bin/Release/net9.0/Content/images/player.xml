@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TextureAtlas imagePath="player.png">
+	<Texture>images/player</Texture>
+	<Regions>
+		<SubTexture name="player_idle00000" x="240" y="0" width="120" height="120" frameX="-5" frameY="0" frameWidth="120" frameHeight="120"/>
+		<SubTexture name="player_idle10000" x="240" y="120" width="120" height="120" frameX="-1" frameY="-3" frameWidth="120" frameHeight="120"/>
+		<SubTexture name="player_in_jump0000" x="360" y="0" width="120" height="120" frameX="-1" frameY="0" frameWidth="120" frameHeight="120"/>
+		<SubTexture name="player_run00000" x="120" y="120" width="120" height="120" frameX="-1" frameY="0" frameWidth="120" frameHeight="120"/>
+		<SubTexture name="player_run10000" x="0" y="120" width="120" height="120" frameX="-1" frameY="0" frameWidth="120" frameHeight="120"/>
+		<SubTexture name="player_run20000" x="0" y="0" width="120" height="120" frameX="-1" frameY="0" frameWidth="120" frameHeight="120"/>
+		<SubTexture name="player_run30000" x="120" y="0" width="120" height="120" frameX="-1" frameY="0" frameWidth="120" frameHeight="120"/>
+	</Regions>
+	<Animations>
+		<Animation name="player-idle" delay="200">
+			<Frame region="player_idle00000" />
+			<Frame region="player_idle10000" />
+		</Animation>
+		<Animation name="player-in-jump" delay="200">
+			<Frame region="player_in_jump0000" />
+		</Animation>
+		<Animation name="player-running" delay="200">
+			<Frame region="player_run00000" />
+			<Frame region="player_run10000" />
+			<Frame region="player_run20000" />
+			<Frame region="player_run30000" />
+		</Animation>
+	</Animations>
+</TextureAtlas>

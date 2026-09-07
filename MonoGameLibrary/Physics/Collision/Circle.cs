@@ -5,18 +5,10 @@ namespace MonoGameLibrary;
 
 public struct Circle(int x, int y, int radius) : IEquatable<Circle> 
 {
-    private static readonly Circle s_empty = new();
-
     // The x and y of the center of this circle.
     public int X = x, Y = y;
     public readonly int Radius = radius;
     public readonly Point Location => new(X, Y); // Gets the location of the center of this circle.
-    public static Circle Empty => s_empty; // Gets a circle with X=0, Y=0, and Radius=0.
-    public readonly bool IsEmpty => X == 0 && Y == 0 && Radius == 0; // Gets a value that indicates whether this circle has a radius of 0 and a location of (0, 0).
-    public readonly int Top => Y - Radius;
-    public readonly int Bottom => Y + Radius;
-    public readonly int Left => X - Radius;
-    public readonly int Right => X + Radius;
 
     public void SetPosition(int x, int y)
     {

@@ -6,22 +6,15 @@ namespace BloodScroll;
 //
 // THE POISON BAT
 //
-// The ordinary bat's drawing, washed a sickly green, and its shots wear the
-// same colour. Wearing the same shape is the point: it flies in the same swarm
-// as the plain bats and you have to pick it out of them, and the ONE thing that
-// tells you which is which is the colour of it.
+// The ordinary bat's drawing washed green, and its shots wear the same colour.
+// Same shape as the plain bat on purpose - the COLOUR is the only thing telling
+// them apart in a swarm.
 //
-// WHAT IT ACTUALLY DOES
+// Touching it or its shots poisons you: HP bleeds away and STOPS AT
+// Player.POISON_FLOOR, so it can never kill on its own. What it does is take
+// the shield out of the equation - poison goes straight to HP.
 //
-// Touching it or being hit by one of its shots poisons you: HP bleeds away for
-// ten seconds and STOPS AT TEN. It cannot kill - see Player.UpdatePoison for
-// why - so on its own it is never fatal. What it does is take the shield out
-// of the equation (poison goes straight to HP) and hand every other mob in the
-// room a much easier target for the next ten seconds. It is a mob that makes
-// the fight around it worse rather than one that beats you itself.
-//
-// It hits harder than a plain bat on contact for the same reason: the poison is
-// the slow part, and something has to make walking into one hurt right away.
+// Hits harder than a plain bat on contact, because the poison is the slow part.
 //
 
 public class GreenBat : BatBase
@@ -39,19 +32,12 @@ public class GreenBat : BatBase
     protected override int TargetOffset => 600;
 
     //
-    // THE DOSE
+    // THE DOSE - one point a second, for twenty seconds.
     //
-    // ONE POINT A SECOND, FOR TWENTY SECONDS.
+    // A single bite is almost nothing. THE DOSES STACK (see Player.ApplyPoison),
+    // so four bats is four points a second, and the floor holds however many
+    // land.
     //
-    // A single bite is almost nothing - twenty HP spread so thin the player can
-    // out-heal it and mostly ignore it. That is deliberate: what costs you is
-    // not one bat, it is FOUR, because the doses stack (see Player.ApplyPoison)
-    // and four of them is four points a second for as long as they are on you.
-    //
-    // So the green bat has stopped being a mob that punishes one mistake and
-    // become one that punishes letting them pile up, which is the thing the
-    // swarm was always about. And none of it can kill on its own - the floor at
-    // ten HP holds however many bites land.
     public const int POISON_DAMAGE = 20;
     public const float POISON_SECONDS = 20f;
 

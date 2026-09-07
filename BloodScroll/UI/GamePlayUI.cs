@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 
 namespace BloodScroll;
@@ -8,24 +7,13 @@ namespace BloodScroll;
 //
 // THE IN GAME HUD
 //
-// Three things pinned to the top of the screen and one to the bottom: what is
-// keeping you alive on the left, where you are in the middle, what it has been
-// worth on the right, and what E does right now along the bottom.
+// Top left: HP, shield, gun cooldowns, status tags. Top middle: which layer.
+// Top right: score. Bottom middle: what E does.
 //
-// NOTHING HERE HAS A BACKGROUND BEHIND IT. The menus are panels because they
-// are the only thing on the screen; the HUD is not, and a dark plate in each
-// corner of a game you are trying to look at is four holes punched in the
-// playfield. A bat crossing behind the health bar has to stay visible.
-//
-// So legibility is bought some other way. Every string on the HUD is plain
-// white with a solid black edge laid all the way round it, which holds a word
-// together over any background the generator comes up with - and white is the
-// one colour that never collides with the game behind it, because the game is
-// made of reds and greens and the sea. Colour still does the signalling here,
-// but it does it in the bars and the tags, never in a letterform. The bars
-// keep a dark track, because a bar with nothing behind it cannot show how empty
-// it is - but the track is only as wide as the bar and nothing else is filled
-// in at all.
+// NOTHING HERE HAS A BACKGROUND - the HUD sits over the playfield, so every
+// string is white with a black outline all the way round (UITheme.
+// DrawTextOutlined) instead of a dark plate. Colour signals in the bars and
+// tags, never in the text. Only the bars keep a dark track.
 //
 
 public class GamePlayUI
@@ -64,14 +52,8 @@ public class GamePlayUI
     // it and the switch that colours it can never drift apart.
     private const string DEBUG_TAG = "DEBUG";
 
-    //
-    // WHAT E DOES RIGHT NOW
-    //
-    // Along the bottom middle of the screen rather than over the flower or over
-    // the player's head: this is HUD, drawn in screen space, so it sits in the
-    // same place every time and does not go chasing a swinging flower head or
-    // wander off the top of the screen when the player is standing high up.
-    //
+    // WHAT E DOES RIGHT NOW. Bottom middle, in SCREEN space - not over the
+    // flower or the player, so it never chases a swinging head off the screen.
     private const string PLUCK_TEXT = "PICK UP";
     private const string PLANT_TEXT = "PLANT THE BOMB";
 
@@ -88,9 +70,9 @@ public class GamePlayUI
     // Called by Flower while the player is in reach of pulling it up
     public static void OfferPluck() => pluckOffered = true;
 
-    // Nothing to build any more - RoundedRect owns the one white pixel the bars
-    // are stretched from and bakes its own corners the first time it is asked
-    public void LoadContent(GraphicsDevice device) { }
+    // NOTHING TO LOAD. RoundedRect owns the one white pixel the bars are
+    // stretched from and bakes its own corners the first time it is asked, so
+    // this class had an empty LoadContent and no longer has one at all.
 
     public void Draw(IPlayer player, IWeaponsManager weapons)
     {
@@ -145,14 +127,10 @@ public class GamePlayUI
     //
     // ONE BAR PER SLOW GUN, under the health and the shield
     //
-    // Stacked in the order they are unlocked, so the stun sits under the shield
-    // and the shell sits under the stun and neither ever moves once it appears.
-    // Each bar is drawn in ITS OWN GUN'S COLOUR, the same colour as the gun in
-    // the player's hands and the shots coming out of it - there is no label to
-    // read in the middle of a fight, so the colour has to be the label.
+    // Stacked in unlock order, so no bar moves once it appears. Each is drawn in
+    // ITS OWN GUN'S COLOUR - the same colour as the gun and its shots.
     //
-    // A full bar means the gun is ready. It fills as the gun recharges rather
-    // than draining, because the thing worth glancing at is whether it is up.
+    // The bar FILLS as the gun recharges. Full means ready.
     //
     private float DrawWeaponCooldowns(IWeaponsManager weapons, float x, float y)
     {
@@ -245,14 +223,8 @@ public class GamePlayUI
         return statuses;
     }
 
-    //
-    // THE STATUSES, AS COLOURED TAGS
-    //
-    // A run of words all in the same white was a sentence you had to read. Each
-    // one wears the colour of the thing that caused it - the same green as the
-    // bat that poisoned you, the same red as the web holding you - so the row
-    // is glanceable and a bad status is red whether or not the word is read.
-    //
+    // THE STATUSES, AS COLOURED TAGS. Each wears the colour of what caused it -
+    // see StatusColour.
     private static void DrawStatusChips(IPlayer player, List<string> statuses, float x, float y)
     {
         foreach (string status in statuses)
@@ -316,12 +288,8 @@ public class GamePlayUI
             ? Globals.CurrentLayerType.ToUpper()
             : Globals.CurrentLayerType.ToUpper() + "   |   LAYER " + Globals.CurrentLayerIndex;
 
-        // A boss layer is the one you are not allowed to miss. It used to say so
-        // in red, which is the colour of half the things already on the screen -
-        // the blood, the health bar, the fire - and a red word at the top of a
-        // red fight is the first thing to disappear. It is white like the rest
-        // of the HUD now, and the underline the ordinary layers do not get is
-        // what marks it out.
+        // A boss layer is marked by the UNDERLINE, not by colour - the text
+        // stays white like the rest of the HUD.
         UITheme.DrawTextCentredOutlined(UISettings.fontUI, LevelString,
             Globals.VIRTUAL_WIDTH / 2f,
             HUD_TOP,
@@ -371,13 +339,9 @@ public class GamePlayUI
     //
     // THE E PROMPT
     //
-    // Carrying a bomb wins over standing on a flower, because the world takes
-    // the key press before any flower gets a look at it - a player with full
-    // hands always puts down what he is holding, so that is what it must say.
-    //
-    // The key itself is drawn as a key rather than written into the sentence:
-    // the one thing the player has to find is which button to press, and a
-    // little square with E in it is found without reading anything.
+    // Carrying a bomb WINS over standing on a flower - the world takes the key
+    // press before any flower sees it (GameWorld.UpdateBombs), so the prompt has
+    // to say the same.
     //
     private static void DrawInteractPrompt(IPlayer player)
     {
@@ -425,12 +389,7 @@ public class GamePlayUI
             UITheme.TextBright, VALUE_SCALE);
     }
 
-    //
-    // THE BOSS'S REMAINING HP, floated over the boss itself
-    //
-    // It moves with the thing it belongs to, and the number has to stay
-    // attached to it rather than to a corner of the screen.
-    //
+    // THE BOSS'S REMAINING HP, floated over the boss and moving with it
     public static void DrawBossHP(int HP, float x, float y)
     {
         // White with the same black edge as the rest of the HUD. This number

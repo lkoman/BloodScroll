@@ -1,24 +1,21 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
+using Microsoft.Xna.Framework.Input;
 
 namespace BloodScroll;
 
 //
 // WHERE EVERYTHING ON A MENU GOES
 //
-// Four screens - main, settings, pause, death - are all the same object: a
-// title, sometimes a line of small text under it, and a stack of buttons. They
-// used to each work their own positions out, which is why the pause screen sat
-// at a different height from the main menu and the death screen at a third.
+// Four screens - main, settings, pause, death - are the same object: a title,
+// sometimes a line of small text, and a stack of buttons.
 //
-// This measures the whole thing once and centres it, so a screen is described
-// by WHAT is on it and never by where. Adding a fifth button to a menu moves
-// nothing by hand - the block just gets taller and re-centres itself.
+// Measures the whole block once and centres it, so a screen says WHAT is on it
+// and never where. Adding a fifth button moves nothing by hand.
 //
-// It is built fresh whenever the text changes rather than cached, because the
-// subtitle on the death screen is different every run and the high score line
-// on the main menu changes width the moment you beat it.
+// Built fresh whenever the text changes rather than cached - the death screen's
+// subtitle differs every run.
 //
 
 public readonly struct MenuLayout
@@ -43,18 +40,9 @@ public readonly struct MenuLayout
     // first button, and it needs more than it would need before a line of text
     private const int DIVIDER_TO_BUTTONS = 44;
 
-    //
-    // HOW WIDE THE PANEL IS
-    //
-    // Wide enough for the widest thing standing on it, not just for the
-    // buttons. BLOOD SCROLL in the title font is nearly twice the width of a
-    // button, and a panel sized only to its buttons had the title hanging out
-    // over both edges of it.
-    //
-    // Capped, though, or the main menu would be a panel almost as wide as the
-    // screen. Anything wider than the cap is shrunk to fit instead - which for
-    // the title means it is drawn a little smaller, and it is still by far the
-    // biggest thing on the screen.
+    // HOW WIDE THE PANEL IS. The widest thing on it, not just the buttons -
+    // BLOOD SCROLL is nearly twice a button's width. Capped, and anything wider
+    // than the cap is shrunk to fit (see TitleScale).
     private const int MAX_INNER_WIDTH = 760;
 
     public MenuLayout(string title, SpriteFont titleFont,
@@ -135,13 +123,34 @@ public readonly struct MenuLayout
             FirstButtonY + index * (_buttonHeight + UITheme.ButtonGap));
 
     //
-    // THE PANEL ITSELF, AND EVERYTHING THAT IS THE SAME ON ALL FOUR SCREENS
+    // THE WHOLE STACK, IN THE ORDER IT IS HANDED OVER
     //
-    // Drawn as: a shadow spread under it so it floats, the shaded body, a
-    // hairline of light just inside the top edge to catch it, and the border.
-    // The accent stripe across the top is what ties the panel to the divider
-    // and to whichever button is hovered.
+    // Places each button, ticks its hover animation, and returns the cursor the
+    // row wants - a hand if the mouse is over any of them.
     //
+    public readonly MouseCursor PlaceButtons(IAudioService audio, Vector2 buttonSize, params Button[] buttons)
+    {
+        bool anyHovered = false;
+
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            buttons[i].Place(ButtonAt(i, buttonSize));
+            buttons[i].UpdateHoverColor(audio);
+
+            anyHovered |= buttons[i].Hover();
+        }
+
+        return anyHovered ? MouseCursor.Hand : MouseCursor.Arrow;
+    }
+
+    public static void DrawButtons(SpriteFont font, params Button[] buttons)
+    {
+        foreach (Button button in buttons)
+            button.Draw(font);
+    }
+
+    // THE PANEL, THE SAME ON ALL FOUR SCREENS. Back to front: a shadow under it,
+    // the shaded body, a hairline of light inside the top edge, the border.
     public readonly void DrawPanel()
     {
         RoundedRect.Glow(Panel, UITheme.Shadow, UITheme.RadiusPanel, 26, 0.30f);
@@ -161,14 +170,11 @@ public readonly struct MenuLayout
     //
     // THE TITLE, AT WHATEVER SIZE IT ENDED UP FITTING AT
     //
-    // Drawn through here rather than by each screen, because the scale the
-    // panel worked out has to be the scale it is painted at - a screen that
-    // reached for DrawString itself would put a full size title on a panel
-    // measured for a shrunk one and hang it out over both edges again.
+    // Drawn HERE and not by each screen, so the scale the panel worked out is
+    // the scale it is painted at.
     //
-    // lit is for the two red titles, BLOOD SCROLL and YOU DIED: a soft copy of
-    // the word underneath its own accent colour, so it reads as lit from behind
-    // rather than painted on.
+    // lit is for the two red titles (BLOOD SCROLL, YOU DIED) - a soft copy of
+    // the word underneath in the accent colour.
     //
     public readonly void DrawTitle(SpriteFont font, string title, Color colour, bool lit = false)
     {
@@ -182,11 +188,10 @@ public readonly struct MenuLayout
     //
     // THE LINE OR TWO UNDER THE DIVIDER
     //
-    // Centred one line at a time rather than handed to DrawString as a block:
-    // a block is centred on its WIDEST line, which leaves a short second line
-    // hanging off to the left. The death screen writes two lines of different
-    // lengths in different colours, so this takes a colour per line and falls
-    // back to the last one it was given for any line beyond that.
+    // Centred one line at a time - a block is centred on its WIDEST line, which
+    // leaves a short second line hanging off to the left.
+    //
+    // Takes a colour per line and reuses the last one for any line beyond that.
     //
     public readonly void DrawSubtitle(SpriteFont font, string subtitle, params Color[] colours)
     {

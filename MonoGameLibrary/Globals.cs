@@ -18,9 +18,8 @@ public static class Globals
     public static bool SETTINGS_MENU { get; set; } = false;
 
     // GAMEPLAY
-    // 0 - baby, 1 - medium, 2 - hell. MEDIUM is what the game is tuned as and
-    // the other two are it bent one step either way - see Difficulty, which is
-    // the only place that reads this and the only place worth editing.
+    // 0 baby, 1 medium, 2 hell. See Difficulty - the only place that reads this
+    // and the only place worth editing.
     public static int DIFFICULTY { get; set; } = 1;
     public static bool PLAYER_ALIVE { get; set; } = true;
     public static int[] HIGH_SCORE { get; set; } = [0, 0, 0];
@@ -81,45 +80,37 @@ public static class Globals
     public static Color Yellow { get; } = new Color(255, 224, 92); // the shield
     public static Color HealGreen { get; } = new Color(99, 199, 77); // the butterfly - the only thing on screen that helps
 
-    // THE TWO SLOW GUNS. Each one wears the same colour in three places - the
-    // gun in your hand, the shot leaving it and the cooldown bar in the corner -
-    // so a bar filling up in the HUD is obviously the gun you are holding.
+    // THE TWO SLOW GUNS. Each wears the same colour in three places: the gun,
+    // its shot, and its cooldown bar in the HUD.
     public static Color BlastOrange { get; } = new Color(230, 106, 46); // the shell gun and its explosions
     public static Color StunPurple { get; } = new Color(154, 99, 214);  // the stun gun and its shot
 
-    // A mob frozen by a stun shot. Nothing else in the game is drawn this cold,
-    // so a pale blue mob means "this one is not moving" and nothing else.
+    // THE SWORD - the only bar in the HUD that does not belong to a gun. Cold,
+    // so it is not confused with the rifle's cream or the shell's orange.
+    public static Color SwordSteel { get; } = new Color(198, 214, 226);
+
+    // A mob frozen by a stun shot. Nothing else is drawn this cold.
     public static Color StunBlue { get; } = new Color(122, 190, 235);
 
-    // THE GREEN BAT AND WHAT IT LEAVES IN YOU. Deliberately NOT HealGreen -
-    // that one is the butterfly and it means "this helps". This is the sour,
-    // yellowed version of it: the same family of colour gone wrong, worn by the
-    // bat, by its shots and by the player while it is working on him.
+    // THE GREEN BAT AND ITS POISON. NOT HealGreen - that is the butterfly and
+    // means "this helps". Worn by the bat, its shots, and the poisoned player.
     public static Color PoisonGreen { get; } = new Color(140, 176, 62);
 
-    // THE ROOTING SPIDER AND ITS WEB. The brightest thing in the game, on
-    // purpose. This used to be almost the colour of the background, on the
-    // theory that a shot you cannot see coming is frightening - and it is, but
-    // losing the controls to something the player never had a chance to read is
-    // not difficulty, it is a coin flip. Fluorescent, so the spider is pickable
-    // out of the ceiling and the web is dodgeable in the air.
-    //
-    // Louder than either green already in use (HealGreen, PoisonGreen) so it
-    // cannot be read as the butterfly or the green bat.
+    // THE ROOTING SPIDER AND ITS WEB. The brightest thing in the game, so the
+    // spider can be picked out of the ceiling and the web dodged in the air.
+    // Louder than HealGreen and PoisonGreen so it cannot be confused with them.
     public static Color RootWeb { get; } = new Color(57, 255, 20);
 
     //
     // WHO FIRED IT
     //
-    // No bullet in the game is a sprite any more - every one of them is the
-    // same code drawn circle (see BulletTexture), so the COLOUR is the only
-    // thing left that says where a shot came from and what it will do when it
-    // lands. That makes these load bearing rather than decorative, and no two
-    // of them may be close enough to be mistaken for each other mid fight.
+    // Every bullet is the same code drawn circle (see BulletTexture), so COLOUR
+    // is the only thing saying where a shot came from. LOAD BEARING, not
+    // decorative - no two may be close enough to confuse mid fight.
     //
-    // The mobs that already own a colour elsewhere keep it and are not listed
-    // here: the green bat's shots are PoisonGreen, the shadow twin's are its
-    // own SHADOW violet, and the two slow guns are BlastOrange and StunPurple.
+    // Mobs that own a colour elsewhere are not listed here: the green bat's
+    // shots are PoisonGreen, the shadow twin's its own SHADOW violet, and the
+    // two slow guns BlastOrange and StunPurple.
     //
     public static Color PistolBlue { get; } = new Color(86, 168, 235);  // the starter pistol
     public static Color RifleGold { get; } = new Color(238, 216, 150);  // the long gun - deliberately PALE, see below
@@ -127,10 +118,9 @@ public static class Globals
     public static Color CrabRed { get; } = new Color(219, 58, 58);      // the crab, firing straight up
     public static Color BossYellow { get; } = new Color(255, 199, 26);  // the fire boss
 
-    // The rifle and the fire boss are the one pair that could be confused -
-    // both are warm and both come at you in numbers. So the rifle is washed out
-    // almost to cream and the boss is the deepest, most saturated yellow in the
-    // game: the bright one is always the one that is trying to kill you.
+    // The rifle and the fire boss are the pair most easily confused - both warm.
+    // The rifle is washed almost to cream, the boss is the most saturated yellow
+    // in the game: THE BRIGHT ONE IS THE ONE TRYING TO KILL YOU.
 
     public static void Update(GameTime gameTime)
     {

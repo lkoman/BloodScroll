@@ -9,22 +9,16 @@ namespace BloodScroll;
 //
 // BOSS - THE HOLE
 //
-// A black hole hanging in the middle of the arena. It never moves and never
-// touches the player: everything that hurts climbs out of the middle of it, so
-// the pressure comes from the room filling up rather than from the boss.
+// A black hole in the middle of the arena. It never moves and never touches the
+// player - everything that hurts climbs out of the middle of it.
 //
-// SHOOTING IT IS WHAT SPEEDS IT UP. At full HP it lets something out every few
-// seconds and the layer is quiet; the more of it you have shot off, the harder
-// it works, until it is spitting one out a second. So there is no safe pace -
-// killing it fast means eating the flood, and taking it slow means the room
-// fills anyway.
+// SHOOTING IT SPEEDS IT UP. At full HP it spawns every few seconds; the more of
+// it you have shot off, the faster, up to one a second.
 //
-// The spin and the colour of the disc say the same thing the spawn rate does,
-// so the player can read how bad it is about to get without counting mobs.
+// The spin and colour of the disc track the spawn rate.
 //
-// There is no art for it anywhere in the atlases. The hole is baked pixel by
-// pixel at the bottom of this file, the same way the web and the moth's gust
-// are, so nothing has to be drawn for it.
+// No art anywhere in the atlases - baked pixel by pixel at the bottom of this
+// file.
 //
 
 public class Hive : MobBase
@@ -168,12 +162,11 @@ public class Hive : MobBase
     //
     // THE HOLE ITSELF, BAKED PIXEL BY PIXEL
     //
-    // Baked once at the size it is drawn at, because the world is drawn with
-    // PointClamp and scaling would chew up the thin ring.
+    // Baked at the size it is drawn - the world uses PointClamp and scaling
+    // would chew up the thin ring.
     //
     // Black in the middle and OPAQUE, so it reads as a piece missing out of the
-    // level rather than a dark sprite laid over it, with the disc of matter
-    // spiralling into it around the outside.
+    // level rather than a dark sprite laid over it.
     //
     private static Texture2D Bake(int size)
     {

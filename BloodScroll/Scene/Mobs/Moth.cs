@@ -8,32 +8,25 @@ namespace BloodScroll;
 //
 // BOSS - MOTH
 //
-// She is pinned to the screen by the middle of her body, the same way the
-// spider queen is: she never flips left or right, she TURNS, and her head
-// follows the player wherever he goes. Every attack she has is fired down the
-// line she is looking along at the moment she commits, so the turn is the tell
-// and stepping out of that line is the whole defence.
+// Pinned by the middle of her body, same as the spider queen: she never flips,
+// she TURNS, and her head follows the player. Every attack fires down the line
+// she is looking along when she commits, so the turn is the tell.
 //
-// She has exactly two attacks:
+// TWO ATTACKS:
 //
-//   THE WING GUST - she stops dead, turns to look at you, beats her wings and
-//       throws a wall of air down that line. It hurts, and more importantly it
-//       throws you off whatever you were standing on. Four of these in a row.
-//   THE RAM - after the fourth gust she lines up properly and charges, body
-//       first, exactly like the queen's lunge.
+//   WING GUST - stops, turns, beats her wings and throws a wall of air down
+//       that line. Hurts, and throws the player off what he was standing on.
+//       Four in a row.
+//   RAM       - after the fourth gust, charges body first like the queen.
 //
-// Then there is the cocoon. She flies home, shuts herself in and heals hard -
-// a long hide is worth close to half her bar. While she is in there she cannot
-// be touched at all, so it is dead air the player can do nothing about except
-// have hit harder before it started.
+// THE COCOON. She flies home, shuts herself in and heals close to half her bar.
+// She cannot be touched while inside.
 //
-// She does NOT run home after every ram. Below HALF her health the ram is what
-// sends her back, and on top of that she can break off between any two attacks
-// on a coin toss - so the player can never time the healing.
+// She does NOT go home after every ram: below HALF HP the ram sends her back,
+// and she can also break off between any two attacks on a coin toss.
 //
-// The cocoon never moves. She chases the player up through the layers, but the
-// cocoon stays hanging in the arena she started in, so the further he has
-// dragged her the longer the round trip home costs her.
+// The cocoon never moves - she chases the player up through the layers, so the
+// further he drags her the longer the round trip home costs her.
 //
 
 public class Moth : MobBase
@@ -53,16 +46,11 @@ public class Moth : MobBase
     //
     // WHICH WAY THE ART FACES
     //
-    // Everything below turns her so her head points at the player, which means
-    // the code has to know where the head is in the drawing BEFORE anything is
-    // turned. Change this one line to match what you draw:
+    // The code turns her head towards the player, so it needs to know where the
+    // head points in the drawing BEFORE any rotation:
+    //   UP -> -PiOver2 (top down),  RIGHT -> 0f (side on)
     //
-    //   head drawn pointing UP    -> -MathHelper.PiOver2   (top down moth)
-    //   head drawn pointing RIGHT ->  0f                   (side on moth)
-    //
-    // Draw her with the body centred in the frame - the middle of the frame is
-    // the pin she spins on, so a body drawn off to one side will swing around
-    // instead of turning on the spot.
+    // Draw the body CENTRED in the frame - the middle is the pin she spins on.
     //
     private const float ART_FACING = -MathHelper.PiOver2;
 
@@ -73,32 +61,25 @@ public class Moth : MobBase
     private const float TURN_AIMING = 3.4f;     // and while she lines an attack up
     private const float AIM_TOLERANCE = 0.10f;  // how straight is straight enough
 
-    //
-    // THE CYCLE
-    //
-    // Four gusts, then a ram, then round again. Long enough between them that
-    // each one reads as an event rather than as weather.
-    //
+    // THE CYCLE. Four gusts, then a ram, then round again.
     private const int GUSTS_PER_VOLLEY = 4;
     private int gustsFired = 0;
 
-    // True from the end of a ram until the next gust goes out, so the low
-    // health retreat hangs off the ram and not off every single attack
+    // True from the end of a ram until the next gust, so the low health retreat
+    // hangs off the RAM and not off every attack
     private bool rammedLast = false;
 
     private const float HOVER_SECONDS = 1.6f;    // drifting, between attacks
     private const float FLAP_SECONDS = 0.5f;     // wings beating, gust about to go
     private const float RECOVER_SECONDS = 0.35f; // caught out in the open afterwards
 
-    // She holds the aim for at least this long even when she was already
-    // looking straight at him. The turn is the only warning an attack gives,
-    // and a warning nobody had time to see is not a warning. The ram gets a
-    // longer one because it is the one that can take half your health.
+    // Minimum aim time even when already looking straight at him - the turn is
+    // the only warning an attack gives. The ram gets longer.
     private const float AIM_MIN_SECONDS = 0.35f;
     private const float RAM_AIM_SECONDS = 0.6f;
 
-    // She fires anyway once this runs out, so circling her forever is not a way
-    // to keep her harmless
+    // She fires anyway once this runs out, so circling her forever does not
+    // keep her harmless
     private const float AIM_MAX_SECONDS = 1.5f;
 
     private const float RAM_SECONDS = 0.9f;
@@ -110,8 +91,8 @@ public class Moth : MobBase
     // How fast she stops drifting when she plants herself to aim
     private const float SETTLE = 0.82f;
 
-    // The line she committed to. Everything she throws goes here, not at
-    // wherever the player has got to since - so it can be dodged on the windup.
+    // THE LINE SHE COMMITTED TO. Everything she throws goes here, not at where
+    // the player has got to since, so it can be dodged on the windup.
     private Vector2 committed = Vector2.UnitX;
     private bool ramNext = false;
     private bool hitTheFloor = false;
@@ -130,9 +111,7 @@ public class Moth : MobBase
     private const float HIDE_MAX_SECONDS = 5f;
     private float hideSeconds = 0f;
 
-    // Real healing, not a trickle. The longest hide is worth close to half her
-    // bar, so a hide the player lets her finish genuinely undoes a chunk of the
-    // fight - the pressure is on getting her down before she can bank it.
+    // The longest hide is worth close to half her bar
     private const int REGEN_PER_SECOND = 110;
     private float regenCarry = 0f;
 
@@ -153,11 +132,9 @@ public class Moth : MobBase
 
     protected override Vector2 HitboxScale => new(0.65f, 0.70f);
 
-    // Wings spread wide to either side of a narrow body, which a rectangle
-    // cannot express at all - a box round this frame is mostly the empty
-    // corners above the wingtips. This traces the silhouette instead, in
-    // fractions of the sprite frame, clockwise from the top of the head. It
-    // turns with her, so it stays on the drawing at every angle.
+    // Wings spread either side of a narrow body - a box round this frame is
+    // mostly empty corners. Traced in fractions of the frame, clockwise from the
+    // top of the head. Turns with her.
     protected override Vector2[] HitboxShape =>
     [
         new(0.50f, 0.18f),
@@ -236,12 +213,9 @@ public class Moth : MobBase
             case Phase.Hidden: Hiding(); break;
         }
 
-        // She belongs to the pane of her own screen - she drifts it, she never
-        // leaves it, and a ram that would carry her off it stops at the edge.
-        //
-        // Only while she is fighting, though. The cocoon can be layers below
-        // the arena she is holding, and the flight home has to be allowed to
-        // cross that gap.
+        // Held to her own screen - a ram that would carry her off stops at the
+        // edge. Only while FIGHTING: the cocoon can be layers below, and the
+        // flight home has to cross that gap.
         if (phase == Phase.Fighting)
             ClampToArena();
 
@@ -271,11 +245,9 @@ public class Moth : MobBase
         if (cocoon == null)
             return;
 
-        // She is not dropped into the room, she comes OUT of the cocoon that has
-        // been hanging there shut since the player walked in. This is her first
-        // frame, so putting her on top of it is the whole birth: the cocoon
-        // opens the moment she is out (MothInside above reads her phase), and
-        // she drifts off it under her own steam.
+        // She comes OUT of the cocoon rather than being dropped in. This is her
+        // first frame, so she starts on top of it - the cocoon opens as soon as
+        // she is out (MothInside reads her phase).
         Sprite.Position = RestPosition;
 
         RebuildBounds();
@@ -546,21 +518,16 @@ public class Moth : MobBase
     //
     // CHASING HIM OUT OF THE ARENA
     //
-    // A layer keeps running after the player has left it, so without this she
-    // would spend the rest of the fight gusting at an empty room a screen below
-    // him while he walked away from a boss he never beat.
+    // A layer keeps running after the player leaves it, so without this she
+    // would gust at an empty room while he walked away from the fight.
     //
-    // So she flies after him. She stops attacking, goes straight at him through
-    // the ceiling, and the moment she is inside his layer she takes it as her
-    // arena and picks the fight up there.
+    // She stops attacking, flies straight at him through the ceiling, and takes
+    // his layer as her new arena.
     //
-    // The cocoon does NOT come with her - it stays hanging wherever it was
-    // built. That is what gives healing a price: the further she has chased him
-    // up the tower, the longer the flight home and back, and every second of it
-    // is a second she is not attacking. See Returning.
+    // The cocoon does NOT come with her - see Returning.
     //
-    // SpawnLayer is where her arena is, not only where she started, and every
-    // arena edge she is held to is measured from it.
+    // SpawnLayer is where her ARENA is, not only where she started. Every arena
+    // edge is measured from it.
     //
     private const float CLIMB_SPEED = 900f;
 

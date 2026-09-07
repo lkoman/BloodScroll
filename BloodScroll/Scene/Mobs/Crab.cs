@@ -42,6 +42,11 @@ public class Crab : MobBase
 
     protected override Vector2 HitboxScale => new(0.70f, 0.85f);
 
+    // IT WALKS, IT DOES NOT FLY. Every shove it takes - the rifle's, the
+    // sword's - is flattened to left or right, so a hit from above pushes it
+    // along the ground instead of lifting it off it. See MobBase.HorizontalOnly.
+    protected override bool HorizontalOnly => true;
+
     public Crab()
     {
         SetHP(MAX_HP);

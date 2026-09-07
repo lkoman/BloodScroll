@@ -20,6 +20,9 @@ public interface IWeaponsManager
     public IReadOnlyList<WeaponCooldown> Cooldowns { get; }
 
     public void UnlockNewWeapon(int weaponID);
+
+    // The sword, which is not one of the guns and so is not a weaponID
+    public void UnlockSword();
     // step of +1 walks up the arsenal, -1 walks back down it
     public void SwitchWeapon(int step = 1);
 

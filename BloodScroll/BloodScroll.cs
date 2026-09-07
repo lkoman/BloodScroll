@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -66,7 +66,7 @@ public class BloodScroll : Core
         SaveManager.Load();
 
         audioService = new AudioService(Content);
-        userInterface.LoadContent(GraphicsDevice, audioService);
+        userInterface.LoadContent();
 
         gameWorld = new GameWorld();
         player = new Player();
@@ -141,14 +141,9 @@ public class BloodScroll : Core
         // Height at which all non flying characters will be standing
         Globals.GroundHeight = windowHeight - 250;
 
-        // FOREGROUND SPRITE (aesthetics)
-        //
-        // It is drawn over EVERYTHING - the mobs, the player, his bullets - so
-        // anything that wanders under the frame at the edges of the screen is
-        // simply gone while it is there. Held back a little, so the edges read
-        // as something in front of the room rather than a hole in it: a bat
-        // coming in from the side is a shape behind the art instead of a bat
-        // that was not on screen a moment ago.
+        // FOREGROUND SPRITE (aesthetics). Drawn over EVERYTHING, so anything
+        // under the frame at the edges is hidden while it is there. Held back
+        // from full alpha so what passes behind it can still be made out.
         _foreground = Globals.Foregrounds.CreateSprite("foreground");
         _foreground.Color = Color.White * FOREGROUND_ALPHA;
 
@@ -161,7 +156,13 @@ public class BloodScroll : Core
             return;
 
         CheckIfGamePaused();
-        CheckDebugKeys();
+
+        // Separate from the pause handling above, because that one stops
+        // listening the moment the player dies or opens the menu and the debug
+        // keys have to keep working on the death screen - that is often exactly
+        // when you want to switch one on.
+        DebugMode.Update(player, weaponsManager);
+
         UpdateScreenOverlay();
 
         if (Globals.PAUSE || !Globals.PLAYER_ALIVE)
@@ -348,19 +349,9 @@ public class BloodScroll : Core
 
         Globals.LastKeyboardState = Globals.CurrentKeyboardState;
 
-        if (Globals.PAUSE && !userInterface.GiftCardDisplayed)
-            Globals.DISPLAY_PAUSE_MENU = true;
-        else
-            Globals.DISPLAY_PAUSE_MENU = false;
-    }
-
-    // Separate from the pause handling because that one stops listening the
-    // moment the player dies or opens the menu, and the debug keys have to
-    // keep working on the death screen - that is often exactly when you want
-    // to switch one on.
-    private void CheckDebugKeys()
-    {
-        DebugMode.Update(player, weaponsManager);
+        // The gift card pauses the game too, but it draws itself - the pause
+        // menu must not come up over the top of it
+        Globals.DISPLAY_PAUSE_MENU = Globals.PAUSE && !userInterface.GiftCardDisplayed;
     }
 
     private void DrawDebugBoundingBoxes()
@@ -405,6 +396,12 @@ public class BloodScroll : Core
             tmpC.Y += (int)Globals.CameraOffset.Y;
             debugRenderer.DrawCircle(tmpC, Color.Red);
         }
+
+        // THE SWORD'S QUARTER CIRCLE, and only while one is being swung. This
+        // is the shape everything inside it was actually measured against, not
+        // a redrawing of it - so what the overlay shows is what got hit.
+        if (weaponsManager.Sword.Arc.HasValue)
+            debugRenderer.DrawPolygon(weaponsManager.Sword.Arc.Value, Globals.CameraOffset, Globals.SwordSteel);
         // THE PLAYER'S TWO BOXES, in two colours because they do two jobs.
         // Green is what can be hit, cyan is what he stands on - and the gap
         // between the cyan and the sides of the sprite is the whole reason

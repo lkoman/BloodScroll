@@ -15,12 +15,12 @@ public enum BulletEffect
     Damage,
     Slow,
 
-    // The black spider's web. Not a stronger slow - a different thing entirely:
-    // it takes the controls away for a second instead of taxing them.
+    // The green spider's web. Not a stronger slow - it takes the controls away
+    // for a second instead of taxing them.
     Root,
 
-    // The green bat's shot. Hurts on arrival and then keeps taking HP for ten
-    // seconds afterwards, past the shield, down to a floor it will not cross.
+    // The green bat's shot. Hurts on arrival, then keeps taking HP past the
+    // shield down to Player.POISON_FLOOR.
     Poison
 }
 
@@ -36,13 +36,9 @@ public class Bullet: IDrawableLayer
     //
     // THE SPRITE IS A RULER, NOT A PICTURE
     //
-    // Nothing draws it any more - every shot is a code drawn circle. What the
-    // atlas region is still good for is its SIZE: the hitbox has always been
-    // measured off the frame, and the circle is now drawn at exactly that
-    // radius, so what you see on screen is the thing that actually hits.
-    //
-    // That is why the shooters still name a region. It is how big the shot is,
-    // and no longer what it looks like.
+    // Nothing draws it - every shot is a code drawn circle. The atlas region is
+    // only its SIZE: the hitbox is measured off the frame and the circle is
+    // drawn at that same radius, so what you see is what hits.
     //
     public Sprite _bullet;
     public Circle bulletBounds;
@@ -56,19 +52,16 @@ public class Bullet: IDrawableLayer
     //
     // WHAT THIS PARTICULAR SHOT DOES
     //
-    // A plain bullet leaves all of these alone and behaves exactly as it always
-    // has. The two slow guns set them after LoadContent, so one bullet class
-    // still covers every shot in the game.
+    // A plain bullet leaves all of these alone. The two slow guns set them after
+    // LoadContent, so one class covers every shot in the game.
     //
 
-    // What the circle is filled with. The gun, the shot and its cooldown bar
-    // all wear the same colour, so a purple streak is obviously the purple gun -
-    // and for a mob it is the ONLY thing that says which one shot at you.
+    // The gun, its shot and its cooldown bar all wear the same colour. For a mob
+    // this is the ONLY thing saying which one shot at you.
     public Color Tint = Color.White;
 
-    // A SHELL rather than a bullet: it does no damage where it lands, it goes
-    // off, and the blast is what hurts. Detonation is asked of the world by
-    // whoever notices it - see GameWorld.Detonate.
+    // A SHELL does no damage where it lands - it goes off and the blast hurts.
+    // See GameWorld.Detonate.
     public bool Explosive = false;
     public float BlastRadius = 0f;
 
@@ -77,10 +70,8 @@ public class Bullet: IDrawableLayer
     public float Fuse = 0f;
     public bool FuseSpent { get; private set; } = false;
 
-    // THE PLAYER SAYING "NOW". Ends the fuse early, which is the same thing to
-    // everybody downstream as the fuse running out on its own - whoever is
-    // watching FuseSpent detonates it and the shell is spent. Nothing here
-    // knows why it was cut, and nothing needs to.
+    // Ends the fuse early. Downstream this is identical to the fuse running out
+    // on its own - whoever watches FuseSpent detonates it.
     public void CutFuse()
     {
         Fuse = 0f;
@@ -98,58 +89,39 @@ public class Bullet: IDrawableLayer
     // Blasts are measured from here.
     public Vector2 Centre => _bullet.Position + new Vector2(_bullet.Width, _bullet.Height) * 0.5f;
 
-    // A WEB SHOT
+    // A WEB SHOT. The same orb web the player gets wrapped in, only small - see
+    // WebTexture, there is no web art in the atlas.
     //
-    // Drawn as the same orb web the player gets wrapped in, only small - not
-    // from the atlas, which has no web art in it. Slowing is the only thing a
-    // web does and nothing else in the game slows you from a distance, so the
-    // effect is what tells a web shot apart from an ordinary one.
-    //
-    // The sprite underneath is still there, because that is what the hitbox is
-    // measured from - it is just stretched to the web that is drawn in its place.
+    // The sprite underneath is still what the hitbox is measured from; it is
+    // just stretched to the web drawn in its place.
     private const int WEB_SIZE = 48;
     private bool IsWeb => Effect == BulletEffect.Slow || Effect == BulletEffect.Root;
 
-    //
-    // THE BORDER
-    //
-    // A flat disc of one colour disappears into a busy background, and the two
-    // shots that most need to be seen coming are the two darkest ones in the
-    // game (the shadow twin's violet, the crab's red). So every circle is drawn
-    // as a pale rim with the colour sat inside it: whatever the fill is, the
-    // outline is bright, and a shot always has an edge to read against the
-    // world behind it.
-    //
-    // Thick enough to see at the smallest bullet in the game and never thick
-    // enough to swallow the colour it is supposed to be framing.
+    // THE BORDER. Every circle is a pale rim with the colour inside it, so a
+    // dark shot still has a bright edge against a busy background.
     private const float BORDER_SHARE = 0.16f;
     private const int BORDER_MIN = 2;
 
-    // How far towards white the rim is walked. Far enough to be obviously
-    // lighter than the fill, short of white itself - a rim gone all the way to
-    // white makes every shot in the game look the same from a distance.
+    // How far towards white the rim is walked. Short of white itself, or every
+    // shot looks the same from a distance.
     private const float BORDER_LIGHTEN = 0.6f;
 
-    // A rooting web is the same strands lit up. It is the ONE warning that this
-    // shot will nail the player down rather than merely slow him, so it is the
-    // loudest colour in the game - a web he has to be out of the way of is a
-    // web he has to be able to see coming.
+    // A rooting web is the same strands lit up - the ONE warning that this shot
+    // nails the player down rather than slowing him.
     private Color WebColour => Effect == BulletEffect.Root ? Globals.RootWeb : Color.White;
 
     public Bullet() {}
 
     public void LoadContent(Vector2 spawn, Vector2 target, string bulletType, int damage, float speed, BulletEffect effect = BulletEffect.Damage, float scale = 1f)
     {
-        _bullet = new Sprite();
         _bullet = Globals.Weapons.CreateSprite(bulletType);
 
         DAMAGE = damage;
         SPEED = speed;
         Effect = effect;
 
-        // The hitbox is measured off the sprite below, so a shot drawn bigger
-        // is a shot that HITS bigger - which is the whole difference between
-        // the small fast gun and the big slow one
+        // The hitbox is measured off the sprite, so a shot drawn bigger HITS
+        // bigger
         if (scale != 1f)
             _bullet.Scale = new Vector2(scale, scale);
 
@@ -158,8 +130,7 @@ public class Bullet: IDrawableLayer
                 (float)WEB_SIZE / _bullet.Region.Width,
                 (float)WEB_SIZE / _bullet.Region.Height);
 
-        // A poison shot is green, so it is obvious in the air which of the two
-        // bats it came from without having to find the bat that fired it
+        // Poison shots are always green, whoever fired them
         if (Effect == BulletEffect.Poison)
             Tint = Globals.PoisonGreen;
 
@@ -193,8 +164,22 @@ public class Bullet: IDrawableLayer
         bulletBounds = CollisionManager.UpdateBoundingCircle(bulletBounds, _bullet);
     }
 
-    // A shell keeps flying while its fuse burns. Nothing stops it going off:
-    // hit or miss, when the timer runs out it explodes where it is.
+    //
+    // STEPPING BACK OUT OF WHAT IT JUST HIT
+    //
+    // A bounce only turns the shot around, it does not move it - so without this
+    // the next frame finds it still inside the ledge and spends its one bounce.
+    //
+    // Bounds are refreshed here rather than in the next Update, because the rest
+    // of THIS frame's platforms are still to be tested against them.
+    //
+    public void PushOut(Vector2 away)
+    {
+        _bullet.Position += away;
+        bulletBounds = CollisionManager.UpdateBoundingCircle(bulletBounds, _bullet);
+    }
+
+    // A shell keeps flying while its fuse burns, then goes off where it is
     private void BurnFuse()
     {
         if (Fuse <= 0f)
@@ -217,13 +202,8 @@ public class Bullet: IDrawableLayer
         DrawCircle();
     }
 
-    //
-    // A DISC IN A PALER DISC
-    //
-    // Drawn at the bounding circle's own radius, so the shot on screen IS the
-    // hitbox - the old sprites carried a couple of pixels of transparent
-    // padding and every one of them hit slightly wider than it looked.
-    //
+    // A DISC IN A PALER DISC, drawn at the bounding circle's own radius - so the
+    // shot on screen IS the hitbox.
     private void DrawCircle()
     {
         int diameter = bulletBounds.Radius * 2;
@@ -254,9 +234,8 @@ public class Bullet: IDrawableLayer
         );
     }
 
-    // A lit shell flashes towards white, faster the nearer it is to going off -
-    // the same telegraph the butterfly's fuse uses, so a fuse always reads the
-    // same way whoever lit it. Everything else is just its own colour.
+    // A lit shell flashes towards white, faster the nearer it is to going off.
+    // Same telegraph as the butterfly's fuse. Everything else is its own colour.
     private Color ShotColour()
     {
         if (!Explosive || FuseSpent)

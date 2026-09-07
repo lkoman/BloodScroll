@@ -6,17 +6,14 @@ namespace MonoGameLibrary;
 //
 // CONVEX POLYGON HITBOX - SEPARATING AXIS THEOREM
 //
-// A rectangle is a poor fit for a lot of shapes: a spider is mostly legs, a
-// moth is mostly wing. This gives those a hitbox that follows the drawing.
+// A hitbox that follows the drawing, for shapes a rectangle fits badly.
 //
-// SAT in one sentence: two convex shapes are apart if and only if there is
-// some line onto which their shadows do not overlap. Only the edge normals of
-// the two shapes can be that line, so we project both onto each normal and
-// look for a gap. One gap is enough to prove they do not touch; if no normal
-// gives a gap, they are overlapping.
+// SAT: two convex shapes are apart if and only if there is some line onto which
+// their shadows do not overlap. Only the edge normals can be that line, so both
+// are projected onto each normal and checked for a gap. ONE gap proves they do
+// not touch.
 //
-// Only valid for CONVEX polygons - a concave shape has to be split into
-// convex pieces first.
+// ONLY VALID FOR CONVEX POLYGONS - a concave shape must be split up first.
 //
 
 public struct Polygon
@@ -26,16 +23,15 @@ public struct Polygon
     private Vector2 offset;
 
     // For shapes that turn (the spider queen aiming her ram). Turning a convex
-    // shape leaves it convex, so SAT below needs no changes at all.
+    // shape leaves it convex, so SAT needs no changes.
     private float rotation;
     private Vector2 pivot;
 
-    // For shapes that FACE (the player, who flips when he runs left). Mirroring
-    // is what lets an outline be drawn tight around a sprite that is not
-    // symmetric - without it the only safe outline is a symmetric one, which
-    // means a loose one. Mirroring also leaves a convex shape convex, though it
-    // reverses the winding, which is why the normals below take their sign from
-    // nothing and only the axis matters.
+    // For shapes that FACE (the player, who flips when he runs left), so an
+    // outline can be drawn tight around an asymmetric sprite.
+    //
+    // Mirroring leaves a convex shape convex but REVERSES THE WINDING, which is
+    // why the normals below ignore sign and only the axis matters.
     private bool mirrored;
     private float mirrorWidth;
 
@@ -51,9 +47,9 @@ public struct Polygon
 
     public readonly int Count => vertices?.Length ?? 0;
 
-    // Vertex i in world space. Mirrored FIRST, so the flip happens in the
-    // sprite's own frame the way SpriteBatch does it, and any rotation then
-    // applies to the shape the viewer is actually looking at.
+    // Vertex i in world space. MIRRORED FIRST, so the flip happens in the
+    // sprite's own frame the way SpriteBatch does it, and the rotation then
+    // applies to the shape actually on screen.
     public readonly Vector2 this[int i] => Turned(Flipped(vertices[i])) + offset;
 
     public void SetPosition(Vector2 position)
@@ -114,8 +110,8 @@ public struct Polygon
         return poly;
     }
 
-    // Axis aligned box that contains the whole polygon. Cheap to compare, so
-    // it is worth checking before running the full test.
+    // Axis aligned box containing the whole polygon - cheap, so it is checked
+    // before the full test
     public readonly Rectangle BoundingBox()
     {
         if (Count == 0)
@@ -156,9 +152,8 @@ public struct Polygon
         return Intersects(FromRectangle(rectangle));
     }
 
-    // Circle against polygon. Same idea, plus one extra axis: the one running
-    // from the circle centre to the nearest vertex, which is the direction a
-    // circle can slip past a corner on.
+    // Circle against polygon. Same idea plus ONE EXTRA AXIS: centre to nearest
+    // vertex, which is the direction a circle can slip past a corner on.
     public readonly bool Intersects(Circle circle)
     {
         if (Count == 0)
@@ -265,9 +260,9 @@ public struct Polygon
         return normal;
     }
 
-    // Builds a convex outline inside a sprite frame from fractions of its size,
-    // so a shape can be described once and reused at any sprite size.
-    //   (0.5, 0f) is top centre, (1f, 0.5f) is right middle, and so on.
+    // Builds an outline from FRACTIONS of a sprite frame, so a shape is described
+    // once and works at any sprite size.
+    //   (0.5f, 0f) is top centre, (1f, 0.5f) is right middle.
     public static Polygon FromFractions(Vector2[] fractions, float width, float height)
     {
         var verts = new Vector2[fractions.Length];

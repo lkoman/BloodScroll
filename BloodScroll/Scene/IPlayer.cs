@@ -74,7 +74,7 @@ public interface IPlayer
     bool IsPoisoned { get; }
     void ApplyPoison(int totalDamage, float seconds);
 
-    // Rooted to the spot (the black spider's web). No steering, no jumping.
+    // Rooted to the spot (the green spider's web). No steering, no jumping.
     bool IsRooted { get; }
     void Root(float seconds);
     void Knockback(Vector2 direction, float force);

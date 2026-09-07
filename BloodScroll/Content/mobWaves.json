@@ -17,7 +17,8 @@
     "LayerType": "Boss Layer",
 
     "Gifts": {
-      "IncreasedHP": 600
+      "IncreasedHP": 600,
+      "Sword": true
     },
 
     "Mobs": {
@@ -27,7 +28,7 @@
       "Spider": 0,
       "Slime": 0,
       "GreenBat": 0,
-      "BlackSpider": 0,
+      "GreenSpider": 0,
       "Butterfly": 0,
 
       "Fireboss": 1,
@@ -52,7 +53,7 @@
       "Spider": 0,
       "Butterfly": 0,
       "GreenBat": 0,
-      "BlackSpider": 0,
+      "GreenSpider": 0,
 
       "Fireboss": 1,
       "Fireball": 4
@@ -79,7 +80,7 @@
       "Spider": 0,
       "Butterfly": 0,
       "GreenBat": 0,
-      "BlackSpider": 0,
+      "GreenSpider": 0,
 
       "Moth": 1,
       "Cocoon": 1
@@ -107,7 +108,7 @@
 
       "SpiderQueen": 1,
       "Spider": 4,
-      "BlackSpider": 2
+      "GreenSpider": 2
     },
 
     "WavesTimer": 0
@@ -130,7 +131,7 @@
       "Spider": 0,
       "Butterfly": 0,
       "GreenBat": 0,
-      "BlackSpider": 0,
+      "GreenSpider": 0,
 
       "Hive": 1
     },
@@ -153,7 +154,7 @@
       "Flower": 0,
       "Spider": 0,
       "Butterfly": 0,
-      "BlackSpider": 0,
+      "GreenSpider": 0,
 
       "ShadowTwin": 1,
       "PurpleBat": 4,

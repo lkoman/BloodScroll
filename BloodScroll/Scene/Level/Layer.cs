@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 
-using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace BloodScroll;
 
@@ -33,15 +32,11 @@ public class Layer : IDrawableLayer
     private MobManager mobManager;
     public MobManager MobManager => mobManager;
 
-    // A layer keeps running until its waves are spent AND everything on it is dead.
-    // That is what lets mobs chase the player up through layers he ran past
-    // instead of politely stopping at the ceiling. Once a layer is genuinely
-    // cleared there is nothing left to simulate, so it goes quiet for good.
+    // A layer keeps running until its waves are spent AND everything on it is
+    // dead, so mobs can chase the player up through layers he ran past.
     //
-    // Note this is NOT the same question as "has the layer been beaten" below.
-    // A boss layer is beaten the moment its boss drops, but the escort it left
-    // behind is still alive and still chasing the player - so the layer keeps
-    // being simulated long after the gift card has come and gone.
+    // NOT the same question as LayerFinished below: a boss layer is beaten when
+    // its boss drops, but the escort is still alive and still being simulated.
     public bool NeedsUpdate =>
         mobManager.wavesTriggered &&
         !(mobManager.AllEnemiesBeaten && mobManager.waveData.WavesToBeat <= 0);
@@ -49,13 +44,10 @@ public class Layer : IDrawableLayer
     //
     // WHAT COUNTS AS FINISHING THIS LAYER
     //
-    // A BOSS LAYER IS OVER WHEN ITS BOSS IS. Whatever it brought with it can go
-    // on flying about; the fight the room was built for is finished and the
-    // player has earned the gift. Waiting for the escort as well turned the end
-    // of every boss fight into a hunt for the last two bats in an empty room.
+    // A BOSS LAYER IS OVER WHEN ITS BOSS IS - the escort can go on flying about.
+    // Every other layer is over when its waves are all sent and everything from
+    // them is dead.
     //
-    // Every other layer is over when its waves have all been sent out and
-    // everything from them is dead, which is what it has always been.
     private bool LayerFinished =>
         mobManager.waveData.LayerType == LayerType.Boss
             ? mobManager.BossBeaten

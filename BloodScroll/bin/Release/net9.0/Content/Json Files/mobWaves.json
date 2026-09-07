@@ -1,0 +1,53 @@
+[
+  {
+    "LayerIndex": 5,
+    "LayerType": "Ground Layer",
+
+    "Slimes_num": 0,
+
+    "Bats_num": 2,
+    "PurpleBats_num": 1,
+    "Crabs_num": 1,
+
+    "WavesTimerSeconds": 2,
+    "WavesToBeat": 2
+  },
+  {
+    "LayerIndex": 2,
+
+    "Bats_num": 3,
+    "PurpleBats_num": 1,
+
+    "WavesTimerSeconds": 2,
+    "WavesToBeat": 2
+  },
+  {
+    "LayerIndex": 0,
+    "LayerType": "Boss Layer",
+    "IncreasedHP": 750,
+
+    "Bats_num": 0,
+    "Slimes_num": 0,
+
+    "Fireball_num": 4,
+
+    "WavesToBeat": 1,
+    "WavesTimerSeconds": 2,
+    "WavesTimer": 0
+  },
+  {
+    "LayerIndex": 1,
+    "LayerType": "Boss Layer",
+    "GunID": 1,
+
+    "Bats_num": 0,
+    "PurpleBats_num": 0,
+    "Slimes_num": 0,
+
+    "Fireboss_num": 1,
+
+    "WavesToBeat": 1,
+    "WavesTimerSeconds": 2,
+    "WavesTimer": 0
+  }
+]

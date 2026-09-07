@@ -1,18 +1,15 @@
 using System;
-using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGameLibrary;
+using MonoGameLibrary.Graphics;
 
 namespace BloodScroll;
 
 //
 // THE FIREBALL, BAKED PIXEL BY PIXEL
 //
-// There is no explosion art in any of the atlas, and the same trick the shield
-// bubble and the webs use works here: bake the shape once, at the size it is
-// drawn at, because the world is drawn with PointClamp and blowing a small
-// circle up gives a stair stepped edge.
+// There is no explosion art in any of the atlas, so the shape is worked out
+// here instead - see BakedTexture, which owns the cache and the pixel walk.
 //
 // What is baked is a disc, not a ring: bright and solid in the middle, thinning
 // out towards the rim. The blast grows and fades as it is drawn (see Explosion),
@@ -31,52 +28,27 @@ public static class BlastTexture
     private const float RIM_CENTER = 0.93f;
     private const float RIM_WIDTH = 0.11f;
 
-    // One texture per size. There are only ever two - the shell gun's blast
-    // and the flower bomb's - so this fills up once and never grows again.
-    private static readonly Dictionary<int, Texture2D> baked = [];
+    private static readonly TextureCache cache = new(Bake);
 
     // size is how wide the blast comes out at full stretch, in pixels
-    public static Texture2D Get(int size)
-    {
-        if (baked.TryGetValue(size, out Texture2D texture))
-            return texture;
+    public static Texture2D Get(int size) => cache.Get(size);
 
-        texture = Bake(size);
-        baked[size] = texture;
-
-        return texture;
-    }
-
-    private static Texture2D Bake(int size)
-    {
-        Texture2D texture = new(Core.GraphicsDevice, size, size);
-        Color[] pixels = new Color[size * size];
-        float radius = size / 2f;
-
-        for (int y = 0; y < size; y ++)
+    private static Texture2D Bake(int size) =>
+        BakedTexture.Mask(size, (dx, dy, radius) =>
         {
-            for (int x = 0; x < size; x ++)
-            {
-                // 0 in the middle of the texture, 1 on the rim
-                float dx = x + 0.5f - radius;
-                float dy = y + 0.5f - radius;
-                float d = MathF.Sqrt(dx * dx + dy * dy) / radius;
+            // 0 in the middle of the texture, 1 on the rim
+            float d = MathF.Sqrt(dx * dx + dy * dy) / radius;
 
-                if (d > 1f)
-                    continue;
+            // Nothing outside the circle. The rim band alone would otherwise
+            // reach a little past it and leave a stray ring in the corners.
+            if (d > 1f)
+                return 0f;
 
-                // Solid to the edge of the core, then falling away to nothing
-                float body = d <= CORE ? 1f : 1f - (d - CORE) / (1f - CORE);
+            // Solid to the edge of the core, then falling away to nothing
+            float body = d <= CORE ? 1f : 1f - (d - CORE) / (1f - CORE);
 
-                float rim = MathHelper.Clamp(1f - MathF.Abs(d - RIM_CENTER) / RIM_WIDTH, 0f, 1f);
+            float rim = MathHelper.Clamp(1f - MathF.Abs(d - RIM_CENTER) / RIM_WIDTH, 0f, 1f);
 
-                float alpha = MathHelper.Clamp(MathF.Max(body * body, rim), 0f, 1f);
-
-                pixels[y * size + x] = Color.White * alpha;
-            }
-        }
-
-        texture.SetData(pixels);
-        return texture;
-    }
+            return MathF.Max(body * body, rim);
+        });
 }

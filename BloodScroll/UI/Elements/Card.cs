@@ -11,18 +11,12 @@ namespace BloodScroll;
 //
 // THE GIFT CARD
 //
-// It used to be a drawn sprite out of the UI atlas with the text placed on top
-// by hand, which meant the card was a fixed 512x768 whatever was written on it -
-// one gift left most of it empty and four gifts ran off the bottom.
+// Drawn in code and MEASURED BEFORE IT IS DRAWN - the panel is exactly as tall
+// as the title, the list and the button need. Nothing has to be counted by hand
+// to add a gift.
 //
-// It is drawn in code now, and it is MEASURED BEFORE IT IS DRAWN: the panel is
-// exactly as tall as the title, the list and the button need it to be, so a
-// card announcing one thing is a small card and a card announcing four is a
-// taller one. Nothing has to be counted by hand to add a gift.
-//
-// IT ALSO ARRIVES RATHER THAN APPEARING. The card interrupts the game - it
-// pauses everything - so it fades up and settles the last few pixels into place
-// instead of being there suddenly between one frame and the next.
+// It fades up and settles into place rather than appearing between one frame
+// and the next. It pauses the game while it is up.
 //
 
 public class Card
@@ -82,10 +76,9 @@ public class Card
     private const float APPEAR_TIME = 0.18f;
     private const float APPEAR_RISE = 26f;
 
-    public void LoadContent(GraphicsDevice device)
+    public void LoadContent()
     {
-        _acceptButton = new Button();
-        _acceptButton.LoadContent("OK!", UISettings.smallButtonSize, device);
+        _acceptButton = new Button("OK!", UISettings.smallButtonSize);
     }
 
     public MouseCursor Update(IAudioService audio)
@@ -111,13 +104,8 @@ public class Card
         return hovering ? MouseCursor.Hand : MouseCursor.Arrow;
     }
 
-    //
-    // HOW BIG THE CARD HAS TO BE
-    //
-    // Worked out from the same strings that are about to be drawn into it, in
-    // both Update and Draw, so the OK button is hit tested exactly where it
-    // was painted even on the frame a new gift changes the card's height.
-    //
+    // HOW BIG THE CARD HAS TO BE. Measured in BOTH Update and Draw off the same
+    // strings, so the OK button is hit tested exactly where it was painted.
     private Rectangle Measure()
     {
         float height = PAD_TOP
@@ -147,12 +135,9 @@ public class Card
     //
     // WHAT IS ON THE LIST, AND WHICH KIND OF LINE EACH ONE IS
     //
-    // RewardService writes two sorts of line. A gift starts with "- " and is
-    // the thing you won; anything else is the small print underneath it, like
-    // the key that swaps to the gun you have just been given.
-    //
-    // Told apart here rather than at the two call sites, so measuring the card
-    // and painting it can never disagree about how tall a line is.
+    // RewardService writes two sorts: a gift starts with "- ", anything else is
+    // small print under it. Told apart HERE, so measuring and painting can never
+    // disagree about how tall a line is.
     //
     private readonly record struct GiftLine(string Text, float Scale, bool IsGift)
     {
@@ -200,13 +185,8 @@ public class Card
         return total;
     }
 
-    //
-    // THE ENTRANCE
-    //
-    // The card starts a little low and rises into place. Squared off so it
-    // decelerates into position rather than arriving at a constant speed and
-    // stopping dead - it is a card being dealt, not a card being teleported.
-    //
+    // THE ENTRANCE. Starts low and rises into place, squared off so it
+    // decelerates rather than stopping dead.
     private float Eased => 1f - (1f - _appear) * (1f - _appear);
 
     private Rectangle Arrived(Rectangle card)
@@ -277,14 +257,10 @@ public class Card
     //
     // THE LIST OF WHAT YOU WON, ONE LINE AT A TIME
     //
-    // Drawn line by line rather than as one block, because a gift is allowed to
-    // explain itself - "New Gun" is followed by the key that swaps to it - and
-    // an explanation is a much longer line than a gift name. Passing the whole
-    // thing to DrawString centred it on the WIDEST line, which left the short
-    // ones hanging off to the left and let the long one run off the card.
+    // Line by line, not as one block - DrawString centres a block on its WIDEST
+    // line, which leaves the short ones hanging off to the left.
     //
-    // Each line is centred on its own, and any line too wide for the card is
-    // shrunk until it fits. Nothing has to be counted by hand to add a gift.
+    // Each line is centred on its own and shrunk if it is too wide for the card.
     //
     private void DrawGiftText(float centreX, float y, float alpha)
     {

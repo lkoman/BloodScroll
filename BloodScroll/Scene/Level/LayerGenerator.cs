@@ -6,7 +6,6 @@ using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using MonoGameLibrary.Graphics;
 
-using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace BloodScroll;
 
@@ -22,21 +21,19 @@ namespace BloodScroll;
 //   ...      one layer, exactly one screen tall
 //   seam     y = -(N-1) * windowHeight    <- shared edge with the layer below
 //
-// The camera shows one whole layer and nothing else, and the collision code
-// only ever tests the platforms of the layer the player's FEET are in. Both of
-// those turn into rules for the generator:
+// The camera shows one whole layer, and collision only tests the platforms of
+// the layer the player's FEET are in. Three rules follow:
 //
-//   - no platform may sit so high in its layer that a player standing on it has
-//     his head cut off by the ceiling,
-//   - the top edge of a platform decides which layer it belongs to, so the one
-//     platform that straddles the seam has to keep its top edge above it,
-//   - and the last platform of a layer must still be within one jump of the
-//     first platform of the next one, or the climb is over.
+//   - no platform may sit so high that a player on it has his head cut off by
+//     the ceiling,
+//   - a platform's TOP EDGE decides which layer it belongs to, so the platform
+//     straddling the seam must keep its top edge above it,
+//   - the last platform of a layer must be within one jump of the first
+//     platform of the next, or the climb is over.
 //
-// Those three pull against each other: head room (a player height) plus a
-// platform height is 156px, and one full jump is 156px. There is no slack at
-// all, which is why the seam platform is allowed to hang over the seam a
-// little - see SEAM_OVERHANG.
+// These pull against each other: head room + platform height is 156px and one
+// full jump is 156px, so there is NO slack - which is why the seam platform may
+// hang over a little. See SEAM_OVERHANG.
 //
 
 public class LayerGenerator

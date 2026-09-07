@@ -13,24 +13,15 @@ namespace BloodScroll;
 // - Draws equipped gun
 // - Spawns, updates, draws _bullets
 //
-//
 // FOUR GUNS, ONE TABLE
 //
-// Everything that makes one gun different from another is a line in Arsenal
-// below - the art, the colour, the damage, how often it may be fired and what
-// its shot does when it lands. Nothing else in this file knows which gun is
-// equipped; it reads the row and does what the row says.
+// Vse kar loči eno pištolo od druge je ena vrstica v Arsenal spodaj.
+// Nothing else in this file knows which gun is equipped.
 //
-// The two fast guns are the ones you fight with. The two slow ones are answers
-// to a specific problem, which is why they are on cooldowns long enough to see
-// in the HUD: the stun for the one thing you cannot afford to have moving, the
-// shell for a group.
+// Two fast guns to fight with, two slow ones on long cooldowns (shown in HUD).
 //
-
-// The whole cooldown of every gun is divided by the fire rate multiplier, so
-// "faster gun" makes ALL FOUR faster - including the four and six second ones.
-// A gift that only sped up the gun you happened to be holding would be worth a
-// different amount to two players who won it on the same layer.
+// The fire rate gift divides EVERY gun's cooldown, not just the equipped one.
+//
 
 public class WeaponsManager : IWeaponsManager, IDrawableLayer
 {
@@ -47,9 +38,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
     }
     public EquippedWeapon equippedWeapon = EquippedWeapon.BlueGun;
 
-    // TESTING ONLY - set back to false before handing the game in. Starts every
-    // run with the whole arsenal so the slow guns can be tried without waiting
-    // for the boss to hand them over.
+    // TESTING ONLY - true starts every run with the whole arsenal
     private const bool UNLOCK_ALL_WEAPONS = false;
 
     public int WEAPONS_UNLOCKED = StartingWeaponsUnlocked;
@@ -60,22 +49,14 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
     //
     // ONE ROW PER GUN
     //
-    //   GunRegion/GunTint       what you hold. The two slow guns borrow the big
-    //                           gold body and are told apart by colour -
-    //                           PLACEHOLDER, same trick MobArt uses
-    //   BulletRegion/BulletTint what leaves it, in the same colour as the gun.
-    //                           The REGION is only how big the shot is - every
-    //                           bullet is a code drawn circle now, so the tint
-    //                           is the whole of what it looks like
-    //   Damage                  what it takes off. For the shell this is the
-    //                           BLAST's damage - the shell itself never hits
+    //   GunRegion/GunTint       what you hold (slow guns = gold body, tinted)
+    //   BulletRegion/BulletTint the shot. Region is only its SIZE - every bullet
+    //                           is a code drawn circle, so tint is the look
+    //   Damage                  for the shell this is the BLAST's damage
     //   Cooldown                seconds between shots, before the fire rate gift
-    //   BulletScale             how big the shot is drawn AND how big it hits,
-    //                           because the hitbox is measured off the sprite
-    //   Knockback               how hard the shot shoves what it hits, in pixels
-    //                           per second. Only the rifle has any
-    //   ShowCooldown            whether it gets a bar in the HUD. Only the guns
-    //                           slow enough that waiting for one is a decision
+    //   BulletScale             how big it is drawn AND how big it hits
+    //   Knockback               px/s shove. Only the rifle has any
+    //   ShowCooldown            whether it gets a bar in the HUD
     private record WeaponSpec(
         string Name,
         string GunRegion,
@@ -94,30 +75,11 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         bool ShowCooldown = false);
 
     //
-    // THE TWO FAST GUNS, AND WHY THE SLOW ONE IS THE WORSE ONE
-    //
-    // Damage over ten seconds of holding the trigger on a boss, which is the
-    // only fight long enough for the number to mean anything:
-    //
-    //   PISTOL   25 x (10 / 0.20) = 50 shots = 1250
-    //   RIFLE    55 x (10 / 0.48) = 20.8 shots = 1146
-    //
-    // 125 DPS against 114.6 - the rifle is a shade over 8% behind. That gap is
-    // deliberately small enough to be worth arguing about and never small enough
-    // to be a rounding error: if you only care how fast the thing in front of you
-    // dies, the pistol is the answer, always.
-    //
-    // What the rifle sells instead is everything that happens between the shots.
-    // A 55 point bullet is more than twice the pistol's, and a mob shoved back on
-    // every one of them is a mob not touching you - the DPS you give up buys the
-    // hits you never take. The pistol out-damages it and the rifle out-lives it.
+    // DPS: PISTOL 125, RIFLE 114.6. Rifle je ~8% zadaj.
     //
     private static readonly WeaponSpec[] Arsenal =
     [
-        // THE STARTER. Small shots, quick, no surprises - this is the gun the
-        // whole game is balanced around and the one you spend most of it holding.
-        // The highest DPS in the arsenal, and the least forgiving: a 12 pixel
-        // bullet at 25 a time has to actually land, fifty times, to do its work.
+        // THE STARTER. 12px bullet, highest DPS in the arsenal.
         new WeaponSpec(
             Name: "PISTOL",
             GunRegion: "gun-blue",
@@ -128,20 +90,8 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
             Cooldown: 0.20f,
             BulletSpeed: 1500f),
 
-        // THE LONG ONE. Slower in every sense - between the shots and in the air -
-        // and it does not add up to more damage, on purpose. It is not an upgrade,
-        // it is a trade, and what you buy is threefold:
-        //
-        //   SIZE     a 30 pixel bullet against the pistol's 12. Forgiving against
-        //            a bat that will not hold still, and it catches two of them
-        //            lined up
-        //   WEIGHT   55 a shot. Things that die in two hits die in two hits
-        //   KNOCKBACK the shove. The crab walking you down goes back a hundred
-        //            pixels every time you hit it, and a boss a third of that
-        //
-        // The slow bullet is part of the price, not an oversight: at 1100 you
-        // have to lead a moving target, which is the cost of the fat forgiving
-        // hitbox that made it easy to hit in the first place.
+        // THE LONG ONE. 30px bullet, 55 damage, knockback (boss takes 1/3).
+        // Slow bullet - you have to lead a moving target.
         new WeaponSpec(
             Name: "RIFLE",
             GunRegion: "gun-gold",
@@ -154,22 +104,8 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
             BulletScale: 1.5f,
             Knockback: 800f),
 
-        // THE STUN. Takes nothing off whatever it hits - not a point - and
-        // freezes it solid for two seconds. It is not a weak gun, it is not a
-        // gun at all: the only thing it does is buy time, and every kill still
-        // has to come from one of the other three.
-        //
-        // Six seconds between shots means it is never crowd
-        // control - it is one answer, to one thing, at a time. Two frozen in
-        // every six is a window to act in, not a mob taken off the board: the
-        // other four seconds the thing is awake and coming, and that ratio is
-        // what stops the gun from simply deleting a boss one press at a time.
-        //
-        // THE THIRD GUN, and it is third because of what the player meets next.
-        // It is handed over on layer 8 and the spider queen is on layer 11: the
-        // one boss that pins the player in place is the one boss he can pin
-        // back, and he gets the tool for it with one layer to spare. Behind the
-        // shell instead, the answer would arrive nine layers after the question.
+        // THE STUN. 0 damage, freezes for 2s, 6s cooldown.
+        // Unlocked on layer 8 (spider queen is on layer 11).
         new WeaponSpec(
             Name: "STUN",
             GunRegion: "gun-gold",
@@ -183,14 +119,8 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
             StunSeconds: 2f,
             ShowCooldown: true),
 
-        // THE SHELL. Fires a slow lit grenade that goes off a second and a half
-        // later, wherever it has got to - or the moment it hits anything, or
-        // the moment you click again (see TryDetonateShells). The fuse is the
-        // deadline; the second click is the aim.
-        //
-        // LAST, because it is the one gun that asks something of the player
-        // rather than answering something for him - a fuse to read and a second
-        // click to time. By layer 17 he has the room to learn it.
+        // THE SHELL. Slow grenade, goes off after 1.5s, or on hitting anything,
+        // or on a second click (see TryDetonateShells). Unlocked on layer 17.
         new WeaponSpec(
             Name: "SHELL",
             GunRegion: "gun-gold",
@@ -213,20 +143,9 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
     // starts handing out upgrades one gun at a time
     public static int GunCount => Arsenal.Length;
 
-    //
-    // THE UPGRADES THAT NEVER RUN OUT
-    //
-    // Once the boss roster has given away everything there is to unlock, what
-    // keeps arriving is one notch on one gun (see BossSchedule.Upgrade). These
-    // are how big a notch is, and they are deliberately small: the climb has no
-    // end, so the player collects a great many of them, and a step that felt
-    // generous the first time would be absurd twenty bosses later.
-    //
-    // The fire rate step is the smaller of the two on purpose. Damage buys a
-    // shorter fight. Cooldown buys a different game - a shell every two seconds
-    // instead of every four stops being an answer to a crowd and starts being
-    // the only gun worth holding.
-    //
+    // ENDLESS UPGRADES. Once everything is unlocked the bosses hand out one
+    // notch on one gun instead (see BossSchedule.Upgrade). Small steps - the
+    // climb has no end, so the player collects many of them.
     private const float GUN_FIRE_RATE_STEP = 1.05f;
     private const float GUN_DAMAGE_STEP = 1.10f;
 
@@ -234,27 +153,23 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
     private List<Bullet> _bullets = [];
     public List<Bullet> Bullets => _bullets; // Za interface
 
-    //
-    // ONE TIMER PER GUN, AND THEY ALL RUN AT ONCE
-    //
-    // Seconds still to wait before that gun may be fired again. Every one of
-    // them counts down every frame whichever gun is in your hands, so the shell
-    // recharges while you are fighting with the pistol - swapping to the slow
-    // gun the moment its bar fills is the point, and it could not work if the
-    // clock only ran while you were holding it.
+    // THE SWORD. Not in the table above and not in EquippedWeapon - G and the
+    // wheel walk past it. Its own key, its own clock. See Sword.
+    // It lives here because this is what gets handed the world and audio.
+    private readonly Sword sword = new();
+    public Sword Sword => sword;
+
+    // ONE TIMER PER GUN, ALL RUNNING AT ONCE. Seconds left before that gun may
+    // fire again. Every one counts down whichever gun is held, so the shell
+    // recharges while you fight with the pistol.
     private readonly float[] cooldowns = new float[Arsenal.Length];
 
-    // Raised by the "faster gun" gift. Every cooldown is divided by it.
+    // The "faster gun" gift. Every cooldown is divided by it.
     private float fireRateMultiplier = 1f;
 
-    //
-    // AND ONE PAIR OF MULTIPLIERS PER GUN
-    //
-    // Kept alongside the one above rather than folded into it, because they are
-    // not the same gift: that one speeds up ALL FOUR guns and is won once,
-    // these improve a single gun and keep coming forever. Folding them together
-    // would make the endless upgrades quietly buff guns they never named.
-    //
+    // AND ONE PAIR PER GUN. Kept separate from the multiplier above: that one
+    // is won once and speeds up all four, these are the endless upgrades and
+    // only touch the gun they name.
     private readonly float[] gunFireRate = FreshMultipliers();
     private readonly float[] gunDamage = FreshMultipliers();
 
@@ -290,11 +205,13 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
 
         Array.Clear(cooldowns);
 
+        sword.Restart();
+
         SetGunPosition(player);
     }
 
-    // A gun already unlocked is never taken away, so a gift handed out twice
-    // (the boss schedule cycles forever) cannot walk the player backwards
+    // A gun already unlocked is never taken away - the boss schedule cycles
+    // forever and can hand the same gift out twice
     public void UnlockNewWeapon(int weaponID)
     {
         if (weaponID < 0 || weaponID >= Arsenal.Length)
@@ -304,17 +221,16 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         equippedWeapon = (EquippedWeapon)weaponID;
     }
 
-    // DEBUG (F3). The whole arsenal at once, without waiting for four bosses.
-    // The runtime version of UNLOCK_ALL_WEAPONS above, and the better of the
-    // two: that one is a const that has to be edited and rebuilt and then
-    // remembered about before handing the game in, this one is a key you press
-    // and a run you restart.
-    //
-    // It does NOT equip anything - the player keeps whatever is in his hands
-    // and walks up to the new guns with G or the wheel, same as always.
+    // First boss hands this over. Idempotent - the schedule cycles.
+    public void UnlockSword() => sword.Unlock();
+
+    // DEBUG (F3). The whole arsenal, sword included. Does NOT equip anything -
+    // the player walks up to the new guns with G or the wheel.
     public void UnlockAllWeapons()
     {
         WEAPONS_UNLOCKED = Arsenal.Length - 1;
+
+        sword.Unlock();
     }
 
     // Stacks, so winning it twice makes you twice as fast
@@ -323,10 +239,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         fireRateMultiplier *= multiplier;
     }
 
-    // ONE GUN, ONE NOTCH. Both stack the same way the gift above does, and both
-    // silently ignore a gun that does not exist rather than throwing - a gift
-    // is the game being generous, and it should never be the thing that
-    // crashes a run somebody has spent half an hour on.
+    // ONE GUN, ONE NOTCH. Both stack. An unknown gun is ignored, not thrown on.
     public void UpgradeFireRate(int weaponID)
     {
         if (!InArsenal(weaponID))
@@ -343,8 +256,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         gunDamage[weaponID] *= GUN_DAMAGE_STEP;
     }
 
-    // What the gift card calls the gun it just improved. "Faster SHELL" says
-    // something; "Faster Gun" on the twelfth boss says nothing at all.
+    // What the gift card calls the gun it just improved
     public string WeaponName(int weaponID) => InArsenal(weaponID) ? Arsenal[weaponID].Name : "GUN";
 
     private static bool InArsenal(int weaponID) => weaponID >= 0 && weaponID < Arsenal.Length;
@@ -356,13 +268,12 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         // Every gun's clock runs whether or not the player is alive or shooting
         TickCooldowns();
 
-        // ASKED BEFORE THE SHELLS MOVE, so the blast lands where the shell was
-        // drawn when the player clicked rather than a frame further along - at
-        // 750 a second that is a dozen pixels, and the whole point of the
-        // second click is that the player picked the spot.
-        //
-        // It also has to come before Spawn_bullets, or the shell fired by this
-        // very click would be sitting in the list waiting to be set off by it.
+        // Its own key, its own clock - swung with the gun still loaded
+        sword.Update(player, audio, gameWorld);
+
+        // BEFORE the shells move, so the blast lands where the shell was drawn
+        // when the player clicked. Also before Spawn_bullets, or the shell
+        // fired by this click would be set off by the same click.
         bool cutAFuse = Globals.PLAYER_ALIVE && TryDetonateShells();
 
         Update_bullets(gameWorld);
@@ -372,10 +283,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
 
         SetGunRotation();
 
-        // A click that set a shell off is SPENT. It cannot also load the next
-        // one - otherwise a player whose shell gun has been upgraded far enough
-        // to recharge inside its own fuse would detonate and fire on one press
-        // and never understand where the second shell came from.
+        // A click that set a shell off is SPENT - it cannot also fire the next
         if (!cutAFuse)
             Spawn_bullets(audio);
     }
@@ -383,19 +291,9 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
     //
     // THE SHELL GOES OFF WHEN YOU SAY SO
     //
-    // One click sends it, the next sets it off. Neither of the two ways a shell
-    // already ended has gone anywhere - it still goes off on its own when the
-    // fuse runs out, and still the instant it touches anything - this is a
-    // third, and the only one the player chooses.
-    //
-    // What it buys is the shot a fixed fuse cannot make: the blast lands on the
-    // group that is under the shell NOW, instead of wherever the shell has got
-    // to a second and a half after it left the gun. Aiming a shell stops being
-    // a guess about the future and becomes a decision you make in the air.
-    //
-    // Only while the shell gun is the one in your hands. Swapping back to the
-    // pistol to keep the pressure up means your clicks are the pistol's, and a
-    // shell already in the air is left to burn its own fuse out.
+    // One click sends it, the next sets it off. A shell still also goes off on
+    // its own fuse and on touching anything - this is a third way.
+    // Only works while the shell gun is equipped.
     //
     private bool TryDetonateShells()
     {
@@ -406,8 +304,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
 
         foreach (Bullet bullet in _bullets)
         {
-            // Anything already spent is left alone - a shell that hit a mob
-            // this frame is waiting to be cleared, not waiting to be lit
+            // Anything already spent is left alone
             if (bullet.active == 0 || !bullet.Explosive || bullet.FuseSpent)
                 continue;
 
@@ -418,25 +315,22 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         return any;
     }
 
-    // A FRESH PRESS, not the trigger still being held. Holding the button down
-    // is how every gun fires, so "click again" has to mean the button coming
-    // back down - or a single held press would set the shell off the frame
-    // after it was fired.
+    // A FRESH PRESS, not the trigger still held - guns fire on hold, so
+    // "click again" has to mean the button coming back down
     private static bool Clicked() =>
         Globals.MouseState.LeftButton == ButtonState.Pressed &&
         Globals.LastMouseState.LeftButton == ButtonState.Released;
 
     public List<IDrawableLayer> GetDrawables()
     {
-        var list = new List<IDrawableLayer>();
-
         // All player bullets
-        foreach (Bullet bullet in _bullets) {
-            list.Add(bullet);
-        }
+        var list = new List<IDrawableLayer>(_bullets);
 
         // This file draws the gun
         list.Add(this);
+
+        // And the sword draws itself, over the top of both of them
+        list.Add(sword);
 
         return list;
     }
@@ -449,15 +343,19 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
     //
     // WHAT THE HUD DRAWS
     //
-    // Only the guns the player actually has, and only the ones slow enough to
-    // be worth a bar. Ready is 1 when it can be fired and climbs back to 1 as
-    // it recharges, so the bar FILLS UP - a full bar means go.
+    // Only unlocked guns with ShowCooldown. Ready climbs back to 1 as the gun
+    // recharges, so the bar FILLS UP - full bar means ready.
     //
     public IReadOnlyList<WeaponCooldown> Cooldowns
     {
         get
         {
             var bars = new List<WeaponCooldown>();
+
+            // SWORD FIRST so its bar never moves - it is unlocked before the
+            // stun (layer 8) and the shell (17), which are added under it
+            if (sword.Unlocked)
+                bars.Add(sword.CooldownBar);
 
             for (int i = 0; i <= WEAPONS_UNLOCKED && i < Arsenal.Length; i++)
             {
@@ -474,8 +372,7 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
         }
     }
 
-    // The gun's own wait, divided by the gift that speeds up everything and by
-    // whatever notches this particular gun has been given since
+    // The gun's own wait, divided by both fire rate multipliers
     private float FullCooldown(int weapon) =>
         Arsenal[weapon].Cooldown / (fireRateMultiplier * gunFireRate[weapon]);
 
@@ -509,6 +406,16 @@ public class WeaponsManager : IWeaponsManager, IDrawableLayer
     ////////////
     private void Spawn_bullets(IAudioService audio)
     {
+        // BOTH HANDS ARE ON THE SWORD. Nothing is fired while the blade is out,
+        // whichever gun is equipped and however long its own clock says it has
+        // been ready - a swing costs you the fifth of a second it takes.
+        //
+        // The trigger is not remembered, it is simply ignored: holding it down
+        // through a swing starts firing again the frame the blade is put away,
+        // and a click spent entirely inside one is a click that never happened.
+        if (sword.Swinging)
+            return;
+
         bool held = Globals.MouseState.LeftButton == ButtonState.Pressed;
 
         // Holding the trigger down fires as fast as the equipped gun allows -

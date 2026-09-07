@@ -7,20 +7,15 @@ namespace BloodScroll;
 //
 // A BLAST
 //
-// Everything that goes off in the game ends up here: a shell from the slow gun
-// reaching the end of its fuse or hitting something, and a flower bomb the
-// player put down. The thing that went off is finished by the time this exists
-// - a blast is not a bomb, it is what a bomb leaves behind.
+// Everything that goes off ends up here: a shell at the end of its fuse or on
+// hitting something, and a flower bomb the player put down. Whatever went off
+// is already finished - this is what it leaves behind.
 //
-// IT HURTS ONCE, ON THE FRAME IT APPEARS, and then it is only a picture. That
-// is deliberate: a blast that kept dealing damage for as long as it was drawn
-// would hit for a wildly different amount depending on the frame rate, and the
-// player could not read how much a bomb costs him. One circle, one hit, done -
-// see GameWorld.LandBlast, which is the only thing that reads Damage.
+// IT HURTS ONCE, ON THE FRAME IT APPEARS, then it is only a picture. Otherwise
+// the damage would depend on frame rate. See GameWorld.LandBlast, the only
+// thing that reads Damage.
 //
-// What is left after that is the animation: the fireball grows a little and
-// fades out over a third of a second, which is long enough to see where the
-// blast reached and short enough not to hide the fight going on inside it.
+// After that the fireball grows a little and fades over a third of a second.
 //
 
 public class Explosion : IDrawableLayer

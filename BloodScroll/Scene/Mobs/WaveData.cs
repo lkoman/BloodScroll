@@ -62,47 +62,31 @@ public class WaveData
     //
     // HOW MANY OF A THING IS TOO MANY
     //
-    // Bats are the swarm. They are meant to pile up without limit - that is the
-    // shape of the whole game and outrunning them is the skill it teaches.
+    // A TYPE MISSING FROM THIS TABLE HAS NO LIMIT - that is what the bats are:
+    // the swarm, meant to pile up forever.
     //
-    // The rest are NOT swarm mobs, and they stop being interesting long before
-    // they stop multiplying:
-    //   a jellyfish is a slow floating hazard you route around. Fifteen of them
-    //   is not fifteen decisions, it is a wall.
-    //   a spider is a web every couple of seconds. Enough spiders and the
-    //   player is simply held in place while the bats arrive, which is not a
-    //   fight, it is a cutscene.
-    //   a butterfly is a heal. More than a couple and the healing stops being
-    //   something worth crossing a room for.
-    //
-    // So they are capped, and the layer gets harder above the cap by sending
-    // more bats instead.
-    //
-    // A TYPE MISSING FROM THIS TABLE HAS NO LIMIT, which is what the bats are
-    // for. The black spider has the tightest cap of all - losing the controls
-    // is the harshest thing the game does, and it only stays frightening while
-    // it stays rare.
+    // Everything else is capped, and the layer gets harder above the cap by
+    // sending more bats instead. The green spider has the tightest cap.
     private static readonly Dictionary<MobType, int> Cap = new()
     {
         [MobType.Jellyfish] = 5,
         [MobType.Spider] = 3,
-        [MobType.BlackSpider] = 2,
+        [MobType.GreenSpider] = 2,
         [MobType.Butterfly] = 2,
     };
 
     // The two late mobs, and the layer each starts turning up on. Both are
     // things the player has to already understand something else to read: the
     // green bat only means anything once ordinary bats are routine, and the
-    // black spider only reads as different once a normal web is familiar.
+    // green spider only reads as different once a normal web is familiar.
     private const int GREEN_BAT_FROM_LAYER = 6;
-    private const int BLACK_SPIDER_FROM_LAYER = 10;
+    private const int GREEN_SPIDER_FROM_LAYER = 10;
 
     //
     // HOW MANY OF EVERYTHING THIS LAYER SENDS
     //
-    // Every count here is the MEDIUM curve; Difficulty.Count is what bends it
-    // for baby and hell, and it bends it twice - one fewer or one more to start
-    // with, and a slower or faster climb from there. See Difficulty.
+    // Every count here is the MEDIUM curve. Difficulty.Count bends it twice for
+    // baby and hell: one fewer/more to start, and a slower/faster climb.
     //
     public void SetDifficulty()
     {
@@ -115,9 +99,8 @@ public class WaveData
             // 5 = 3 bats per wave
             // ...
         //
-        // The two halves of the swarm's growth: one step for every boss cycle
-        // the player has cleared, and a smaller one for each pair of layers
-        // inside the cycle he is on.
+        // Two halves: one step per boss cycle cleared, a smaller one per pair of
+        // layers inside the current cycle.
         int swarmProgress = (LayerIndex / 5) + (LayerIndex % 5) / 2;
 
         int swarm = Difficulty.Count(2, swarmProgress, cap: 8);
@@ -138,28 +121,18 @@ public class WaveData
             ? 0
             : Difficulty.Count(1, (LayerIndex - GREEN_BAT_FROM_LAYER) / 8, cap: 3);
 
-        // THE TWO GROUND MOBS. Neither is a threat on its own - what they do is
-        // take the floor away as somewhere safe to stand while the bats work on
-        // you. They used to be a flat difficulty count, which meant the easiest
-        // setting never saw one at all; they now creep in with the climb like
-        // everything else, so meeting one is something the run earns.
-        //
-        // The crab only ever exists on the ground layer (see MobManager) and
-        // that layer's count is written by hand, so this is the slime's curve
-        // in practice.
+        // THE TWO GROUND MOBS. They take the floor away as somewhere safe to
+        // stand. The crab only exists on the ground layer (see MobManager) and
+        // that layer is written by hand, so this is the slime's curve.
         Mobs[MobType.Slime] = Difficulty.Count(0, LayerIndex / 5, cap: 3);
         Mobs[MobType.Crab] = Difficulty.Count(0, LayerIndex / 5, cap: 3);
 
-        // Flowers are placed on platforms when the layer is built, so this is
-        // how many hide on the WHOLE layer, not how many per wave. Enough of
-        // them that a climb has to be picked around rather than walked up, and
-        // enough that there is usually one in reach when a bomb is wanted.
-        // Capped so a layer never runs out of clean ledges to land on.
+        // Flowers are placed on platforms when the layer is built, so this is the
+        // count for the WHOLE layer, not per wave. Capped so a layer never runs
+        // out of clean ledges.
         //
-        // THE DIFFICULTY DOES NOT TOUCH THIS ONE. A flower is a bomb the player
-        // gets to keep, so handing hell mode more of them than baby - which is
-        // what tying it to the setting did - made the hardest setting the one
-        // with the most ammunition lying about.
+        // THE DIFFICULTY DOES NOT TOUCH THIS ONE - a flower is a bomb the player
+        // keeps, so hell would end up with the most ammunition lying about.
         Mobs[MobType.Flower] = Math.Min(3 + LayerIndex / 6, 7);
 
         // Ceiling spiders join once the player has found his feet
@@ -167,14 +140,12 @@ public class WaveData
             ? 0
             : Difficulty.Count(1, LayerIndex / 8, cap: 3);
 
-        // THE BLACK ONE. Late, and never more than a couple - it does not slow
-        // the player down, it nails him to the spot, and that is only
-        // frightening while it is rare. On baby that first one is held back a
-        // full ten layers, which is the difficulty doing exactly what it should
-        // with a mob this harsh: not weakening it, just meeting it later.
-        Mobs[MobType.BlackSpider] = LayerIndex < BLACK_SPIDER_FROM_LAYER
+        // THE GREEN ONE. Late, and never more than a couple - it nails the
+        // player to the spot rather than slowing him. Baby holds the first one
+        // back a full ten layers: not weakened, just met later.
+        Mobs[MobType.GreenSpider] = LayerIndex < GREEN_SPIDER_FROM_LAYER
             ? 0
-            : Difficulty.Count(1, (LayerIndex - BLACK_SPIDER_FROM_LAYER) / 10, cap: 2);
+            : Difficulty.Count(1, (LayerIndex - GREEN_SPIDER_FROM_LAYER) / 10, cap: 2);
 
         // One butterfly a wave - the only healing there is outside a boss kill,
         // and the same one wherever the difficulty is set. Taking the heal away
@@ -185,11 +156,9 @@ public class WaveData
             // 0...7  = 2 waves
             // 8...15 = 3 waves
             // 16...  = 4 waves
-        // Never below two, whatever baby mode's slower climb works out to: one
-        // wave is not a layer, it is a corridor with a bat in it. And never
-        // above eight, because every wave's worth of bats is BUILT when the
-        // layer is (see MobManager.GenerateAllSleepingMobs) - past that the
-        // layer stops being a longer fight and starts being a longer wait.
+        // Never below two, whatever baby's slower climb works out to. Never above
+        // eight, because every wave's bats are BUILT when the layer is - see
+        // MobManager.GenerateAllSleepingMobs.
         WavesToBeat = Math.Clamp(Difficulty.Count(2, LayerIndex / 8), 2, 8);
     }
 
@@ -217,11 +186,9 @@ public class WaveData
         foreach (var (type, count) in data.Mobs)
             Mobs[type] = count;
 
-        // A BOSS LAYER IS ALWAYS ONE WAVE, whatever was written for it. The
-        // boss walks in with the wave and the layer is over when it drops
-        // (see Layer.LayerFinished) - a second wave would send in a second
-        // boss, and a difficulty setting that quietly did that on some layers
-        // and not others is not a difficulty setting, it is a bug.
+        // A BOSS LAYER IS ALWAYS ONE WAVE, whatever was written for it - the
+        // boss arrives with the wave and the layer ends when it drops (see
+        // Layer.LayerFinished). A second wave would send in a second boss.
         if (LayerType == LayerType.Boss)
             WavesToBeat = 1;
     }

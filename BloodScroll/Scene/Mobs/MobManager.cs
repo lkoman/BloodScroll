@@ -35,7 +35,7 @@ public class MobManager
         [MobType.Spider]    = new(() => new Spider()),
         [MobType.Butterfly] = new(() => new Butterfly()),
         [MobType.GreenBat]  = new(() => new GreenBat(), PreSpawnAsleep: true),
-        [MobType.BlackSpider] = new(() => new BlackSpider()),
+        [MobType.GreenSpider] = new(() => new GreenSpider()),
 
         [MobType.Fireboss]    = new(() => new Fireboss()),
         [MobType.SpiderQueen] = new(() => new SpiderQueen()),
@@ -61,7 +61,7 @@ public class MobManager
         MobType.Flower,
         MobType.Spider,
         MobType.Butterfly,
-        MobType.BlackSpider,
+        MobType.GreenSpider,
         MobType.SpiderQueen,
         MobType.Moth,
         MobType.Cocoon,
@@ -99,10 +99,7 @@ public class MobManager
     //
     // THE BOSS
     //
-    // A boss layer is about ONE mob, and the escort it comes with is scenery
-    // with teeth. Clearing the layer used to mean killing every last bat the
-    // boss had brought along, which turned the end of a good boss fight into a
-    // couple of minutes of chasing stragglers round an empty room.
+    // A boss layer is about ONE mob - the escort does not have to die with it.
     //
     // bossSpawned is what tells "the boss is dead" apart from "the boss has not
     // turned up yet" - both look like an empty list of bosses.
@@ -149,16 +146,8 @@ public class MobManager
         AllEnemiesBeaten = !mobs.Any(m => m.CountsAsEnemy);
     }
 
-    public List<IDrawableLayer> GetDrawables()
-    {
-        var list = new List<IDrawableLayer>();
-
-        // Add all monsters
-        foreach (var m in mobs)
-            list.Add(m);
-
-        return list;
-    }
+    // Every monster on this layer
+    public List<IDrawableLayer> GetDrawables() => new(mobs);
 
     // Called by mobs that spawn other mobs while the update loop is running.
     // The point is where the middle of the new mob lands, because what asks
@@ -336,12 +325,9 @@ public class MobManager
         }
     }
 
-    // Every mob in the game arrives through here, so this is the one place
-    // that has to notice a boss turning up - and the one place the difficulty
-    // has to be folded in. Doing it anywhere else means the next spawn route
-    // somebody adds (a wave, a sleeper, a hive spitting out adds) quietly
-    // arrives at medium whatever the player picked, which is the sort of bug
-    // nobody finds because the mob looks perfectly normal.
+    // EVERY mob arrives through here, so this is the one place that notices a
+    // boss turning up and the one place the difficulty is folded in. Doing it
+    // anywhere else means a new spawn route quietly arrives at medium.
     private void AddMob(IMob mob)
     {
         mob.ApplyDifficulty(layerIndex);

@@ -25,19 +25,9 @@ public class Sprite
         Region = region;
     }
 
-    public void CenterOrigin()
-    {
-        Origin = new Vector2(Region.Width, Region.Height) * 0.5f;
-    }
-
     public void Draw()
     {
         Region.Draw(Position, Color, Rotation, Origin, Scale, Effects, LayerDepth);
-    }
-
-    public void Draw(Vector2 pos)
-    {
-        Region.Draw(Position + pos, Color, Rotation, Origin, Scale, Effects, LayerDepth);
     }
 
     public void Draw(Color c)
@@ -45,23 +35,16 @@ public class Sprite
         Region.Draw(Position, c, Rotation, Origin, Scale, Effects, LayerDepth);
     }
 
-    public void Draw(Vector2 pos, Color c)
-    {
-        Region.Draw(Position + pos, c, Rotation, Origin, Scale, Effects, LayerDepth);
-    }
-
     public void Draw(float angle, Vector2 origin)
     {
         Region.Draw(Position, Color, angle, origin, Scale, Effects, LayerDepth);
     }
 
-    // Turns the sprite about the middle of its own frame WITHOUT moving it -
-    // Position still means the top left corner, which is what every hitbox and
-    // every bit of movement code in the game assumes.
+    // Turns the sprite about the middle of its frame WITHOUT moving it - Position
+    // still means the top left corner, which every hitbox assumes.
     //
-    // SpriteBatch places the origin point at the position it is given, so the
-    // position has to be pushed to the middle by exactly as much as the origin
-    // pulls it back.
+    // SpriteBatch puts the ORIGIN at the position it is given, so the position is
+    // pushed to the middle by exactly as much as the origin pulls it back.
     public void DrawRotated(float rotation, Color color)
     {
         if (rotation == 0f)

@@ -5,14 +5,13 @@ using MonoGameLibrary;
 namespace BloodScroll;
 
 //
-// A patch of web on the ground. Does no damage - standing in one just makes
-// the player slow and clumsy, which during a boss fight is the whole point.
+// A patch of web on the ground. NO DAMAGE - standing in one just slows the
+// player.
 //
-// Drawn as the same baked orb web the player gets wrapped in and the spiders
-// spit, only bigger, so every web in the game is recognisably the same thing.
+// The same baked orb web the spiders spit (see WebTexture), only bigger.
 //
-// Owned and drawn by the Spider Queen rather than being a mob of its own,
-// so it never has to be shot, killed or counted.
+// Owned and drawn by the Spider Queen rather than being a mob of its own, so it
+// never has to be shot, killed or counted.
 //
 
 public class Web

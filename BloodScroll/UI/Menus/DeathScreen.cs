@@ -1,5 +1,4 @@
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary;
 using Microsoft.Xna.Framework.Input;
 
@@ -25,35 +24,20 @@ public class DeathScreen
     private string Note = "";
     private bool NewBest = false;
 
-    public void LoadContent(GraphicsDevice device)
+    public void LoadContent()
     {
-        ButtonRestart = new Button();
-        ButtonRestart.LoadContent("RESTART", UISettings.buttonSize, device);
-
-        ButtonMenu = new Button();
-        ButtonMenu.LoadContent("MENU", UISettings.buttonSize, device);
+        ButtonRestart = new Button("RESTART", UISettings.buttonSize);
+        ButtonMenu = new Button("MENU", UISettings.buttonSize);
     }
 
     public MouseCursor Update(IAudioService audio)
     {
-        MouseCursor desiredCursor;
-
         BuildNote();
 
         MenuLayout layout = Measure();
 
-        ButtonRestart.Place(layout.ButtonAt(0, UISettings.buttonSize));
-        ButtonMenu.Place(layout.ButtonAt(1, UISettings.buttonSize));
-
-        ButtonRestart.UpdateHoverColor(audio);
-        ButtonMenu.UpdateHoverColor(audio);
-
-        if (ButtonRestart.Hover() || ButtonMenu.Hover()) {
-            desiredCursor = MouseCursor.Hand;
-        }
-        else {
-            desiredCursor = MouseCursor.Arrow;
-        }
+        MouseCursor desiredCursor = layout.PlaceButtons(audio, UISettings.buttonSize,
+            ButtonRestart, ButtonMenu);
 
         if (ButtonRestart.ButtonClicked(audio))
         {
@@ -113,7 +97,6 @@ public class DeathScreen
             NewBest ? UITheme.AccentBright : UITheme.TextPrimary,
             UITheme.TextMuted);
 
-        ButtonRestart.Draw(UISettings.buttonFont);
-        ButtonMenu.Draw(UISettings.buttonFont);
+        MenuLayout.DrawButtons(UISettings.buttonFont, ButtonRestart, ButtonMenu);
     }
 }

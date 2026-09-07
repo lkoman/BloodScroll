@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework;
 using MonoGameLibrary;
 
 namespace BloodScroll;
@@ -36,19 +36,11 @@ public class ShadowTwin : MobBase
     // Switches to hunting below this fraction of its HP
     private const float HUNT_THRESHOLD = 0.4f;
 
+    // HOW DARK A SHADOW CAN ACTUALLY BE. A cold violet grey, NOT AlmostBlack -
+    // that is nearly the colour of the backgrounds it flies in front of.
     //
-    // HOW DARK A SHADOW CAN ACTUALLY BE
-    //
-    // It used to be drawn in AlmostBlack, which is very nearly the colour of
-    // the backgrounds it flies in front of - the boss was genuinely invisible
-    // in the darker layers and the player was fighting a health bar hovering in
-    // mid air. A silhouette still has to be a silhouette you can SEE, so this
-    // is a cold violet grey: unmistakably a shadow of the player, and clearly
-    // separate from anything behind it.
-    //
-    // Its shots are drawn in it too - the darkest bullet in the game, which is
-    // exactly what a shadow should be firing, and only readable at all because
-    // every circle is drawn inside a pale rim (see Bullet).
+    // Its shots wear it too - the darkest bullet in the game, readable only
+    // because every circle is drawn inside a pale rim (see Bullet).
     private static readonly Color SHADOW = new(92, 84, 122);
 
     // Once the player is dead there is nobody left to mimic. It used to keep
@@ -109,7 +101,7 @@ public class ShadowTwin : MobBase
 
         ShootTimer(player, gameWorld);
 
-        Sprite.Effects = MovementUtils.FlipSprite(velocity, Sprite.Effects);
+        Sprite.Effects = MovementUtils.FlipSprite(velocity);
 
         SyncBounds();
 

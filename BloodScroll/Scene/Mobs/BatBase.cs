@@ -7,33 +7,25 @@ namespace BloodScroll;
 //
 // SHARED BASE FOR EVERY BAT
 //
-// All three bats are the same creature. Each one spawns asleep with the whole
-// layer, is woken a wave at a time, then picks a point somewhere near the player
-// and blunders towards it - rolling a fresh point every time the direction timer
-// runs out, which is what makes a swarm of them look like a swarm rather than
-// like a line of arrows.
+// All three bats are the same creature: spawned asleep with the whole layer,
+// woken a wave at a time, then picks a point near the player and blunders
+// towards it, re-rolling every time the direction timer runs out.
 //
-// What separates one bat from another is a handful of numbers and whether it
-// spits something at the player on the way. A subclass sets those and writes
-// nothing else.
+// A subclass sets a handful of numbers and whether it shoots. Nothing else.
 //
-// THE ORDER OF THE RANDOM CALLS BELOW IS LOAD BEARING. Spawning draws from the
-// same seeded stream as level generation, so a bat that rolled its numbers in a
-// different order would change every layer above it - see MobManager.SpawnOrder.
+// THE ORDER OF THE RANDOM CALLS BELOW IS LOAD BEARING - spawning draws from the
+// same seeded stream as level generation, so re-ordering them changes every
+// layer above. See MobManager.SpawnOrder.
 //
 
 public abstract class BatBase : MobBase, ISleepingMob
 {
     // What a bat spits, for the ones that spit at all.
     //
-    // Aim is how far off the player the shot may land. A bat that never missed
-    // would be unanswerable at range, so the miss is deliberate and the number
-    // is how forgiving that particular bat is.
-    //
-    // Region is how BIG the shot is and no longer what it looks like - every
-    // bullet is a code drawn circle now. Colour is what that circle is painted,
-    // and since the two shooting bats fly in the same swarm it is the one thing
-    // telling you which of them just fired at you.
+    //   Aim     how far off the player the shot may land - the miss is deliberate
+    //   Region  how BIG the shot is, not what it looks like
+    //   Colour  what the circle is painted - the only thing telling the two
+    //           shooting bats apart in a swarm
     protected record BatShot(
         string Region,
         int Damage,
@@ -107,7 +99,7 @@ public abstract class BatBase : MobBase, ISleepingMob
         (Sprite.Position, velocity) = MovementUtils.MoveTowardsTarget(Sprite.Position, target, velocity, speed, max_speed);
         velocity = MovementUtils.BounceFromEdge(velocity, Sprite.Position, Sprite.Width);
 
-        Sprite.Effects = MovementUtils.FlipSprite(velocity, Sprite.Effects);
+        Sprite.Effects = MovementUtils.FlipSprite(velocity);
 
         SyncBounds();
 
