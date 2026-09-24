@@ -86,6 +86,9 @@ public static class SaveManager
                 Globals.FULLSCREEN = data.Settings.FullScreen;
                 Globals.MUTED = data.Settings.Muted;
                 Globals.DIFFICULTY = Math.Clamp(data.Settings.Difficulty, 0, DIFFICULTY_COUNT - 1);
+
+                // Checks itself - see Bindings.FromSave
+                Bindings.FromSave(data.Settings.Keys);
             }
         }
         catch (Exception)
@@ -118,7 +121,8 @@ public static class SaveManager
             {
                 FullScreen = Globals.FULLSCREEN,
                 Muted = Globals.MUTED,
-                Difficulty = Globals.DIFFICULTY
+                Difficulty = Globals.DIFFICULTY,
+                Keys = Bindings.ToSave()
             }
         };
 
@@ -157,5 +161,9 @@ public static class SaveManager
         public bool FullScreen { get; set; } = true;
         public bool Muted { get; set; } = false;
         public int Difficulty { get; set; } = 1;
+
+        // Action name to key name, as set on the CONTROLS page. Missing from
+        // saves written before keys could be changed - null means defaults.
+        public Dictionary<string, string> Keys { get; set; }
     }
 }

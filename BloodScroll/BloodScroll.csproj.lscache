@@ -132,6 +132,7 @@ UI/
   ScoreCelebration.cs
   SeedField.cs
  Menus/
+  ControlsMenu.cs
   DeathScreen.cs
   MainMenu.cs
   PauseScreen.cs
@@ -141,6 +142,7 @@ UI/
  UI.cs
  UISettings.cs
  UITheme.cs
+Bindings.cs
 BloodScroll.cs
 DebugMode.cs
 IDrawableLayer.cs

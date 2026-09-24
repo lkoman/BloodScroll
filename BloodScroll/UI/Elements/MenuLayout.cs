@@ -43,17 +43,34 @@ public readonly struct MenuLayout
     // HOW WIDE THE PANEL IS. The widest thing on it, not just the buttons -
     // BLOOD SCROLL is nearly twice a button's width. Capped, and anything wider
     // than the cap is shrunk to fit (see TitleScale).
-    private const int MAX_INNER_WIDTH = 760;
+    public const int MAX_INNER_WIDTH = 760;
 
     public MenuLayout(string title, SpriteFont titleFont,
                       string subtitle, SpriteFont subtitleFont,
+                      int buttonCount, Vector2 buttonSize)
+        : this(title, titleFont,
+               subtitle == null ? null : subtitleFont.MeasureString(subtitle),
+               buttonCount, buttonSize)
+    {
+    }
+
+    //
+    // A BLOCK OF A GIVEN SIZE WHERE THE SUBTITLE WOULD GO
+    //
+    // For a screen that draws something of its own under the divider - the
+    // controls table - and only needs the panel to leave room for it. The
+    // block's top left is SubtitleAt, same as a subtitle's.
+    //
+    public MenuLayout(string title, SpriteFont titleFont,
+                      Vector2? body,
                       int buttonCount, Vector2 buttonSize)
     {
         _buttonHeight = buttonSize.Y;
 
         Vector2 titleSize = titleFont.MeasureString(title);
-        float subtitleWidth = subtitle == null ? 0f : subtitleFont.MeasureString(subtitle).X;
-        float subtitleHeight = subtitle == null ? 0f : subtitleFont.MeasureString(subtitle).Y;
+        bool hasBody = body.HasValue;
+        float subtitleWidth = hasBody ? body.Value.X : 0f;
+        float subtitleHeight = hasBody ? body.Value.Y : 0f;
 
         // The panel takes the widest of the three, then gives way to the cap
         float inner = MathHelper.Min(
@@ -68,7 +85,7 @@ public readonly struct MenuLayout
         float buttonsHeight = buttonCount * buttonSize.Y
                             + (buttonCount - 1) * UITheme.ButtonGap;
 
-        float belowDivider = subtitle == null
+        float belowDivider = !hasBody
             ? DIVIDER_TO_BUTTONS
             : DIVIDER_TO_SUBTITLE + subtitleHeight + SUBTITLE_TO_BUTTONS;
 
@@ -101,7 +118,7 @@ public readonly struct MenuLayout
 
         y += DIVIDER_HEIGHT;
 
-        if (subtitle == null)
+        if (!hasBody)
         {
             SubtitleAt = Vector2.Zero;
             y += DIVIDER_TO_BUTTONS;
@@ -109,7 +126,7 @@ public readonly struct MenuLayout
         else
         {
             y += DIVIDER_TO_SUBTITLE;
-            SubtitleAt = new Vector2(centreX - subtitleFont.MeasureString(subtitle).X / 2f, y);
+            SubtitleAt = new Vector2(centreX - subtitleWidth / 2f, y);
             y += subtitleHeight + SUBTITLE_TO_BUTTONS;
         }
 

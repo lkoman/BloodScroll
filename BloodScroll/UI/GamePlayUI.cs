@@ -72,6 +72,7 @@ public class GamePlayUI
     private const int PROMPT_BOTTOM = 90;
     private const int PROMPT_HEIGHT = 56;
     private const int KEYCAP = 34;
+    private const int KEYCAP_PAD = 8;
 
     // Latched by the flower the player is standing on while the world updates,
     // and cleared the moment it has been drawn - so the offer lives exactly one
@@ -491,7 +492,14 @@ public class GamePlayUI
             return;
 
         float textWidth = UISettings.fontUI.MeasureString(text).X * VALUE_SCALE;
-        int width = (int)(KEYCAP + LABEL_GAP + textWidth);
+
+        // Whatever pick up is bound to. The cap is square for a single letter
+        // and stretches sideways for a name like SPACE or SHIFT.
+        string key = Bindings.Name(GameAction.Interact);
+        float keyWidth = UISettings.fontUI.MeasureString(key).X * VALUE_SCALE;
+        int capWidth = Math.Max(KEYCAP, (int)keyWidth + KEYCAP_PAD * 2);
+
+        int width = (int)(capWidth + LABEL_GAP + textWidth);
 
         Rectangle prompt = new(
             (int)(Globals.VIRTUAL_WIDTH / 2f - width / 2f),
@@ -502,13 +510,13 @@ public class GamePlayUI
         Rectangle cap = new(
             prompt.X,
             prompt.Y + prompt.Height / 2 - KEYCAP / 2,
-            KEYCAP,
+            capWidth,
             KEYCAP);
 
         RoundedRect.FillGradient(cap, UITheme.ButtonTop, UITheme.ButtonBottom, 8);
         RoundedRect.Border(cap, UITheme.AccentBright, 8, 1);
 
-        UITheme.DrawTextCentredOutlined(UISettings.fontUI, "F",
+        UITheme.DrawTextCentredOutlined(UISettings.fontUI, key,
             cap.X + cap.Width / 2f,
             cap.Y + cap.Height / 2f - UISettings.fontUI.LineSpacing * VALUE_SCALE / 2f,
             UITheme.TextBright, VALUE_SCALE);

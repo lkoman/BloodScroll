@@ -501,23 +501,23 @@ public class Player : IPlayer, IDrawableLayer
 
         // INTERACT - pluck a flower, or put down the bomb in hand.
         // Press only, never hold, or a dropped bomb is picked straight back up.
-        if (keyboardState.IsKeyDown(Keys.F) && canInteract)
+        if (Bindings.IsDown(keyboardState, GameAction.Interact) && canInteract)
         {
             wantsInteract = true;
             canInteract = false;
         }
-        else if (keyboardState.IsKeyUp(Keys.F))
+        else if (!Bindings.IsDown(keyboardState, GameAction.Interact))
         {
             canInteract = true;
         }
 
-        // WEAPON SWITCH. G, not W - W sits under the movement keys.
-        if (keyboardState.IsKeyDown(Keys.G) && canSwitchWeapon)
+        // WEAPON SWITCH. G by default, not W - W sits under the movement keys.
+        if (Bindings.IsDown(keyboardState, GameAction.SwitchWeapon) && canSwitchWeapon)
         {
             weaponsManager.SwitchWeapon();
             canSwitchWeapon = false;
         }
-        else if (keyboardState.IsKeyUp(Keys.G))
+        else if (!Bindings.IsDown(keyboardState, GameAction.SwitchWeapon))
         {
             canSwitchWeapon = true;
         }
@@ -529,20 +529,20 @@ public class Player : IPlayer, IDrawableLayer
             weaponsManager.SwitchWeapon(wheelDelta > 0 ? 1 : -1);
 
         // SPRINT
-        if (keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift))
+        if (Bindings.IsDown(keyboardState, GameAction.Sprint))
         {
             speed *= SPRINT_ACCEL;
             max_speed *= SPRINT_ACCEL;
         }
 
         // LEVO
-        if (keyboardState.IsKeyDown(Keys.A) || keyboardState.IsKeyDown(Keys.Left))
+        if (Bindings.IsDown(keyboardState, GameAction.MoveLeft))
         {
             facingLeft = true;
             velocity.X -= speed;
         }
         // DESNO
-        else if (keyboardState.IsKeyDown(Keys.D) || keyboardState.IsKeyDown(Keys.Right))
+        else if (Bindings.IsDown(keyboardState, GameAction.MoveRight))
         {
             facingLeft = false;
             velocity.X += speed;
@@ -551,7 +551,7 @@ public class Player : IPlayer, IDrawableLayer
         else velocity.X = 0;
 
         // JUMP
-        if (keyboardState.IsKeyDown(Keys.Space) && canJump && jumpsUsed < maxJumps)
+        if (Bindings.IsDown(keyboardState, GameAction.Jump) && canJump && jumpsUsed < maxJumps)
         {
             audio.PlaySound(AudioId.PlayerJump);
 
@@ -563,7 +563,7 @@ public class Player : IPlayer, IDrawableLayer
             SetPlayerInAir(true);
             canJump = false;
         }
-        if (keyboardState.IsKeyUp(Keys.Space))
+        if (!Bindings.IsDown(keyboardState, GameAction.Jump))
         {
             canJump = true;
         }
@@ -588,7 +588,7 @@ public class Player : IPlayer, IDrawableLayer
     // THE DASH
     //
     // Returns true while a dash is running. Otherwise checks for a fresh press
-    // of Q or E and starts one if the cooldown has run out. Press only, never
+    // of either dash key and starts one if the cooldown has run out. Press only, never
     // hold, so a held key does not fire again the moment the cooldown ends.
     //
     private bool UpdateDash(KeyboardState keyboardState, IAudioService audio)
@@ -608,8 +608,8 @@ public class Player : IPlayer, IDrawableLayer
             return true;
         }
 
-        bool left = keyboardState.IsKeyDown(Keys.Q);
-        bool right = keyboardState.IsKeyDown(Keys.E);
+        bool left = Bindings.IsDown(keyboardState, GameAction.DashLeft);
+        bool right = Bindings.IsDown(keyboardState, GameAction.DashRight);
 
         if (!left && !right)
         {

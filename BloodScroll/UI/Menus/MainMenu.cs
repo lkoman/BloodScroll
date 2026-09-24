@@ -45,17 +45,6 @@ public class MainMenu
 
     private string HighScoreNote = "CURRENT HIGH SCORE: 0";
 
-    // Along the bottom of the panel, under the buttons - the one place the
-    // controls are written down
-    private const string HINT = "A / D  MOVE     SPACE  JUMP     Q / E  DASH     F  PICK UP     ESC  PAUSE";
-    private const float HINT_SCALE = 0.62f;
-    private const int HINT_DROP = 26;
-
-    // The least air ever left between the hint and the bottom of the screen.
-    // See DrawHint - the panel got a row taller when the seed field joined the
-    // stack, and a hint hung a fixed distance below it fell off the edge.
-    private const int HINT_MARGIN = 18;
-
     private static readonly string[] DIFFICULTY_NAMES = ["BABY MODE", "MEDIUM", "HELL"];
 
     public void LoadContent()
@@ -156,31 +145,5 @@ public class MainMenu
         // Drawn where Update placed it. Update runs first every frame, so the
         // slab is hit tested exactly where it is about to be painted.
         seedField.Draw(UISettings.buttonFont);
-
-        DrawHint(layout);
-    }
-
-    // Small, muted and just below the panel rather than inside it: it is a
-    // reminder, and it must never compete with the buttons for attention.
-    //
-    // PINNED INSIDE THE BOTTOM EDGE. Hung at a fixed drop it followed the panel
-    // down as the stack grew, and the fifth row was the one that pushed it off
-    // the screen. Whichever of the two positions is higher up wins, so the hint
-    // stays readable however many rows the menu ends up with.
-    private static void DrawHint(MenuLayout layout)
-    {
-        float lineHeight = UISettings.fontUI.MeasureString(HINT).Y * HINT_SCALE;
-
-        float y = MathHelper.Min(
-            layout.Panel.Bottom + HINT_DROP,
-            Globals.VIRTUAL_HEIGHT - lineHeight - HINT_MARGIN);
-
-        UITheme.DrawTextCentred(
-            UISettings.fontUI,
-            HINT,
-            Globals.VIRTUAL_WIDTH / 2f,
-            y,
-            UITheme.TextMuted * 0.75f,
-            HINT_SCALE);
     }
 }

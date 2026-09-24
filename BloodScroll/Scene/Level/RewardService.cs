@@ -31,12 +31,12 @@ public static class RewardService
                 // player, and a second gun he does not know how to reach is
                 // not a gift. Said every time, because by the fourth gun the
                 // one line he read on layer 5 is long gone.
-                text.Append("  G or mousewheel for change of weapon\n");
+                text.Append("  " + Bindings.Name(GameAction.SwitchWeapon) + " or mousewheel for change of weapon\n");
 
                 weaponsManager.UnlockNewWeapon(gifts.GunID.Value);
             }
 
-            // Named with its key, the same way the gun gift names G and the
+            // Named with its key, the same way the gun gift names its key and the
             // wheel. Nothing else in the game is on Q, so a sword the player
             // never finds the key for is a gift he never received.
             if (gifts.Sword == true)
