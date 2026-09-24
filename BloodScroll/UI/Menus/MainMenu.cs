@@ -47,7 +47,7 @@ public class MainMenu
 
     // Along the bottom of the panel, under the buttons - the one place the
     // controls are written down
-    private const string HINT = "A / D  MOVE          SPACE  JUMP          E  PICK UP          ESC  PAUSE";
+    private const string HINT = "A / D  MOVE     SPACE  JUMP     Q / E  DASH     F  PICK UP     ESC  PAUSE";
     private const float HINT_SCALE = 0.62f;
     private const int HINT_DROP = 26;
 

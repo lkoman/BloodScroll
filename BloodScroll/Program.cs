@@ -6,5 +6,18 @@
 // does not care when it arrives.
 BloodScroll.SaveManager.Load();
 
-using var game = new BloodScroll.BloodScroll();
-game.Run();
+// A CRASH LEAVES A NOTE BEHIND.
+//
+// Without this the window just vanishes and a player has nothing to send back.
+// The log sits beside the save, in the player's own AppData, and is rethrown
+// afterwards so the crash still behaves like a crash.
+try
+{
+    using var game = new BloodScroll.BloodScroll();
+    game.Run();
+}
+catch (System.Exception e)
+{
+    BloodScroll.SaveManager.WriteCrashLog(e);
+    throw;
+}

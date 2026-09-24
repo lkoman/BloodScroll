@@ -154,16 +154,18 @@ public class Sword : IDrawableLayer
 
     private void ReadKey(IAudioService audio, GameWorld gameWorld)
     {
-        KeyboardState keyboardState = Keyboard.GetState();
+        // RIGHT MOUSE - Q is the dash now, and the swing is aimed with the
+        // mouse anyway
+        bool pressed = Globals.MouseState.RightButton == ButtonState.Pressed;
 
-        if (keyboardState.IsKeyDown(Keys.Q) && canSwing)
+        if (pressed && canSwing)
         {
             canSwing = false;
 
             if (cooldown <= 0f)
                 Swing(audio, gameWorld);
         }
-        else if (keyboardState.IsKeyUp(Keys.Q))
+        else if (!pressed)
         {
             canSwing = true;
         }

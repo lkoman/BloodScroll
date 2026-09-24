@@ -9,7 +9,7 @@ namespace BloodScroll;
 // THE IN GAME HUD
 //
 // Top left: HP, shield, gun cooldowns, status tags. Top middle: which layer.
-// Top right: score. Bottom middle: what E does.
+// Top right: score. Bottom middle: what F does.
 //
 // NOTHING HERE HAS A BACKGROUND - the HUD sits over the playfield, so every
 // string is white with a black outline all the way round (UITheme.
@@ -63,7 +63,7 @@ public class GamePlayUI
     // it and the switch that colours it can never drift apart.
     private const string DEBUG_TAG = "DEBUG";
 
-    // WHAT E DOES RIGHT NOW. Bottom middle, in SCREEN space - not over the
+    // WHAT F DOES RIGHT NOW. Bottom middle, in SCREEN space - not over the
     // flower or the player, so it never chases a swinging head off the screen.
     private const string PLUCK_TEXT = "PICK UP";
     private const string PLANT_TEXT = "PLANT THE BOMB";
@@ -149,6 +149,11 @@ public class GamePlayUI
             DrawBar(x, y, player.Shield / (float)player.ShieldMax, Globals.Yellow, "SHIELD");
             y += BAR_HEIGHT + BAR_GAP;
         }
+
+        // Same dim-while-filling rule as the gun bars
+        Color dash = player.DashReady >= 1f ? UITheme.AccentBright : UITheme.AccentBright * 0.65f;
+        DrawBar(x, y, player.DashReady, dash, "DASH");
+        y += BAR_HEIGHT + BAR_GAP;
 
         y = DrawWeaponCooldowns(weapons, x, y);
 
@@ -462,7 +467,7 @@ public class GamePlayUI
     }
 
     //
-    // THE E PROMPT
+    // THE F PROMPT
     //
     // Carrying a bomb WINS over standing on a flower - the world takes the key
     // press before any flower sees it (GameWorld.UpdateBombs), so the prompt has
@@ -503,7 +508,7 @@ public class GamePlayUI
         RoundedRect.FillGradient(cap, UITheme.ButtonTop, UITheme.ButtonBottom, 8);
         RoundedRect.Border(cap, UITheme.AccentBright, 8, 1);
 
-        UITheme.DrawTextCentredOutlined(UISettings.fontUI, "E",
+        UITheme.DrawTextCentredOutlined(UISettings.fontUI, "F",
             cap.X + cap.Width / 2f,
             cap.Y + cap.Height / 2f - UISettings.fontUI.LineSpacing * VALUE_SCALE / 2f,
             UITheme.TextBright, VALUE_SCALE);

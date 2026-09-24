@@ -37,10 +37,13 @@ public interface IPlayer
     bool CanJumpAgain { get; }
     bool IsSlowed { get; }
 
+    // 0 right after a dash, 1 when it is ready again
+    float DashReady { get; }
+
     //
     // THE FLOWER BOMB
     //
-    // One pair of hands, one bomb. E does whichever of the two things is
+    // One pair of hands, one bomb. F does whichever of the two things is
     // possible: put down the bomb you are holding, or pluck a flower if you
     // are not holding one.
     //

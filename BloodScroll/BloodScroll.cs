@@ -201,8 +201,19 @@ public class BloodScroll : Core
 
     protected override void Update(GameTime gameTime)
     {
+        // ALT-TAB PAUSES. Without it the run froze while away and came straight
+        // back live, often into something's teeth. Only mid-run - the menus,
+        // the death screen and the gift card already hold still on their own.
         if (!IsActive)
+        {
+            if (!Globals.MENU && Globals.PLAYER_ALIVE && !userInterface.GiftCardDisplayed)
+            {
+                Globals.PAUSE = true;
+                Globals.DISPLAY_PAUSE_MENU = true;
+            }
+
             return;
+        }
 
         CheckIfGamePaused();
 

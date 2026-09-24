@@ -175,6 +175,24 @@ public class Player : IPlayer, IDrawableLayer
     private const float KNOCKBACK_DRAG = 0.94f;   // per frame, so the throw eases off
     private float knockbackTimer = 0f;
 
+    //
+    // DASH - Q left, E right
+    //
+    // A short, flat burst: gravity is held off while it runs, so it works as an
+    // air dash across a gap as well as a sidestep on the ground. Keyboard is dead
+    // for its duration, same as a knockback. A web shortens it like it slows
+    // everything else.
+    private const float DASH_SPEED = 1800f;
+    private const float DASH_SECONDS = 0.14f;
+    private const float DASH_COOLDOWN = 1.5f;
+    private float dashTimer = 0f;
+    private float dashCooldown = 0f;
+    private float dashDirection = 0f;
+    private bool canDash = true;
+
+    // 0 right after a dash, 1 when it can be used again
+    public float DashReady => 1f - dashCooldown / DASH_COOLDOWN;
+
     // GIFTS won from bosses
     private int lifeSteal = 0;      // HP returned per kill
     private int shield = 0;         // soaks damage before HP does
@@ -261,6 +279,9 @@ public class Player : IPlayer, IDrawableLayer
         slowFactor = 1f;
         slowTimer = 0f;
         knockbackTimer = 0f;
+        dashTimer = 0f;
+        dashCooldown = 0f;
+        canDash = true;
         isHit = false;
         hitTimer = 0f;
 
@@ -319,6 +340,7 @@ public class Player : IPlayer, IDrawableLayer
         }
 
         UpdateHitTimer();
+        UpdateDashCooldown();
         UpdateSlowTimer();
         UpdatePoison();
         UpdateRoot();
@@ -450,6 +472,7 @@ public class Player : IPlayer, IDrawableLayer
         // NAILED TO THE SPOT. No steering, but gravity still applies.
         if (IsRooted)
         {
+            dashTimer = 0f;
             velocity.X = 0;
 
             if (inAir)
@@ -459,6 +482,11 @@ public class Player : IPlayer, IDrawableLayer
         }
 
         KeyboardState keyboardState = Keyboard.GetState();
+
+        // Mid dash - nothing else is read until it ends
+        if (UpdateDash(keyboardState, audio))
+            return;
+
         speed = SPEED;
         max_speed = MAX_SPEED;
         jump = JUMP;
@@ -473,12 +501,12 @@ public class Player : IPlayer, IDrawableLayer
 
         // INTERACT - pluck a flower, or put down the bomb in hand.
         // Press only, never hold, or a dropped bomb is picked straight back up.
-        if (keyboardState.IsKeyDown(Keys.E) && canInteract)
+        if (keyboardState.IsKeyDown(Keys.F) && canInteract)
         {
             wantsInteract = true;
             canInteract = false;
         }
-        else if (keyboardState.IsKeyUp(Keys.E))
+        else if (keyboardState.IsKeyUp(Keys.F))
         {
             canInteract = true;
         }
@@ -554,6 +582,62 @@ public class Player : IPlayer, IDrawableLayer
     {
         if (velocity.Y > MaxFallSpeed)
             velocity.Y = MaxFallSpeed;
+    }
+
+    //
+    // THE DASH
+    //
+    // Returns true while a dash is running. Otherwise checks for a fresh press
+    // of Q or E and starts one if the cooldown has run out. Press only, never
+    // hold, so a held key does not fire again the moment the cooldown ends.
+    //
+    private bool UpdateDash(KeyboardState keyboardState, IAudioService audio)
+    {
+        if (dashTimer > 0f)
+        {
+            dashTimer -= Globals.DT;
+
+            velocity.X = dashDirection * DASH_SPEED * slowFactor;
+            velocity.Y = 0f;
+
+            // Let go of the throw at the end, so he does not carry the burst
+            // on into the next frame's steering
+            if (dashTimer <= 0f)
+                velocity.X = dashDirection * MAX_SPEED * slowFactor;
+
+            return true;
+        }
+
+        bool left = keyboardState.IsKeyDown(Keys.Q);
+        bool right = keyboardState.IsKeyDown(Keys.E);
+
+        if (!left && !right)
+        {
+            canDash = true;
+            return false;
+        }
+
+        if (!canDash || dashCooldown > 0f || (left && right))
+            return false;
+
+        canDash = false;
+        dashDirection = left ? -1f : 1f;
+        facingLeft = left;
+        dashTimer = DASH_SECONDS;
+        dashCooldown = DASH_COOLDOWN;
+
+        audio.PlaySound(AudioId.PlayerJump);
+
+        velocity.X = dashDirection * DASH_SPEED * slowFactor;
+        velocity.Y = 0f;
+
+        return true;
+    }
+
+    private void UpdateDashCooldown()
+    {
+        if (dashCooldown > 0f)
+            dashCooldown -= Globals.DT;
     }
 
     // Hit for changing color when player is hit
@@ -671,6 +755,9 @@ public class Player : IPlayer, IDrawableLayer
 
         velocity = direction * force;
         knockbackTimer = KNOCKBACK_SECONDS;
+
+        // A gust ends a dash outright, or it would pick up again afterwards
+        dashTimer = 0f;
 
         // Counts as a spent jump, so the throw cannot be cancelled with a free
         // double jump the moment it lets go

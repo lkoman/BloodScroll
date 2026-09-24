@@ -16,7 +16,7 @@ public static class SaveManager
     // when the game is launched from it - a shortcut or a launcher sets a
     // different one, and the save silently lands somewhere else. An installed
     // copy may also sit in a folder the player is not allowed to write to.
-    private static string SavePath
+    private static string SaveDir
     {
         get
         {
@@ -26,7 +26,24 @@ public static class SaveManager
 
             Directory.CreateDirectory(dir);
 
-            return System.IO.Path.Combine(dir, "settings.json");
+            return dir;
+        }
+    }
+
+    private static string SavePath => System.IO.Path.Combine(SaveDir, "settings.json");
+
+    // Overwritten on every crash - only the latest one is worth reading
+    public static void WriteCrashLog(Exception e)
+    {
+        try
+        {
+            File.WriteAllText(
+                System.IO.Path.Combine(SaveDir, "crash.log"),
+                $"{DateTime.Now:yyyy-MM-dd HH:mm:ss}\n{Environment.OSVersion}\n\n{e}");
+        }
+        catch (Exception)
+        {
+            // Nowhere to write it. The crash goes ahead regardless.
         }
     }
 

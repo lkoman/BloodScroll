@@ -17,7 +17,7 @@ namespace BloodScroll;
 // Placed when the layer is built, not in a wave - it needs a platform.
 //
 // Two ways to deal with one: shoot it from a ledge away, or land on its
-// platform and PLUCK it with E, which gives you a bomb to carry.
+// platform and PLUCK it with F, which gives you a bomb to carry.
 //
 // HOW IT IS PUT TOGETHER (omejevanje)
 //

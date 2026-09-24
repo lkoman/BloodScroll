@@ -42,7 +42,7 @@ public static class RewardService
             if (gifts.Sword == true)
             {
                 text.Append("- Sword\n");
-                text.Append("  Q to swing it, aimed with the mouse\n");
+                text.Append("  Right click to swing it, aimed with the mouse\n");
 
                 weaponsManager.UnlockSword();
             }

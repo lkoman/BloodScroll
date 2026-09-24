@@ -70,8 +70,8 @@ public class WaveData
     private static readonly Dictionary<MobType, int> Cap = new()
     {
         [MobType.Jellyfish] = 5,
-        [MobType.Spider] = 3,
-        [MobType.GreenSpider] = 2,
+        [MobType.Spider] = 2,
+        [MobType.GreenSpider] = 1,
         [MobType.Butterfly] = 2,
     };
 
@@ -138,14 +138,14 @@ public class WaveData
         // Ceiling spiders join once the player has found his feet
         Mobs[MobType.Spider] = LayerIndex < 3
             ? 0
-            : Difficulty.Count(1, LayerIndex / 8, cap: 3);
+            : Difficulty.Count(1, LayerIndex / 12, cap: 2);
 
-        // THE GREEN ONE. Late, and never more than a couple - it nails the
+        // THE GREEN ONE. Late, and never more than one - it nails the
         // player to the spot rather than slowing him. Baby holds the first one
         // back a full ten layers: not weakened, just met later.
         Mobs[MobType.GreenSpider] = LayerIndex < GREEN_SPIDER_FROM_LAYER
             ? 0
-            : Difficulty.Count(1, (LayerIndex - GREEN_SPIDER_FROM_LAYER) / 10, cap: 2);
+            : Difficulty.Count(1, (LayerIndex - GREEN_SPIDER_FROM_LAYER) / 10, cap: 1);
 
         // One butterfly a wave - the only healing there is outside a boss kill,
         // and the same one wherever the difficulty is set. Taking the heal away

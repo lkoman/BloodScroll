@@ -97,6 +97,11 @@ public class Bullet: IDrawableLayer
     private const int WEB_SIZE = 48;
     private bool IsWeb => Effect == BulletEffect.Slow || Effect == BulletEffect.Root;
 
+    // A web only carries so far - after two layers' worth of flight it falls
+    // apart, so a spider two floors up cannot snipe the player
+    private const float WEB_RANGE_IN_LAYERS = 2f;
+    private Vector2 spawnPosition;
+
     // THE BORDER. Every circle is a pale rim with the colour inside it, so a
     // dark shot still has a bright edge against a busy background.
     private const float BORDER_SHARE = 0.16f;
@@ -135,6 +140,7 @@ public class Bullet: IDrawableLayer
             Tint = Globals.PoisonGreen;
 
         _bullet.Position = spawn;
+        spawnPosition = spawn;
 
         direction = Vector2.Normalize(target - spawn);
 
@@ -160,6 +166,10 @@ public class Bullet: IDrawableLayer
         {
             active = 0;
         }
+
+        // A layer is one screen tall
+        if (IsWeb && Vector2.Distance(_bullet.Position, spawnPosition) > Core.windowHeight * WEB_RANGE_IN_LAYERS)
+            active = 0;
 
         bulletBounds = CollisionManager.UpdateBoundingCircle(bulletBounds, _bullet);
     }
