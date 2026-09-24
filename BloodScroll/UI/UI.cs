@@ -60,8 +60,26 @@ public class UI : IUI
     // updates. Each of them answers with the cursor it wants, so the choice of
     // screen and the setting of the cursor stay one line apart instead of being
     // repeated five times.
+    // A fresh run: the HUD forgets which score landmarks have been passed
+    public void Restart(IAudioService audio)
+    {
+        gamePlayUI.Restart(audio);
+    }
+
     public void Update(IAudioService audio)
     {
+        //
+        // THE HUD TICKS WHATEVER SCREEN IS IN FRONT
+        //
+        // Outside the chain below, because it is not a screen competing for the
+        // mouse - it is the score's own clock. The biggest landmark of a run
+        // arrives on the frame the hive doubles the score, which is the same
+        // frame the gift card goes up and pauses everything, so a HUD that only
+        // ticked while the playfield was live would miss its own best moment.
+        //
+        if (!Globals.MENU)
+            gamePlayUI.Update(audio);
+
         if (Globals.SETTINGS_MENU)
             desiredCursor = settingsMenu.Update(audio);
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Xna.Framework;
@@ -57,6 +57,31 @@ public class LayerGenerator
     // overlap and switching sides always means a real jump.
     private const float PATH_GAP = 64f;
 
+    // THE SWEEP
+    // Left to itself a path climbs almost straight up: every hop may go a long
+    // way sideways, but a random one usually does not, and the platforms end up
+    // stacked. So each path is given a side of its band to walk towards, and
+    // keeps it until it gets there - which turns the climb into a zig zag from
+    // one edge of the band to the other.
+
+    // How much of what the jump can reach is thrown away on the side the path
+    // is walking away from. The landing spot is still random, it is just always
+    // random well over on the side the path is heading for.
+    private const float SWEEP_BIAS = 0.75f;
+
+    // Near enough to the edge it was walking towards to call it arrived, and
+    // turn round.
+    private const float SWEEP_ARRIVED = 100f;
+
+    // The chance a path turns round early anyway, so no two crossings of the
+    // band come out the same width.
+    private const float SWEEP_EARLY_TURN = 0.06f;
+
+    // Which way each path is walking right now: +1 towards the right edge of
+    // its band, -1 towards the left. Only ever reset on the ground layer, which
+    // is generated once per run.
+    private static int[] sweepDir = [];
+
     // How far the platform on the seam may hang into the layer below. Without
     // some overhang the seam jump would have to be pixel perfect (see above),
     // with too much the platform disappears under the bottom of the screen
@@ -89,6 +114,10 @@ public class LayerGenerator
         }
     }
 
+    // How thick a jumpable ledge is. Read by the player, because it is what
+    // decides how fast he is allowed to fall - see Player.MaxFallSpeed.
+    public static float SmallPlatformHeight => SmallSize.Y;
+
     public static Sprite GetBackground(int currentLayerIndex, Vector2 layerOffset)
     {
         string backgroundName = "background6";
@@ -108,6 +137,11 @@ public class LayerGenerator
     public static (List<Platform>, Vector2[]) GeneratePlatforms(int currentLayerIndex, Vector2[] lastPlatformPos)
     {
         List<Platform> platforms = [];
+
+        // A fresh run starts on the ground layer, so that is where the sweep
+        // starts over as well
+        if (currentLayerIndex == GROUND_LAYER_INDEX || sweepDir.Length != lastPlatformPos.Length)
+            ResetSweep(lastPlatformPos.Length);
 
         // The ground slab only exists on the layer the player starts on
         if (currentLayerIndex == GROUND_LAYER_INDEX)
@@ -229,7 +263,32 @@ public class LayerGenerator
         if (hi < lo)
             return Math.Clamp(from.X, bandLeft, bandRight);
 
-        return Rand(lo, hi);
+        int dir = sweepDir[path];
+
+        // Somewhere in the far part of what this jump can still reach, on the
+        // side the path is walking towards
+        float x = dir > 0
+            ? Rand(lo + (hi - lo) * SWEEP_BIAS, hi)
+            : Rand(lo, hi - (hi - lo) * SWEEP_BIAS);
+
+        bool arrived = dir > 0
+            ? x >= bandRight - SWEEP_ARRIVED
+            : x <= bandLeft + SWEEP_ARRIVED;
+
+        if (arrived || Globals.R.NextDouble() < SWEEP_EARLY_TURN)
+            sweepDir[path] = -dir;
+
+        return x;
+    }
+
+    // Both paths set off towards the middle of the screen, so the run opens
+    // with the two of them close enough to see across.
+    private static void ResetSweep(int pathCount)
+    {
+        sweepDir = new int[pathCount];
+
+        for (int path = 0; path < pathCount; path++)
+            sweepDir[path] = path < pathCount / 2f ? 1 : -1;
     }
 
     // The slice of the screen a path owns, in platform LEFT edges. Paths get a

@@ -143,6 +143,22 @@ public readonly struct MenuLayout
         return anyHovered ? MouseCursor.Hand : MouseCursor.Arrow;
     }
 
+    //
+    // ONE BUTTON, IN A SLOT NAMED BY HAND
+    //
+    // For a stack that is not all buttons. The main menu has a seed field
+    // sitting in the middle of its four, and PlaceButtons above numbers what it
+    // is given from zero - so passing it the four buttons would close the gap
+    // the field is supposed to be standing in.
+    //
+    public readonly MouseCursor PlaceButton(IAudioService audio, Vector2 buttonSize, int index, Button button)
+    {
+        button.Place(ButtonAt(index, buttonSize));
+        button.UpdateHoverColor(audio);
+
+        return button.Hover() ? MouseCursor.Hand : MouseCursor.Arrow;
+    }
+
     public static void DrawButtons(SpriteFont font, params Button[] buttons)
     {
         foreach (Button button in buttons)

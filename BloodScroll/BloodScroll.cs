@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -62,10 +62,12 @@ public class BloodScroll : Core
 
     public void LoadGameClasses()
     {
-        // get saved settings
-        SaveManager.Load();
-
+        // The save itself was read before the window existed - see Program.cs.
+        // The sound is the one setting that cannot be applied there, because
+        // there is no mixer until the line below has run.
         audioService = new AudioService(Content);
+        audioService.SetMasterVolume(Globals.MUTED ? 0f : 1f);
+
         userInterface.LoadContent();
 
         gameWorld = new GameWorld();
@@ -109,6 +111,7 @@ public class BloodScroll : Core
         gameWorld.Restart();
 
         userInterface.GiftCardDisplayed = false;
+        userInterface.Restart(audioService);
 
         // LAST, after everything above has been wiped back to a fresh run. If
         // debug mode is on it hands the guns and the shield straight back, so
@@ -117,6 +120,46 @@ public class BloodScroll : Core
 
         // Restart music
         audioService.SwitchToGameMusic();
+    }
+
+    //
+    // AN ICON THE UI CAN COLOUR
+    //
+    // SpriteBatch tinting MULTIPLIES, so a glyph drawn in near black comes out
+    // near black whatever colour it is asked for - which on a dark button is
+    // no glyph at all. Stripping the artwork back to white alpha leaves the
+    // tint free to decide the colour, so the reroll square can light its icon
+    // on hover the same way it lights its border.
+    //
+    // EVERY MIP LEVEL, not just the biggest. The icon is shown at a fraction
+    // of the size it was drawn at, so the level the square actually samples is
+    // one of the small ones - whiten only the top and the glyph stays black.
+    //
+    // The file itself is left alone. Only the copy on the card changes.
+    //
+    private static Texture2D Tintable(Texture2D source)
+    {
+        for (int level = 0; level < source.LevelCount; level++)
+        {
+            int width = Math.Max(1, source.Width >> level);
+            int height = Math.Max(1, source.Height >> level);
+
+            Color[] pixels = new Color[width * height];
+            source.GetData(level, null, pixels, 0, pixels.Length);
+
+            for (int i = 0; i < pixels.Length; i++)
+            {
+                // The content pipeline hands these over PREMULTIPLIED, so
+                // white is not 255 but the pixel's own alpha - anything
+                // brighter and the soft edge of the glyph comes back hard
+                byte a = pixels[i].A;
+                pixels[i] = new Color(a, a, a, a);
+            }
+
+            source.SetData(level, null, pixels, 0, pixels.Length);
+        }
+
+        return source;
     }
 
     protected override void LoadContent()
@@ -135,7 +178,13 @@ public class BloodScroll : Core
         Globals.World = TextureAtlas.FromFile(Content, "images/world.xml");
         Globals.Weapons = TextureAtlas.FromFile(Content, "images/weapons.xml");
 
-        Globals.SEED = 420;
+        Globals.RerollIcon = Tintable(Content.Load<Texture2D>("images/restart-icon"));
+
+        // A FRESH CLIMB EVERY LAUNCH. The number is shown on the main menu and
+        // can be typed over or rolled again there (see SeedField); Restart
+        // keeps whatever it is set to, so dying replays the layout you just
+        // lost rather than throwing it away.
+        Globals.SEED = Globals.NewSeed();
         Globals.R = new Random(Globals.SEED);
 
         // Height at which all non flying characters will be standing
@@ -252,8 +301,32 @@ public class BloodScroll : Core
         Globals.CameraOffset = new Vector2(0f, windowHeight * Globals.CurrentLayerIndex);
     }
 
+    //
+    // CLOSING THE GAME STILL COUNTS THE RUN
+    //
+    // UpdateHighScore is otherwise only reached by restarting or walking back
+    // to the menu, so a player who beat their best and then shut the window -
+    // from the death screen, or with Alt+F4, or on the X - threw the score away.
+    //
+    // Runs for every way out there is, the EXIT button included, because Exit()
+    // comes through here as well.
+    //
+    protected override void OnExiting(object sender, ExitingEventArgs args)
+    {
+        UpdateHighScore();
+
+        base.OnExiting(sender, args);
+    }
+
     private static void UpdateHighScore()
     {
+        // HIGH_SCORE_THIS_RUN is otherwise only topped up while the game is
+        // paused or the player is dead, which are the two moments the score is
+        // on screen. Quitting from a run in progress is neither, and the points
+        // standing at that moment are still the run's.
+        if (Globals.POINTS > Globals.HIGH_SCORE_THIS_RUN)
+            Globals.HIGH_SCORE_THIS_RUN = Globals.POINTS;
+
         if (Globals.HIGH_SCORE_THIS_RUN > Globals.HIGH_SCORE[Globals.DIFFICULTY])
         {
             Globals.HIGH_SCORE[Globals.DIFFICULTY] = Globals.HIGH_SCORE_THIS_RUN;

@@ -234,7 +234,10 @@ public class Moth : MobBase
         if (lookedForCocoon)
             return;
 
-        cocoon = gameWorld.FindMobOnLayer<Cocoon>(SpawnLayer);
+        // ONE NOBODY ELSE HAS TAKEN. A late layer sends two moths, and both
+        // flying home to the same cocoon would have them overwriting each
+        // other's answer to "is there a moth inside" every frame.
+        cocoon = gameWorld.FindMobOnLayer<Cocoon>(SpawnLayer, c => !c.Claimed);
 
         // Where it hangs, for good. SpawnLayer moves with her as she takes new
         // arenas off the player; this does not, so it is what she flies back to.
@@ -244,6 +247,9 @@ public class Moth : MobBase
 
         if (cocoon == null)
             return;
+
+        // Said in both directions from here, so the pair is settled in one place
+        cocoon.ClaimedBy(this);
 
         // She comes OUT of the cocoon rather than being dropped in. This is her
         // first frame, so she starts on top of it - the cocoon opens as soon as
@@ -255,6 +261,11 @@ public class Moth : MobBase
 
     // No cocoon on the layer means she never gets to stop attacking
     private bool HasShelter => cocoon != null;
+
+    // Whether she has already taken one. Asked by a cocoon looking for its own
+    // moth, so that on a two moth layer it does not pair with one that is
+    // already spoken for.
+    public bool HasCocoon => cocoon != null;
 
     //
     // OUT IN THE OPEN

@@ -17,12 +17,29 @@ namespace BloodScroll;
 // a button whose label is "HELL" tells you what the game is set to but never
 // tells you that clicking it will change it.
 //
+// THE SEED SITS UNDER IT, and is the same idea taken one step further: a
+// setting with too many values to cycle through, so it is typed instead. It
+// belongs in this stack rather than behind SETTINGS because it shapes the RUN,
+// the way difficulty does - fullscreen and sound are about the machine.
+//
 
 public class MainMenu
 {
     // BUTTONS
     private Button ButtonPlay, ButtonSettings, ButtonExitGame;
     private Button ButtonDifficulty;
+
+    // Not a button. It is typed into - see SeedField.
+    private SeedField seedField;
+
+    // Which row each control owns. Named, because the seed field is placed
+    // apart from the buttons and the two numberings have to agree.
+    private const int ROW_PLAY = 0;
+    private const int ROW_DIFFICULTY = 1;
+    private const int ROW_SEED = 2;
+    private const int ROW_SETTINGS = 3;
+    private const int ROW_EXIT = 4;
+    private const int ROW_COUNT = 5;
 
     private const string TITLE = "BLOOD SCROLL";
 
@@ -33,6 +50,11 @@ public class MainMenu
     private const string HINT = "A / D  MOVE          SPACE  JUMP          E  PICK UP          ESC  PAUSE";
     private const float HINT_SCALE = 0.62f;
     private const int HINT_DROP = 26;
+
+    // The least air ever left between the hint and the bottom of the screen.
+    // See DrawHint - the panel got a row taller when the seed field joined the
+    // stack, and a hint hung a fixed distance below it fell off the edge.
+    private const int HINT_MARGIN = 18;
 
     private static readonly string[] DIFFICULTY_NAMES = ["BABY MODE", "MEDIUM", "HELL"];
 
@@ -45,6 +67,8 @@ public class MainMenu
 
         ButtonSettings = new Button("SETTINGS", UISettings.buttonSize);
         ButtonExitGame = new Button("EXIT", UISettings.buttonSize);
+
+        seedField = new SeedField(UISettings.buttonSize);
     }
 
     public MouseCursor Update(IAudioService audio)
@@ -55,8 +79,19 @@ public class MainMenu
 
         MenuLayout layout = Measure();
 
-        MouseCursor desiredCursor = layout.PlaceButtons(audio, UISettings.buttonSize,
-            ButtonPlay, ButtonDifficulty, ButtonSettings, ButtonExitGame);
+        // The seed field goes FIRST, because its Update is what notices a click
+        // landing anywhere other than itself and puts the caret away - and a
+        // click on PLAY is exactly such a click.
+        seedField.Place(layout.ButtonAt(ROW_SEED, UISettings.buttonSize));
+        MouseCursor seedCursor = seedField.Update(audio);
+
+        MouseCursor desiredCursor = MouseCursor.Arrow;
+
+        desiredCursor = Pick(desiredCursor, layout.PlaceButton(audio, UISettings.buttonSize, ROW_PLAY, ButtonPlay));
+        desiredCursor = Pick(desiredCursor, layout.PlaceButton(audio, UISettings.buttonSize, ROW_DIFFICULTY, ButtonDifficulty));
+        desiredCursor = Pick(desiredCursor, layout.PlaceButton(audio, UISettings.buttonSize, ROW_SETTINGS, ButtonSettings));
+        desiredCursor = Pick(desiredCursor, layout.PlaceButton(audio, UISettings.buttonSize, ROW_EXIT, ButtonExitGame));
+        desiredCursor = Pick(desiredCursor, seedCursor);
 
         if (ButtonPlay.ButtonClicked(audio))
         {
@@ -70,6 +105,10 @@ public class MainMenu
         }
         else if (ButtonSettings.ButtonClicked(audio))
         {
+            // A caret left blinking on a screen nobody is looking at is a caret
+            // that swallows the next key pressed anywhere
+            seedField.Commit();
+
             Globals.SETTINGS_MENU = true;
         }
         else if(ButtonDifficulty.ButtonClicked(audio))
@@ -79,17 +118,25 @@ public class MainMenu
             else Globals.DIFFICULTY++;
 
             ButtonDifficulty.SetValue(DIFFICULTY_NAMES[Globals.DIFFICULTY]);
+
+            // Kept for the next launch, alongside the scores it belongs to
+            SaveManager.Save();
         }
 
         return desiredCursor;
     }
+
+    // A hand beats an arrow. Only one row can be under the mouse at a time, so
+    // whichever of them wants the hand is the one that gets it.
+    private static MouseCursor Pick(MouseCursor current, MouseCursor next)
+        => next == MouseCursor.Hand ? next : current;
 
     // Measured in both Update and Draw off the same strings, so the buttons are
     // hit tested exactly where they were drawn
     private MenuLayout Measure()
         => new(TITLE, UISettings.titleFont,
                HighScoreNote, UISettings.fontUI,
-               4, UISettings.buttonSize);
+               ROW_COUNT, UISettings.buttonSize);
 
     public void Draw()
     {
@@ -106,18 +153,33 @@ public class MainMenu
         MenuLayout.DrawButtons(UISettings.buttonFont,
             ButtonPlay, ButtonDifficulty, ButtonSettings, ButtonExitGame);
 
+        // Drawn where Update placed it. Update runs first every frame, so the
+        // slab is hit tested exactly where it is about to be painted.
+        seedField.Draw(UISettings.buttonFont);
+
         DrawHint(layout);
     }
 
     // Small, muted and just below the panel rather than inside it: it is a
-    // reminder, and it must never compete with the buttons for attention
+    // reminder, and it must never compete with the buttons for attention.
+    //
+    // PINNED INSIDE THE BOTTOM EDGE. Hung at a fixed drop it followed the panel
+    // down as the stack grew, and the fifth row was the one that pushed it off
+    // the screen. Whichever of the two positions is higher up wins, so the hint
+    // stays readable however many rows the menu ends up with.
     private static void DrawHint(MenuLayout layout)
     {
+        float lineHeight = UISettings.fontUI.MeasureString(HINT).Y * HINT_SCALE;
+
+        float y = MathHelper.Min(
+            layout.Panel.Bottom + HINT_DROP,
+            Globals.VIRTUAL_HEIGHT - lineHeight - HINT_MARGIN);
+
         UITheme.DrawTextCentred(
             UISettings.fontUI,
             HINT,
             Globals.VIRTUAL_WIDTH / 2f,
-            layout.Panel.Bottom + HINT_DROP,
+            y,
             UITheme.TextMuted * 0.75f,
             HINT_SCALE);
     }

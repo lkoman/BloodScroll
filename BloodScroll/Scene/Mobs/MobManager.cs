@@ -41,7 +41,6 @@ public class MobManager
         [MobType.SpiderQueen] = new(() => new SpiderQueen()),
         [MobType.Moth]        = new(() => new Moth()),
         [MobType.Cocoon]      = new(() => new Cocoon(), PreSpawnAtLayer: true),
-        [MobType.ShadowTwin]  = new(() => new ShadowTwin()),
         [MobType.Hive]        = new(() => new Hive()),
     };
 
@@ -65,7 +64,6 @@ public class MobManager
         MobType.SpiderQueen,
         MobType.Moth,
         MobType.Cocoon,
-        MobType.ShadowTwin,
         MobType.Hive,
         MobType.Bat,
         MobType.PurpleBat,
@@ -104,7 +102,24 @@ public class MobManager
     // bossSpawned is what tells "the boss is dead" apart from "the boss has not
     // turned up yet" - both look like an empty list of bosses.
     private bool bossSpawned = false;
-    public bool BossBeaten => bossSpawned && !mobs.Any(m => m.IsBoss);
+
+    //
+    // A BOSS LAYER WITH NO BOSS IN IT IS STILL A LAYER THAT HAS TO END
+    //
+    // The first rung of every loop is four fireballs and nothing else (see
+    // BossSchedule) - a boss layer by everything except its population. Asking
+    // only whether the boss is dead would leave it unfinishable: no boss ever
+    // spawns, so bossSpawned never turns true and the room never pays out.
+    //
+    // So a room with no boss falls back to the ordinary question - waves all
+    // sent, everything they sent dead. This cannot fire early on a REAL boss
+    // layer: the boss arrives with the only wave, which is the same frame
+    // WavesToBeat reaches zero, and AddMob sets bossSpawned before anything
+    // gets to ask.
+    //
+    public bool BossBeaten => bossSpawned
+        ? !mobs.Any(m => m.IsBoss)
+        : wavesTriggered && waveData.WavesToBeat <= 0 && AllEnemiesBeaten;
 
     public MobManager(int currentLayerIndex, WaveData data)
     {

@@ -31,9 +31,18 @@ public class Cocoon : MobBase
     // how we know she is gone. Re-asking the layer would also say "not there"
     // every time she chases the player up a screen.
     private Moth moth;
-    private bool lookedForMoth = false;
 
     private bool MothDead => moth != null && moth.HP <= 0;
+
+    // WHETHER A MOTH HAS ALREADY TAKEN THIS ONE AS HERS. Late layers send two,
+    // and both flying home to the same cocoon would leave them fighting over
+    // whether it is open or shut - see Moth.FindCocoon.
+    public bool Claimed => moth != null;
+
+    // Said by the moth that took it, which is the only one in a position to
+    // know. Both halves of the pair are set from her side, so the two can never
+    // end up disagreeing about who belongs to whom.
+    public void ClaimedBy(Moth owner) => moth = owner;
 
     // Faded once she is dead, and normal every other moment of the fight
     protected override Color DrawColour => Tinted(Color.White) * (MothDead ? DEAD_ALPHA : 1f);
@@ -106,13 +115,23 @@ public class Cocoon : MobBase
     // Looked for on the layer it was hung on, which is where she is on the frame
     // this runs. She may take the fight several screens up afterwards; the
     // reference does not care. A cocoon on a layer with no moth stays solid.
+    //
+    // A FALLBACK, AND IT MUST NOT GIVE UP
+    //
+    // Normally the moth pairs the two herself the moment she claims this one.
+    // This only matters if she never does.
+    //
+    // It used to latch after a single look, which was always a look too early:
+    // the cocoon is hung when the LAYER is built and the moth only arrives with
+    // the first wave several seconds later, so the search found nothing, gave
+    // up for good, and the cocoon never faded once she was dead.
+    //
     private void FindMoth(GameWorld gameWorld)
     {
-        if (lookedForMoth)
+        if (moth != null)
             return;
 
-        moth = gameWorld.FindMobOnLayer<Moth>(SpawnLayer);
-        lookedForMoth = true;
+        moth = gameWorld.FindMobOnLayer<Moth>(SpawnLayer, m => !m.HasCocoon);
     }
 
     // Where the moth aims for, and what it tucks itself behind

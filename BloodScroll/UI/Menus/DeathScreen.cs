@@ -67,11 +67,11 @@ public class DeathScreen
         string taunt;
 
         if (NewBest)
-            taunt = "Congrats! Now do it again.";
+            taunt = "Congrats! High score!";
         else if (run == best)
-            taunt = "Awwh, you almost had it! But not really...";
+            taunt = "Awwh, you almost had it...";
         else
-            taunt = "What are you even doing?:/";
+            taunt = "Are you even trying?";
 
         Note = headline + "\n" + taunt;
     }

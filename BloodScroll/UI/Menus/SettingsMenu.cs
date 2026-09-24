@@ -12,6 +12,10 @@ namespace BloodScroll;
 // to - that way a setting loaded from the save file, or changed anywhere else,
 // still shows up correctly the first time this screen is opened.
 //
+// BOTH ARE WRITTEN DOWN THE MOMENT THEY CHANGE. A player who turns the sound
+// off means it for more than one sitting, and being asked again on every
+// launch is the game forgetting something it was told.
+//
 
 public class SettingsMenu
 {
@@ -43,10 +47,16 @@ public class SettingsMenu
 
             Core.Graphics.IsFullScreen = Globals.FULLSCREEN;
             Core.Graphics.ApplyChanges();
+
+            SaveManager.Save();
         }
         else if(SoundButton.ButtonClicked(audio))
         {
-            audio.SetMasterVolume(audio.GetMasterVolume() == 0f ? 1f : 0f);
+            Globals.MUTED = !Globals.MUTED;
+
+            audio.SetMasterVolume(Globals.MUTED ? 0f : 1f);
+
+            SaveManager.Save();
         }
         else if(ButtonMenu.ButtonClicked(audio))
         {

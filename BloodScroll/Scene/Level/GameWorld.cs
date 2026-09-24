@@ -18,7 +18,13 @@ namespace BloodScroll;
 
 public class GameWorld
 {
-    private const string WaveFile = "Content/mobWaves.json";
+    // BESIDE THE GAME, NOT BESIDE WHOEVER LAUNCHED IT. A relative path is
+    // resolved against the working directory, and a shortcut or a launcher sets
+    // one that is not the game folder - the read then throws and takes the run
+    // down on the frame PLAY is pressed. Same reasoning as SaveManager.SavePath,
+    // and the same thing TitleContainer does for every atlas.
+    private static readonly string WaveFile =
+        Path.Combine(AppContext.BaseDirectory, "Content", "mobWaves.json");
 
     // Layers this far above and below the player are on screen
     private const int VisibleLayerRange = 1;
@@ -90,6 +96,10 @@ public class GameWorld
         // Gifts are earned again every run, so bosses start at their written HP
         BossTally.Reset();
 
+        // Every layer above the ground is generated now, so the watermark that
+        // skips spent layers starts back at the bottom
+        lowestLiveLayer = 0;
+
         LoadWaveData();
 
         // Generate first two layers
@@ -148,6 +158,21 @@ public class GameWorld
         return list;
     }
 
+    //
+    // THE LOWEST LAYER THAT COULD STILL HAVE ANYTHING ON IT
+    //
+    // Everything below this is spent: its waves are all sent and everything
+    // they sent is dead. A layer can never come back to life - the only thing
+    // that puts a new mob on a layer is a mob already standing on it (see
+    // MobManager.RequestSpawn), and there are none left - so once one goes
+    // quiet it can be stepped over for the rest of the run.
+    //
+    // This is what keeps the per frame cost flat. Without it every frame walked
+    // the whole tower from the ground up, and the walk got longer the higher
+    // the player climbed.
+    //
+    private int lowestLiveLayer = 0;
+
     // Every layer still running, plus the ones on screen.
     // Unfinished layers are ALWAYS included however far below the player they
     // are, so mobs he ran from keep coming. Cleared layers drop out.
@@ -156,7 +181,26 @@ public class GameWorld
         int firstVisible = Globals.CurrentLayerIndex - VisibleLayerRange;
         int lastVisible = Globals.CurrentLayerIndex + VisibleLayerRange;
 
-        for (int i = 0; i < layers.Count; i++)
+        // Walk the watermark up past anything that has gone quiet for good.
+        // Never past a layer that is on screen - those are yielded whether or
+        // not they still have anything left to update, because they are drawn.
+        while (lowestLiveLayer < layers.Count &&
+               lowestLiveLayer < firstVisible &&
+               !layers[lowestLiveLayer].NeedsUpdate)
+        {
+            lowestLiveLayer++;
+        }
+
+        // NEVER STARTS ABOVE WHAT IS ON SCREEN. The player can fall back down
+        // past the watermark, and a visible layer has to be yielded whatever
+        // the watermark has reached - otherwise this would be leaning on
+        // "spent layers are empty anyway" to stay correct, which is true today
+        // and is not the sort of thing to build on.
+        int from = Math.Min(lowestLiveLayer, Math.Max(0, firstVisible));
+
+        // The top end needs no watermark of its own: only one layer is ever
+        // generated above the player, so the list stops just over his head.
+        for (int i = from; i < layers.Count; i++)
         {
             bool onScreen = i >= firstVisible && i <= lastVisible;
 
@@ -198,15 +242,19 @@ public class GameWorld
     }
 
     // Lets one mob find another on its own layer after they were spawned
-    // separately (the moth looking for its cocoon)
-    public T FindMobOnLayer<T>(int layerIndex) where T : class, IMob
+    // separately (the moth looking for its cocoon).
+    //
+    // The optional test is for when the FIRST one of a kind is not the right
+    // one: two moths on a late layer each need a cocoon of their own, so each
+    // asks for one nobody has claimed yet rather than for any cocoon at all.
+    public T FindMobOnLayer<T>(int layerIndex, Func<T, bool> where = null) where T : class, IMob
     {
         if (layerIndex < 0 || layerIndex >= layers.Count)
             return null;
 
         foreach (var mob in layers[layerIndex].MobManager.mobs)
         {
-            if (mob is T match)
+            if (mob is T match && (where == null || where(match)))
                 return match;
         }
 

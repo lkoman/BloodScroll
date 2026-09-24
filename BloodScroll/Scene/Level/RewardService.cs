@@ -1,4 +1,6 @@
+using System;
 using System.Text;
+using MonoGameLibrary;
 
 namespace BloodScroll;
 
@@ -102,6 +104,30 @@ public static class RewardService
             {
                 text.Append($"- Stronger {weaponsManager.WeaponName(gifts.StrongerGun.Value)}\n");
                 weaponsManager.UpgradeDamage(gifts.StrongerGun.Value);
+            }
+
+            //
+            // THE WHOLE LOOP, PAID AT THE END OF IT
+            //
+            // Multiplies what is already banked rather than adding a lump, so
+            // it is worth more the further in the loop was cleared - which is
+            // the point. Nothing is handed to the player here; the reward is
+            // the number on the board.
+            //
+            if (gifts.ScoreMultiplier.HasValue)
+            {
+                float multiplier = gifts.ScoreMultiplier.Value;
+
+                text.Append(multiplier == 2f
+                    ? "- SCORE DOUBLED\n"
+                    : $"- SCORE x{multiplier:0.##}\n");
+
+                // In long, then clamped. The multiplier compounds every loop,
+                // and a deep enough run would otherwise wrap the score around
+                // into a negative number at the moment it was going best.
+                long boosted = (long)(Globals.POINTS * multiplier);
+
+                Globals.POINTS = (int)Math.Min(boosted, int.MaxValue);
             }
         }
 

@@ -43,6 +43,16 @@ public class GiftData
     public int? FasterGun { get; set; }    // this one gun's cooldown shortens
     public int? StrongerGun { get; set; }  // this one gun's shots hit harder
 
+    //
+    // WHAT CLEARING A WHOLE LOOP IS WORTH
+    //
+    // Not a thing the player carries - it multiplies the SCORE he has already
+    // banked. The hive ends the loop and pays this INSTEAD of a gift, so the
+    // hardest fight of the five is the one that decides how far ahead of a
+    // shallower run this one finishes.
+    //
+    public float? ScoreMultiplier { get; set; }
+
     // Copies every value that is set in "other" over this one
     public void MergeFrom(GiftData other)
     {
@@ -61,5 +71,7 @@ public class GiftData
         BonusShield = other.BonusShield ?? BonusShield;
         FasterGun = other.FasterGun ?? FasterGun;
         StrongerGun = other.StrongerGun ?? StrongerGun;
+
+        ScoreMultiplier = other.ScoreMultiplier ?? ScoreMultiplier;
     }
 }

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using MonoGameLibrary;
@@ -29,6 +30,16 @@ public class GamePlayUI
 
     // Between a bar and the word beside it saying what it is
     private const int LABEL_GAP = 12;
+
+    // THE WIDEST THE SCORE MAY EVER GET while a landmark is being celebrated.
+    // Short of half the screen, so even a seven figure number swelling out of
+    // the top right corner stops before it reaches the layer plate in the
+    // middle. See ScoreScale.
+    private const float MAX_SCORE_WIDTH = Globals.VIRTUAL_WIDTH * 0.44f;
+
+    // The landmark caption under the number, and the air above it
+    private const float CAPTION_SCALE = 0.9f;
+    private const int CAPTION_GAP = 6;
 
     // The bar names, and the HP figure over the top of them. Small - the colour
     // is what is actually being read, the word is only there for the first time
@@ -73,6 +84,27 @@ public class GamePlayUI
     // NOTHING TO LOAD. RoundedRect owns the one white pixel the bars are
     // stretched from and bakes its own corners the first time it is asked, so
     // this class had an empty LoadContent and no longer has one at all.
+
+    // HITTING A ROUND NUMBER. Owns the milestone clock and the confetti; the
+    // HUD only asks it how big the score should be right now.
+    private readonly ScoreCelebration celebration = new();
+
+    //
+    // TICKED EVERY FRAME, INCLUDING WHILE THE GAME IS PAUSED
+    //
+    // Beating the hive doubles the score and puts the gift card up, and the
+    // card pauses the game - so the biggest milestone in a run lands on a
+    // frame where nothing else is moving. UI.Update calls this outside the
+    // which-screen-has-the-mouse chain for exactly that reason.
+    //
+    public void Update(IAudioService audio)
+    {
+        celebration.Update(audio, ScoreCentre(ScoreScale()));
+    }
+
+    // A fresh run starts back at the first landmark, and cuts off any roll
+    // still playing over the run that just ended
+    public void Restart(IAudioService audio) => celebration.Restart(audio);
 
     public void Draw(IPlayer player, IWeaponsManager weapons)
     {
@@ -313,27 +345,120 @@ public class GamePlayUI
     //
     // WHAT IT HAS BEEN WORTH, in the top right
     //
-    private static void DrawScore()
+    // The digits, as the HUD prints them. No separators - the number is read as
+    // a shape that keeps climbing, not parsed. The caption under a landmark is
+    // the one place it gets written out properly (ScoreCelebration.Format).
+    private static string Points() => Globals.POINTS.ToString();
+
+    //
+    // HOW BIG THE NUMBER IS RIGHT NOW
+    //
+    // Its ordinary HUD size, swollen by whatever the celebration is doing, and
+    // then held back so the digits can never reach the layer plate in the
+    // middle of the screen - a seven figure score at full size is wide, and
+    // "grows down and left" stops being an answer once it has crossed the
+    // middle. Only ever shrinks the wanted size, never adds to it.
+    //
+    private float ScoreScale()
     {
-        string points = Globals.POINTS.ToString();
+        float wanted = VALUE_SCALE * celebration.Scale;
 
-        float labelWidth = UISettings.fontUI.MeasureString("SCORE").X * LABEL_SCALE;
-        float valueWidth = UISettings.fontUI.MeasureString(points).X * VALUE_SCALE;
+        float width = UISettings.fontUI.MeasureString(Points()).X;
 
-        // Both pinned to the right edge and sharing a middle line, so the word
-        // stays put while the number grows leftwards under it
+        if (width <= 0f)
+            return wanted;
+
+        return MathF.Min(wanted, MAX_SCORE_WIDTH / width);
+    }
+
+    //
+    // THE MIDDLE OF THE NUMBER, in screen space, at a given size.
+    //
+    // The RIGHT EDGE and the TOP are the two pinned points - that is the whole
+    // reason the number grows down and to the left as it swells, and never off
+    // the corner it lives in.
+    //
+    private static Vector2 ScoreCentre(float scale)
+    {
+        float width = UISettings.fontUI.MeasureString(Points()).X * scale;
+        float height = UISettings.fontUI.LineSpacing * scale;
+
+        return new Vector2(
+            Globals.VIRTUAL_WIDTH - HUD_LEFT - width / 2f,
+            HUD_TOP + height / 2f);
+    }
+
+    private void DrawScore()
+    {
+        string points = Points();
+
+        float scale = ScoreScale();
         float right = Globals.VIRTUAL_WIDTH - HUD_LEFT;
-        float centreY = HUD_TOP + UISettings.fontUI.LineSpacing * VALUE_SCALE / 2f;
 
-        UITheme.DrawTextOutlined(UISettings.fontUI, "SCORE",
-            new Vector2(right - valueWidth - LABEL_GAP - labelWidth,
-                        centreY - UISettings.fontUI.LineSpacing * LABEL_SCALE / 2f),
-            UITheme.TextBright, LABEL_SCALE);
+        float valueWidth = UISettings.fontUI.MeasureString(points).X * scale;
+        float valueHeight = UISettings.fontUI.LineSpacing * scale;
 
+        // BEHIND THE NUMBER, so the score stays readable through its own
+        // celebration. Nothing is drawn at all unless a burst is in the air.
+        celebration.DrawConfetti();
+
+        //
+        // THE WORD "SCORE"
+        //
+        // Placed where it sits at the ORDINARY size and left there, rather than
+        // being pushed along by the number - a label sliding across the screen
+        // ahead of a growing figure reads as a bug.
+        //
+        // It is not there at all during a celebration. The swelling number
+        // takes the space the label was standing in, and nothing that big needs
+        // telling the player what it is.
+        //
+        float restingWidth = UISettings.fontUI.MeasureString(points).X * VALUE_SCALE;
+        float labelWidth = UISettings.fontUI.MeasureString("SCORE").X * LABEL_SCALE;
+        float restingCentreY = HUD_TOP + UISettings.fontUI.LineSpacing * VALUE_SCALE / 2f;
+
+        float labelAlpha = celebration.ScoreLabelAlpha;
+
+        if (labelAlpha > 0.01f)
+        {
+            UITheme.DrawTextOutlined(UISettings.fontUI, "SCORE",
+                new Vector2(right - restingWidth - LABEL_GAP - labelWidth,
+                            restingCentreY - UISettings.fontUI.LineSpacing * LABEL_SCALE / 2f),
+                UITheme.TextBright * labelAlpha, LABEL_SCALE);
+        }
+
+        // Top left corner of the number. Right edge and top both pinned.
         UITheme.DrawTextOutlined(UISettings.fontUI, points,
-            new Vector2(right - valueWidth,
-                        centreY - UISettings.fontUI.LineSpacing * VALUE_SCALE / 2f),
-            UITheme.TextBright, VALUE_SCALE);
+            new Vector2(right - valueWidth, HUD_TOP),
+            UITheme.TextBright, scale);
+
+        DrawMilestoneCaption(right, HUD_TOP + valueHeight);
+    }
+
+    //
+    // WHAT THE LANDMARK WAS
+    //
+    // Under the number and pinned to the same right edge, in the gold nothing
+    // else in the HUD wears - the bars and tags carry every other colour the
+    // game uses, and this has to not be read as one of them.
+    //
+    private void DrawMilestoneCaption(float right, float top)
+    {
+        string caption = celebration.Caption;
+
+        if (caption.Length == 0)
+            return;
+
+        float alpha = celebration.CaptionAlpha;
+
+        if (alpha <= 0.01f)
+            return;
+
+        float width = UISettings.fontUI.MeasureString(caption).X * CAPTION_SCALE;
+
+        UITheme.DrawTextOutlined(UISettings.fontUI, caption,
+            new Vector2(right - width, top + CAPTION_GAP),
+            Globals.Yellow * alpha, CAPTION_SCALE);
     }
 
     //

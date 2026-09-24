@@ -8,19 +8,23 @@ namespace BloodScroll;
 // For testing, not for playing. One file and four call sites, so it is easy to
 // take out of the build.
 //
+// THE WHOLE THING IS OFF UNLESS THE SOURCE SAYS OTHERWISE. Set ENABLED below,
+// rebuild, and the keys come alive; shipped as it stands, a player leaning on
+// the function row finds nothing at all. There is deliberately NO key that
+// turns this on - it used to be F2, which meant the invulnerability was one
+// keystroke away for anybody who went looking, and a high score table is worth
+// nothing if beating it is a matter of finding the right function key.
+//
 //   F1   HITBOXES      draws every collision box and outline in the world
-//   F2   DEBUG MODE    no damage, the whole arsenal, and a shield
 //   F3   ALL WEAPONS   unlocks the whole arsenal on the spot
 //   F4   SHIELD        hands over a shield, same one the boss gives
 //
-// F1 and F2 are TOGGLES and survive a restart. F3 and F4 are one shot grants,
-// and a new run takes them away with everything else the player earned.
+// F1 is a TOGGLE and survives a restart. F3 and F4 are one shot grants, and a
+// new run takes them away with everything else the player earned.
 //
-// F2 turns on what F3 and F4 do as well as the invulnerability. They stay as
-// their own keys so the guns can be had WITHOUT the invulnerability.
-//
-// While F2 is on, the guns and shield are handed over ON EVERY RESTART (see
-// ApplyToRun), because a new run clears both.
+// INVULNERABLE is its own switch, set in the source beside ENABLED, so the guns
+// can be had WITHOUT it. While it is on, the guns and shield are handed over on
+// EVERY RESTART (see ApplyToRun), because a new run clears both.
 //
 // IT IS INVULNERABILITY, NOT INFINITE HP. The shield, the poison floor and the
 // death check all read HP, so a huge number would quietly change three other
@@ -28,39 +32,46 @@ namespace BloodScroll;
 //
 public static class DebugMode
 {
+    //
+    // THE ONE SWITCH, AND IT IS IN THE SOURCE
+    //
+    // static readonly rather than const on purpose: a const false would make
+    // everything guarded by it unreachable, and the compiler would rightly
+    // warn about every line of it.
+    //
+    private static readonly bool ENABLED = false;
+
+    // Set this alongside ENABLED when the run should also be unkillable.
+    // Separate, because reading the hitboxes or trying a late gun is usually
+    // wanted WITHOUT taking the danger out of the game at the same time.
+    private static readonly bool INVULNERABLE = true;
+
     // Damage never reaches the player while this is on. See Player.TakeDamage
     // and Player.UpdatePoison - those are the only two ways HP ever goes down.
-    public static bool Invulnerable { get; private set; } = false;
+    public static bool Invulnerable => ENABLED && INVULNERABLE;
 
     // Off by default. It is a tool for tuning the HitboxScale on a mob - the
     // box should hug the creature, not the empty space around it.
-    public static bool ShowHitboxes { get; private set; } = false;
+    public static bool ShowHitboxes => ENABLED && showHitboxes;
 
-    // The same capacity the boss hands out (see mobWaves.json), so what F4
-    // gives you is the real gift and not a debug-only version of it that
-    // behaves differently from the one the player will actually get.
+    private static bool showHitboxes = false;
+
+    // The same capacity the boss hands out (see BossSchedule), so what F4 gives
+    // you is the real gift and not a debug-only version of it that behaves
+    // differently from the one the player will actually get.
     private const int DEBUG_SHIELD = 100;
 
     private static KeyboardState lastKeyState;
 
     public static void Update(Player player, WeaponsManager weapons)
     {
+        if (!ENABLED)
+            return;
+
         KeyboardState keyState = Keyboard.GetState();
 
         if (Pressed(keyState, Keys.F1))
-            ShowHitboxes = !ShowHitboxes;
-
-        if (Pressed(keyState, Keys.F2))
-        {
-            Invulnerable = !Invulnerable;
-
-            // ON hands over the kit there and then, so it works mid run.
-            //
-            // OFF takes NOTHING BACK - there is no telling which guns came from
-            // it and which were won from a boss. Restart is what clears them.
-            if (Invulnerable)
-                Grant(player, weapons);
-        }
+            showHitboxes = !showHitboxes;
 
         if (Pressed(keyState, Keys.F3))
             weapons.UnlockAllWeapons();
@@ -75,21 +86,15 @@ public static class DebugMode
     // Called at the END of every Restart, once the player and guns are back to
     // what a fresh run starts with.
     //
-    // The invulnerability is a flag and survives on its own, but the guns and
-    // shield are STATE that Restart has just cleared, so they are put back here.
+    // The invulnerability is a source switch and needs no help, but the guns
+    // and shield are STATE that Restart has just cleared, so they are put back
+    // here.
     //
     public static void ApplyToRun(Player player, WeaponsManager weapons)
     {
         if (!Invulnerable)
             return;
 
-        Grant(player, weapons);
-    }
-
-    // Everything debug mode gives that is not the invulnerability itself.
-    // Exactly what F3 and F4 do, so the three keys can never drift apart.
-    private static void Grant(Player player, WeaponsManager weapons)
-    {
         weapons.UnlockAllWeapons();
         player.GrantShield(DEBUG_SHIELD);
     }

@@ -181,8 +181,24 @@ public class WaveData
             Gifts.MergeFrom(data.Gifts);
         }
 
-        // Per mob: a count written in the JSON replaces the generated one,
-        // so a boss layer can silence the normal swarm with "Bat": 0
+        //
+        // A BOSS LAYER IS ONLY ITS BOSS AND WHAT IT WAS GIVEN TO FIGHT ALONGSIDE
+        //
+        // THE ONE PLACE THE SWARM IS SILENCED, and it has to be here. What is
+        // being merged INTO is a WaveData built moments ago by MobManager, and
+        // its constructor has already run the whole normal curve - bats,
+        // jellyfish, slimes, the lot. A roster cleared on the way in gets
+        // merged on TOP of that and silences nothing, which is how boss layers
+        // ended up carrying a full swarm on top of the boss.
+        //
+        // Every count the roster does not mention therefore has to be wiped,
+        // not overwritten - a boss fight is exactly what it says it is.
+        //
+        if (LayerType == LayerType.Boss)
+            Mobs.Clear();
+
+        // Per mob: a count named by the roster or the JSON replaces whatever
+        // was generated for this layer
         foreach (var (type, count) in data.Mobs)
             Mobs[type] = count;
 

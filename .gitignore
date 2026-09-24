@@ -1,0 +1,20 @@
+# Build output
+bin/
+obj/
+
+# MonoGame content pipeline intermediates
+BloodScroll/Content/bin/
+BloodScroll/Content/obj/
+
+# Published builds (the itch.io upload folder)
+publish/
+
+# IDE
+.vs/
+*.user
+*.suo
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

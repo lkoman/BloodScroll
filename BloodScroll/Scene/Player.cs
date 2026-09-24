@@ -97,6 +97,29 @@ public class Player : IPlayer, IDrawableLayer
     private const float GRAVITY = 9.81f * 200;
     private const float SPRINT_ACCEL = 1.5f;
 
+    //
+    // THE FASTEST HE MAY EVER FALL
+    //
+    // A landing is only noticed if his feet were within ONE PLATFORM'S HEIGHT
+    // of the ledge on the previous frame - see IsPlayerStandingOnPlatform, which
+    // measures prevPos against a window that wide. Move further than that in a
+    // single frame and the test is stepped clean over.
+    //
+    // Falling from any height built up more than that, so a long drop went
+    // THROUGH every small ledge on the way down and only stopped at the ground
+    // slab, which is thick enough to still catch him. The cap is therefore
+    // exactly one platform height per frame: the fastest speed at which no
+    // ledge can be missed.
+    //
+    // TAKEN FROM THE ART, not written down as a number - a thinner platform
+    // would silently need a lower cap, and this way it gets one.
+    //
+    // It only bites after about a screen of falling. An ordinary jump between
+    // two ledges never comes close to it, so nothing about the normal feel of
+    // the game moves.
+    //
+    private static float MaxFallSpeed => LayerGenerator.SmallPlatformHeight / Globals.DT;
+
     private float speed, max_speed, jump = 0f;
     private bool canJump = true;
     private Vector2 velocity = new (0f, 0f);
@@ -300,6 +323,11 @@ public class Player : IPlayer, IDrawableLayer
         UpdatePoison();
         UpdateRoot();
 
+        // EVERY WAY GRAVITY GETS APPLIED FUNNELS THROUGH HERE, whether it came
+        // from the ordinary walk, from being rooted, or from a wing blast - so
+        // this is the one place the fall has to be held back
+        CapFall();
+
         prevPos = _player.Position;
         _player.Position += velocity * Globals.DT;
 
@@ -309,6 +337,10 @@ public class Player : IPlayer, IDrawableLayer
             velocity.X = 0;
             if (inAir)
                 velocity.Y += GRAVITY * Globals.DT;
+
+            // The line above is another frame of gravity, so the cap is
+            // re-applied before it is allowed to move him
+            CapFall();
 
             _player.Position += velocity * Globals.DT;
         }
@@ -513,6 +545,15 @@ public class Player : IPlayer, IDrawableLayer
         }
 
         velocity.X = Math.Clamp(velocity.X, -max_speed, max_speed);
+    }
+
+    // DOWNWARDS ONLY. Being thrown UP by a wing blast is not a fall and has
+    // nothing to tunnel through - the landing test only fires while he is on
+    // the way back down.
+    private void CapFall()
+    {
+        if (velocity.Y > MaxFallSpeed)
+            velocity.Y = MaxFallSpeed;
     }
 
     // Hit for changing color when player is hit

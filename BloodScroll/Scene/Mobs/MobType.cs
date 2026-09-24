@@ -25,6 +25,5 @@ public enum MobType
     SpiderQueen,
     Moth,
     Cocoon,
-    ShadowTwin,
     Hive
 }

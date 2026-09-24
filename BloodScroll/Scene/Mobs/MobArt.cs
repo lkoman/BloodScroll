@@ -84,7 +84,4 @@ public static class MobArt
     public static AnimatedSprite Jellyfish(string region) => Globals.Jellyfish.CreateAnimatedSprite(region);
     public static AnimatedSprite Butterflies(string region) => Globals.Butterfly.CreateAnimatedSprite(region);
     public static AnimatedSprite MothBoss(string region) => Globals.MothBoss.CreateAnimatedSprite(region);
-
-    // SHADOW TWIN has no art - it is the player sprite, drawn in near black
-    public static AnimatedSprite PlayerLookalike() => Globals.Player.CreateAnimatedSprite("player-idle");
 }

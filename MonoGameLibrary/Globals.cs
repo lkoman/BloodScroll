@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGameLibrary.Graphics;
 using System;
@@ -30,6 +30,10 @@ public static class Globals
 
     // Game variables - screen
     public static bool FULLSCREEN { get; set; } = true;
+
+    // Sound off. Kept here rather than read back off the mixer so SaveManager
+    // has something to write down - the mixer is built after the save is read.
+    public static bool MUTED { get; set; } = false;
     public const int VIRTUAL_WIDTH = 1920;//3840;
     public const int VIRTUAL_HEIGHT = 1080;//2160;
     public static Vector2 CameraOffset { get; set; } = Vector2.Zero;
@@ -39,7 +43,28 @@ public static class Globals
     public static float DT { get; set; }
     public static TimeSpan ElapsedTime { get; set; }
     public static Random R { get; set; }
+
+    //
+    // THE SEED
+    //
+    // Every platform and every mob placement is drawn from R, so this number IS
+    // the run: the same seed builds the same climb, twice. Chosen fresh on
+    // launch, shown on the main menu, and editable there - see SeedField.
+    //
+    // A RESTART KEEPS IT. Dying and going again replays the layout you just
+    // lost, which is the whole point of being able to see the number.
+    //
     public static int SEED { get; set; }
+
+    // The most a seed may be, and so the most digits the field accepts. Nine
+    // of them, which stays clear of where an int stops counting.
+    public const int MAX_SEED = 999999999;
+
+    // NOT drawn from R - R is the thing being seeded, and asking it for its own
+    // seed would make every "random" seed the same one.
+    private static readonly Random seedPicker = new();
+
+    public static int NewSeed() => seedPicker.Next(0, MAX_SEED + 1);
 
     // KEYBOARD INPUT
     public static KeyboardState LastKeyboardState { get; set; }
@@ -66,6 +91,10 @@ public static class Globals
     public static TextureAtlas World { get; set; }
     public static TextureAtlas Backgrounds { get; set; }
     public static TextureAtlas Foregrounds { get; set; }
+
+    // NOT AN ATLAS. An atlas exists to carve many sprites out of one sheet;
+    // this file holds one icon and nothing else, so it is loaded whole.
+    public static Texture2D RerollIcon { get; set; }
 
     // GLOBAL COLORS
     public static Color ScreenOverlayColor { get; set; } = Color.Transparent;
@@ -109,8 +138,7 @@ public static class Globals
     // decorative - no two may be close enough to confuse mid fight.
     //
     // Mobs that own a colour elsewhere are not listed here: the green bat's
-    // shots are PoisonGreen, the shadow twin's its own SHADOW violet, and the
-    // two slow guns BlastOrange and StunPurple.
+    // shots are PoisonGreen, and the two slow guns BlastOrange and StunPurple.
     //
     public static Color PistolBlue { get; } = new Color(86, 168, 235);  // the starter pistol
     public static Color RifleGold { get; } = new Color(238, 216, 150);  // the long gun - deliberately PALE, see below
